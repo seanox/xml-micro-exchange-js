@@ -1,0 +1,213 @@
+# OPTIONS without path behaves like CONNECT, because CONNECT is no HTTP standard
+
+# The following sequence is to test that requests to a storage with a custom
+# root element, the storage and the name of the root element must be correctly
+# specified in the request header.
+
+###
+# Header Storage is missing
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+OPTIONS {{service}} HTTP/1.0
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "cbb9d89ade52a1a5e3390f8914078a7c");
+});
+%}
+
+###
+# Header Storage is empty
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+OPTIONS {{service}} HTTP/1.0
+Storage:
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "cbb9d89ade52a1a5e3390f8914078a7c");
+});
+%}
+
+###
+# Header Storage is to long/invalid
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+OPTIONS {{service}} HTTP/1.0
+Storage: O________10________20________30________40________50________60____
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1970e53e5a377ca3149601911058148b");
+});
+%}
+
+###
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: O________10________20________30________40________50________60___
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3a52e477d3699fb472b6f0029098b29f");
+});
+%}
+
+###
+# The storage identifier with the max. length
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: O________10________20________30________40________50________60__A
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "cf5df264987745dc37971191c2c1ec31");
+});
+%}
+
+###
+# The storage identifier is case-sensitive
+# Expectations:
+# - Status code 202 Accepted
+OPTIONS {{service}} HTTP/1.0
+Storage: O________10________20________30________40________50________60__A
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c695d24d3200fad1829e474690e8f02c");
+});
+%}
+
+###
+# The storage identifier is case-sensitive
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: O________10________20________30________40________50________60__a
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4f55d028fab4247afa6802bb86d76739");
+});
+%}
+
+###
+# The storage identifier with the min. length
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: O
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "765beb1a0981c59eb935e63e3de58e5c");
+});
+%}
+
+###
+# The storage identifier with with invalid character(s)
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+OPTIONS {{service}} HTTP/1.0
+Storage: ?
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c94c83302927b9dbfa96bfba1e04f662");
+});
+%}
+
+###
+# Header Storage is invalid
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+OPTIONS {{service}} HTTP/1.0
+Storage: UnitTest_Storage-OC
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "366cbdb6248753ce94405ec28078ee9d");
+});
+%}
+
+###
+# Everything is correct, storage and name of the root element are transmitted
+# correctly, the storage can be created.
+# Expectations:
+# - Status code 201 Resource Created
+# - Connection-Unique: UID
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options_connect}} books
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2bfbc1db57823e2697880391512a2e8c");
+});
+%}
+
+###
+# Everything is correct, storage and name of the root element are transmitted
+# correctly, the storage can be shared.
+# Expectations:
+# - Status code 202 Accepted
+# - Connection-Unique: UID
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options_connect}} books
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "03213aa8acd5a480054f6aea317e8ac2");
+});
+%}
+
+###
+# Name of the root element is not correct.
+# Expectations:
+# - Status code 404 Resource Not Found
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options_connect}} bookS
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0da3a038b539e74456df1b42592b73e2");
+});
+%}
+
+###
+# Storage header is not correct.
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options_connect}} books x
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "30418410e7c9465fff84e4e2c2359b87");
+});
+%}
+
+###
+# Name of the root element is not correct.
+# Without specification the default 'data' is used.
+#   Storage header corresponds to: 
+# Storage: UnitTest_Storage_OC data
+# Expectations:
+# - Status code 404 Resource Not Found
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options_connect}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4f62d1e932ce9241524fba4eedff8c1f");
+});
+%}
+
+###
