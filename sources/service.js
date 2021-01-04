@@ -188,8 +188,13 @@
  */
 const http = require("http");
 const fs = require("fs");
-const xml = require("common-xml-features");
 const crypto = require("crypto");
+
+const EOL = require('os').EOL;
+const XMLSerializer = require("common-xml-features").XMLSerializer;
+const DOMParser = require("common-xml-features").DOMParser;
+const XPathResult = require("common-xml-features").XPathResult;
+const Document = require("common-xml-features").Document;
 
 class Storage {
 
@@ -419,7 +424,7 @@ class Storage {
      */
     open(exclusive = true) {
 
-        if (this.share !== undefined)
+        if (Object.exists(this.share))
             return;
 
         if (this.exists())
@@ -432,7 +437,7 @@ class Storage {
 
         var buffer = Buffer.alloc(fs.lstatSync(this.store).size);
         fs.readSync(this.share, buffer, {position:0});
-        this.xml = new xml.DOMParser().parseFromString(buffer.toString());
+        this.xml = new DOMParser().parseFromString(buffer.toString());
         this.revision = this.xml.documentElement.getAttribute("___rev");
     }
 
@@ -448,12 +453,12 @@ class Storage {
      */
     materialize() {
 
-        if (this.share === undefined)
+        if (!Object.exists(this.share))
             return;
         if (this.revision === this.xml.documentElement.getAttribute("___rev"))
             return;
 
-        var output = new xml.XMLSerializer().serializeToString(this.xml);
+        var output = new XMLSerializer().serializeToString(this.xml);
         if (output.length > Storage.SPACE)
             this.quit(413, "Payload Too Large");
         fs.ftruncateSync(this.share, 0);
@@ -463,7 +468,7 @@ class Storage {
     /** Closes the storage for the current request. */
     close() {
 
-        if (this.share === undefined)
+        if (!Object.exists(this.share))
             return;
 
         fs.closeSync(this.share);
@@ -487,11 +492,11 @@ class Storage {
      */
     getSize() {
 
-        if (this.xml !== undefined)
-            return new xml.XMLSerializer().serializeToString(this.xml).length;
-        if (this.share !== undefined)
+        if (Object.exists(this.xml))
+            return new XMLSerializer().serializeToString(this.xml).length;
+        if (Object.exists(this.share))
             return fs.fstatSync(this.share).size;
-        if (this.store !== undefined
+        if (Object.exists(this.store)
                 && fs.existsSync(this.store))
             return fs.lstatSync(this.store).size;
         return 0;
@@ -749,8 +754,8 @@ class Storage {
         // To remove, the headers are set before, so that standard headers like
         // Content-Type are also removed correctly.
         var fetchHeader = (response, name, remove = false) => {
-            if (response === undefined
-                    || response.headers === undefined)
+            if (!Object.exists(response)
+                    || !Object.exists(response.headers))
                 return;
             var result = undefined;
             Object.entries(response.headers || {}).forEach((entry) => {
@@ -867,9 +872,8 @@ class Storage {
 
         var media = fetchHeader(this.response, "Content-Type", true);
         if (status == 200
-                && data !== undefined
-                && data !== ""
-                && data !== null) {
+                && Object.exists(data)
+                && data !== "") {
             if (!media) {
                 if (this.options.includes("json")) {
                     /* TODO:
@@ -893,7 +897,7 @@ class Storage {
         }
 
         if (status >= 200 && status < 300)
-            if ((data !== "" && data !== null)
+            if ((Object.exists(data) && data !== "")
                     || status == 200)
                 headers["Content-Length"] = (data || "").length;
 
@@ -901,7 +905,7 @@ class Storage {
         // But only if no Allow header was passed.
         // So the header does not always have to be added manually.
         if ([201, 202, 405].includes(status)
-                && Object.keys(headers).filter(header => header.toLowerCase() === "allow").length > 0)
+                && Object.keys(headers).filter(header => header.toLowerCase() === "allow").length <= 0)
             headers["Allow"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE";
 
         headers["Execution-Time"] = (new Date().getTime() -this.request.timing) + " ms";
@@ -914,8 +918,6 @@ class Storage {
             // In the released versions the implementation is completely removed.
             // Therefore the code may use computing time or the implementation may
             // not be perfect.
-            // For JSON output, the slash is escaped for compatibility with PHP.
-            // Thus, the tests can be used in both implementations.
 
             var cryptoMD5 = (text) => {
                 return crypto.createHash("MD5").update(text).digest("HEX");
@@ -930,7 +932,7 @@ class Storage {
                 "Storage": (this.request.headers["storage"] || ""),
                 "Content-Length": (this.request.headers["content-length"] || "").toUpperCase(),
                 "Content-Type": (this.request.headers["content-type"] || "").toUpperCase()
-            }).replace(/\//g, "\\/");
+            });
             headers["Trace-Request-Header-Hash"] = cryptoMD5(hash);
             trace.push(cryptoMD5(hash) + " Trace-Request-Header-Hash", hash);
 
@@ -979,7 +981,7 @@ class Storage {
             }
 
             // Connection-Unique header is unique and only checked for presence.
-            Object.keys(composite).forEach((header) => {
+            Object.keys(headers).forEach((header) => {
                 if (header.toLowerCase() === "connection-unique")
                     composite[header] = "";
             })
@@ -987,14 +989,92 @@ class Storage {
             hash = [];
             Object.entries(composite).forEach((entry) => {
                 const [key, value] = entry;
-                hash.push(key + ": " + value);
+                hash.push(value ? key + ": " + value : key);
             });
 
             // Status Message should not be used because different hashes may be
             // calculated for tests on different web servers.
             hash.push(status);
+            hash.sort();
             headers["Trace-Response-Header-Hash"] = cryptoMD5(hash.join("\n"));
             trace.push(cryptoMD5(hash.join("\n")) + " Trace-Response-Header-Hash", JSON.stringify(hash));
+
+            // Response-Body-Hash
+            hash = data || "";
+            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n");
+            hash = hash.replace(/\t/g, " ");
+            // The UID is variable and must be normalized so that the hash can be
+            // compared later. Therefore the uniques of the UIDs are collected in
+            // an array. The index in the array is then the new unique.
+            var uniques = [];
+            hash = hash.replace(/\b(___uid(?:(?:=)|(?:"s*:s*))")([A-Zd]+)(:[A-Zd]+")/i, (matched) => {
+                /* TODO:
+                foreach (matches[0] as unique) {
+                    if (preg_match("/\b(___uid(?:(?:=)|(?:\"\s*:\s*))\")([A-Z\d]+)(:[A-Z\d]+\")/i", unique, match)) {
+                        if (!in_array(match[2], uniques))
+                            uniques[] = match[2];
+                        unique = array_search(match[2], uniques);
+                        hash = str_replace(match[0], match[1] . unique . match[3], hash);
+                    }
+                }
+                */
+            });
+            headers["Trace-Response-Body-Hash"] = cryptoMD5(hash);
+            trace.push(cryptoMD5(hash) + " Trace-Response-Body-Hash");
+
+            // Storage-Hash
+            // Also the storage cannot be compared directly, because here the UID's
+            // use a unique changeable prefix. Therefore the XML is reloaded and
+            // all ___uid attributes are normalized. For this purpose, the unique
+            // of the UIDs is determined, sorted and then replaced by the index
+            // during sorting.
+            hash = this.xml ? new XMLSerializer().serializeToString(this.xml) : "";
+            if (hash) {
+                var xml = new DOMParser().parseFromString(hash);
+                uniques = [];
+                var targets = xml.evaluate("//*[@___uid]", xml, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+                targets.forEach((target) => {
+                    uniques.push(target.getAttribute("___uid"));
+                });
+                uniques.sort();
+                uniques.forEach((uid, index) => {
+                    var target = xml.evaluate("//*[@___uid=\"" + uid + "\"]", xml, null, XPathResult.ANY_TYPE, null)[0];
+                    target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index));
+                });
+                hash = new XMLSerializer().serializeToString(xml);
+            }
+            hash = hash.replace(/\s+/g, " ");
+            hash = hash.replace(/\s+(?=[<>])/g, "");
+            hash = hash.trim();
+            headers["Trace-Storage-Hash"] = cryptoMD5(hash);
+            trace.push(cryptoMD5(hash) + " Trace-Storage-Hash");
+
+            headers["Trace-XPath-Hash"] = cryptoMD5(this.xpath || "");
+            trace.push(cryptoMD5(this.xpath || "") + " Trace-XPath-Hash", this.xpath || "");
+
+            hash = [
+                headers["Trace-Request-Header-Hash"],
+                headers["Trace-Request-Body-Hash"],
+                headers["Trace-Response-Header-Hash"],
+                headers["Trace-Response-Body-Hash"],
+                headers["Trace-Storage-Hash"],
+                headers["Trace-XPath-Hash"]
+            ];
+            headers["Trace-Composite-Hash"] = cryptoMD5(hash.join(" "));
+            trace.push(cryptoMD5(hash.join(" ")) + " Trace-Composite-Hash");
+            trace = trace.filter(entry => Object.exists(entry) && entry.trim().length > 0);
+
+            trace = "\t" + trace.join(EOL + "\t") + EOL;
+            if (this.xml && this.xml.documentElement)
+                trace = "\tStorage Identifier: " + this.storage + " Revision:" + this.xml.documentElement.getAttribute("___rev") + " Space:" + this.getSize() + EOL + trace;
+            trace = "\tResponse Status:" + status + " Length:" + (data || "").length + EOL + trace;
+            trace = "\tRequest Method:" + this.request.method.toUpperCase() + " XPath:" + this.xpath + " Length:" + (this.request.data || "").length + EOL + trace;
+            trace = cryptoMD5(hash.join(" ")) + EOL + trace;
+
+            if (fs.existsSync("trace.log")
+                    && (new Date().getTime() -fs.lstatSync("trace.log").mtimeMs  > 1000))
+                fs.appendFileSync("trace.log", EOL);
+            fs.appendFileSync("trace.log", trace);
         }}}
 
         if (!this.response.headersSent) {
@@ -1009,31 +1089,61 @@ class Storage {
     };
 };
 
-Date.prototype.toTimestampString = function () {
-    return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2");
-};
-
-Object.exists = function (object) {
-    return object !== undefined && object !== null;
-}
-
 console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]");
 console.log("Copyright (C) 0000 Seanox Software Solutions");
 console.log();
 
-console.log$ = console.log;
-console.log = function(...variable) {
-    console.log$(new Date().toTimestampString(), ...variable);
-}
-console.error$ = console.error;
-console.error = function(...variable) {
-    console.error$(new Date().toTimestampString(), ...variable);
+// Some things of the API are adjusted.
+// These are only small changes, but they greatly simplify the use.
+// Curse and blessing of JavaScript :-)
+
+try {
+
+    // Logging: Output with timestamp
+    console.log$ = console.log;
+    console.log = function(...variable) {
+        console.log$(new Date().toTimestampString(), ...variable);
+    }
+
+    // Logging: Output with timestamp
+    console.error$ = console.error;
+    console.error = function(...variable) {
+        console.error$(new Date().toTimestampString(), ...variable);
+    }
+
+    // Date formatting to timestamp string
+    Date.prototype.toTimestampString = function() {
+        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2");
+    };
+
+    // Query if something exists, it minimizes the check of undefined and null
+    Object.exists = function(object) {
+        return object !== undefined && object !== null;
+    };
+
+    // XPathResult is an iterator and not as easily usable as an array.
+    // Therefore the change from the return value to an array if it is an XPathResult.
+    let xml = new DOMParser().parseFromString();
+    let prototype = Object.getPrototypeOf(xml);
+    prototype["evaluate$"] = prototype["evaluate"];
+    prototype["evaluate"] = function(...variable) {
+        let result = this.evaluate$(...variable);
+        if (result instanceof XPathResult) {
+            const nodes = [undefined];
+            while (nodes[0] = result.iterateNext())
+                nodes.push(nodes[0]);
+            return nodes.slice(1);
+        }
+        return result;
+    }
+} catch (exception) {
+    console.error(exception);
 }
 
 http.createServer((request, response) => {
 
     request.on("data", (data) => {
-        if (request.data === undefined)
+        if (!Object.exists(request.data))
             request.data = "";
         request.data += data;
     });
@@ -1056,8 +1166,8 @@ http.createServer((request, response) => {
 
             // Access-Control headers are received during preflight OPTIONS request
             if (method.toUpperCase() === "OPTIONS"
-                && request.headers.origin
-                && !request.headers.storage)
+                    && request.headers.origin
+                    && !request.headers.storage)
                 (new Storage({request:request, response:response})).quit(200, "Success");
 
             var storage;
@@ -1071,7 +1181,7 @@ http.createServer((request, response) => {
             // recognition, the context path should always end with a symbol.
             var xpath = decodeURI(request.url).substr(Storage.CONTEXT_PATH.length);
             if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
-                xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched, index, original) => {
+                xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
                     return String.fromCharCode(parseInt(matched, 16));
                 });
             else if (xpath.match(/^Base64:[A-Za-z0-9\+\/]+=*$/))
@@ -1110,12 +1220,16 @@ http.createServer((request, response) => {
             } finally {
                 storage.close();
             }
-        } catch (exception) {
-            if (exception !== Storage.prototype.quit) {
-                var storage = (new Storage({request:request, response:response}));
-                var unique = storage.uniqueId();
-                console.error("Service", "#" + unique, exception);
-                storage.quit(500, "Internal Server Error", {"Error": "#" + unique});
+        } catch (exception1) {
+            if (exception1 !== Storage.prototype.quit) {
+                let storage = (new Storage({request:request, response:response}));
+                let unique = storage.uniqueId();
+                console.error("Service", "#" + unique, exception1);
+                try {storage.quit(500, "Internal Server Error", {"Error": "#" + unique});
+                } catch (exception2) {
+                    if (exception2 !== Storage.prototype.quit)
+                        console.error("Service", "#" + unique, exception2);
+                }
             }
         } finally {
             // TODO: access-log
