@@ -1,0 +1,189 @@
+87ab05ac413f0df0b9d3eb2ac70d8ff3
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:400 Length:0
+	9e52ab2b14083692d3c529ae4554ef60 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	229a4073533fe1dc2d8614ef3c14d31a Trace-Response-Header-Hash
+	[400,"Message: Invalid storage identifier"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	87ab05ac413f0df0b9d3eb2ac70d8ff3 Trace-Composite-Hash
+87ab05ac413f0df0b9d3eb2ac70d8ff3
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:400 Length:0
+	9e52ab2b14083692d3c529ae4554ef60 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	229a4073533fe1dc2d8614ef3c14d31a Trace-Response-Header-Hash
+	[400,"Message: Invalid storage identifier"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	87ab05ac413f0df0b9d3eb2ac70d8ff3 Trace-Composite-Hash
+d8df808f34e860fe317619ac47de1a88
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:400 Length:0
+	beac2807e1642a30f1414b0bbce1644b Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"O________10________20________30________40________50________60____","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	229a4073533fe1dc2d8614ef3c14d31a Trace-Response-Header-Hash
+	[400,"Message: Invalid storage identifier"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	d8df808f34e860fe317619ac47de1a88 Trace-Composite-Hash
+846d662b4327045c116fa6b61c107790
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: O________10________20________30________40________50________60___ Revision:0 Space:80
+	e4b76b4d705602f9093b68b07f7f5eff Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"O________10________20________30________40________50________60___","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	0fb5bf2a2dd393574c17c68351ca3d9e Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/80 bytes","Storage: O________10________20________30________40________50________60___"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	34c64944200d10cdadd8d7769862f38d Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	846d662b4327045c116fa6b61c107790 Trace-Composite-Hash
+0d30553a461c5bdfecb7991d248dc857
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: O________10________20________30________40________50________60__A Revision:0 Space:80
+	b10c124bb9fa40c6f7b938b4aa89f433 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"O________10________20________30________40________50________60__A","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	02e38957cb179f1a2ea68dcfa2927729 Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/80 bytes","Storage: O________10________20________30________40________50________60__A"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	34c64944200d10cdadd8d7769862f38d Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	0d30553a461c5bdfecb7991d248dc857 Trace-Composite-Hash
+ddd30e58fab07d2f065bf3944847b145
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:202 Length:0
+	Storage Identifier: O________10________20________30________40________50________60__A Revision:0 Space:80
+	b10c124bb9fa40c6f7b938b4aa89f433 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"O________10________20________30________40________50________60__A","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	5d6ed9b9130df6429bc7787916c3eadd Trace-Response-Header-Hash
+	[202,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/80 bytes","Storage: O________10________20________30________40________50________60__A"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	34c64944200d10cdadd8d7769862f38d Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	ddd30e58fab07d2f065bf3944847b145 Trace-Composite-Hash
+fbade23e0662f830120842d4bf97d2e6
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: O________10________20________30________40________50________60__a Revision:0 Space:80
+	3c7ef2c4870c8690f6a4a84b2169bbdf Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"O________10________20________30________40________50________60__a","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	67efc707c6f716553faccc743bfeaf71 Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/80 bytes","Storage: O________10________20________30________40________50________60__a"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	34c64944200d10cdadd8d7769862f38d Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	fbade23e0662f830120842d4bf97d2e6 Trace-Composite-Hash
+6f3b18705868a4c7142082b9500f2232
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: O Revision:0 Space:80
+	3e8175cc4f01330c64d82945fb71c826 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"O","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	b593b81a83f54cf2fbfc4c087436289c Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/80 bytes","Storage: O"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	34c64944200d10cdadd8d7769862f38d Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	6f3b18705868a4c7142082b9500f2232 Trace-Composite-Hash
+98457c27abcfc6e04a80652defd87d29
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:400 Length:0
+	e8e80e2a473c5392389bfc3186271532 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"?","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	229a4073533fe1dc2d8614ef3c14d31a Trace-Response-Header-Hash
+	[400,"Message: Invalid storage identifier"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	98457c27abcfc6e04a80652defd87d29 Trace-Composite-Hash
+9c5e6f44902337042a2242983de2ac6e
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:400 Length:0
+	6769d31c297d7f62d888b4a66d56674f Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage-OC","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	229a4073533fe1dc2d8614ef3c14d31a Trace-Response-Header-Hash
+	[400,"Message: Invalid storage identifier"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	9c5e6f44902337042a2242983de2ac6e Trace-Composite-Hash
+2014bb35efd7a0deb9ecbfb07321e636
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: UnitTest_Storage_OC Revision:0 Space:81
+	6fba1f6e0ea29ee3cf6a35be2863af0b Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_OC books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4e1ac25fd390e1a0a4968fe2f2a8c112 Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/81 bytes","Storage: UnitTest_Storage_OC"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b28cde05da236e79b1de06539f79b96f Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	2014bb35efd7a0deb9ecbfb07321e636 Trace-Composite-Hash
+ccc50e30b7b7f8088cb984bea4d1b233
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:202 Length:0
+	Storage Identifier: UnitTest_Storage_OC Revision:0 Space:81
+	6fba1f6e0ea29ee3cf6a35be2863af0b Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_OC books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	e82d6f2733317ca7e1b4a0876e01decc Trace-Response-Header-Hash
+	[202,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/81 bytes","Storage: UnitTest_Storage_OC"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b28cde05da236e79b1de06539f79b96f Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	ccc50e30b7b7f8088cb984bea4d1b233 Trace-Composite-Hash
+ff914b9fa7c2a87007b8e57e9be13b06
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_OC Revision:0 Space:81
+	e1ab90521226469ce8392566643f72a9 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_OC bookS","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b28cde05da236e79b1de06539f79b96f Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	ff914b9fa7c2a87007b8e57e9be13b06 Trace-Composite-Hash
+254783865acba3a2d03b9d30f8a08bbc
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:400 Length:0
+	b652979043e7067351e154e1c03c0231 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_OC books x","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	229a4073533fe1dc2d8614ef3c14d31a Trace-Response-Header-Hash
+	[400,"Message: Invalid storage identifier"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	254783865acba3a2d03b9d30f8a08bbc Trace-Composite-Hash
+de04954c348175412754f751f5481840
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_OC Revision:0 Space:81
+	c5bbc66376fa80c4bc2aa27f15c842c7 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_OC","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b28cde05da236e79b1de06539f79b96f Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	de04954c348175412754f751f5481840 Trace-Composite-Hash
