@@ -194,7 +194,8 @@ const EOL = require('os').EOL;
 const XMLSerializer = require("common-xml-features").XMLSerializer;
 const DOMParser = require("common-xml-features").DOMParser;
 const XPathResult = require("common-xml-features").XPathResult;
-const Document = require("common-xml-features").Document;
+const DOMImplementation = require("common-xml-features").domImplementation;
+const Node = require("common-xml-features").Node;
 
 class Storage {
 
@@ -339,7 +340,7 @@ class Storage {
     /** Cleans up all files that have exceeded the maximum idle time. */
     static cleanUp() {
 
-        if (!fs.existsSync(this.store)
+        if (!fs.existsSync(Storage.DIRECTORY)
                 || !fs.lstatSync(Storage.DIRECTORY).isDirectory())
             return;
         let timeout = new Date().getTime() -(Storage.TIMEOUT *1000);
@@ -427,9 +428,8 @@ class Storage {
         if (Object.exists(this.share))
             return;
 
-        if (this.exists())
-            fs.closeSync(fs.openSync(this.store, "as+"));
-        this.share = fs.openSync(this.store, !this.exists() || exclusive ? "as+" : "r");
+        fs.closeSync(fs.openSync(this.store, "as+"));
+        this.share = fs.openSync(this.store, !this.exists() || exclusive ? "rs+" : "r");
 
         if (fs.lstatSync(this.store).size <= 0)
             fs.writeSync(this.share, `<?xml version="1.0" encoding="UTF-8"?>`
@@ -503,15 +503,14 @@ class Storage {
     }
 
     /**
-     * TODO:
      * Updates recursive the revision for an element and all parent elements.
-     * param DOMElement node
-     * param string     revision
+     * @param {Element} node
+     * @param {string}  revision
      */
     static updateNodeRevision(node, revision) {
 
         // TODO:
-        while (node && node.nodeType === XML_ELEMENT_NODE) {
+        while (node && node.nodeType === Node.ELEMENT_NODE) {
             node.setAttribute("___rev", revision);
             node = node.parentNode;
         }
@@ -712,9 +711,448 @@ class Storage {
         storage.quit(501, "Not Implemented");
     };
 
+    /**
+     * PUT creates elements and attributes in storage and/or changes the value
+     * of existing ones.
+     * The position for the insert is defined via an XPath.
+     * For better understanding, the method should be called PUT INTO, because
+     * it is always based on an existing XPath axis as the parent target.
+     * XPath uses different notations for elements and attributes.
+     *
+     * The notation for attributes use the following structure at the end.
+     *     <XPath>/@<attribute> or <XPath>/attribute.<attribute>
+     * The attribute values can be static (text) and dynamic (XPath function).
+     * Values are send as request-body.
+     * Whether they are used as text or XPath function is decided by the
+     * Content-Type header of the request.
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *
+     * If the XPath notation does not match the attributes, elements are
+     * assumed. For elements, the notation for pseudo elements is supported:
+     *     <XPath>.first, <XPath>.last, <XPath>.before or <XPath>.after
+     * Pseudo elements are a relative position specification to the selected
+     * element.
+     *
+     * The value of elements can be static (text), dynamic (XPath function) or
+     * be an XML structure. Also here the value is send with the request-body
+     * and the type of processing is determined by the Content-Type:
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *     application/xslt+xml: XML structure
+     *
+     * The PUT method works resolutely and inserts or overwrites existing data.
+     * The XPath processing is strict and does not accept unnecessary spaces.
+     * The attributes ___rev / ___uid used internally by the storage are
+     * read-only and cannot be changed.
+     *
+     * In general, if no target can be reached via XPath, status 404 will
+     * occur. In all other cases the PUT method informs the client about
+     * changes with status 204 and the response headers Storage-Effects and
+     * Storage-Revision. The header Storage-Effects contains a list of the UIDs
+     * that were directly affected by the change and also contains the UIDs of
+     * newly created elements. If no changes were made because the XPath cannot
+     * find a writable target, the header Storage-Effects can be omitted
+     * completely in the response.
+     *
+     * Syntactic and semantic errors in the request and/or XPath and/or value
+     * can cause error status 400 and 415. If errors occur due to the
+     * transmitted request body, this causes status 422.
+     *
+     *     Request:
+     * PUT /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: application/xslt+xml
+     *     Request-Body:
+     * XML structure
+     *
+     *     Request:
+     * PUT /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     *  Content-Type: text/plain
+     *     Request-Body:
+     * Value as plain text
+     *
+     *     Request:
+     * PUT /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: text/xpath
+     *     Request-Body:
+     * Value as XPath function
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage-Effects: ... (list of UIDs)
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Timeout (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Element(s) or attribute(s) successfully created or set
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
+     * - XPath is missing or malformed
+     * - XPath without addressing a target is responded with status 204
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage does not exist
+     * - XPath axis finds no target
+     *         HTTP/1.0 413 Payload Too Large
+     * - Allowed size of the request(-body) and/or storage is exceeded
+     *         HTTP/1.0 415 Unsupported Media Type
+     * - Attribute request without Content-Type text/plain
+     *         HTTP/1.0 422 Unprocessable Entity
+     * - Data in the request body cannot be processed
+     */
     doPut() {
+
+        // Without existing storage the request is not valid.
+        if (!this.exists())
+            this.quit(404, "Resource Not Found");
+
+        // In any case an XPath is required for a valid request.
+        if (!Object.exists(this.xpath)
+                || this.xpath === "")
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"});
+
+        // Storage::SPACE also limits the maximum size of writing request(-body).
+        // If the limit is exceeded, the request is quit with status 413.
+        if (Object.exists(this.request.data)
+                && this.request.data.length > Storage.SPACE)
+            this.quit(413, "Payload Too Large");
+
+        // For all PUT requests the Content-Type is needed, because for putting
+        // in XML structures and text is distinguished.
+        if ((this.request.headers["content-type"] || "") === "")
+            this.quit(415, "Unsupported Media Type");
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            let message = "Invalid XPath (Functions are not supported)";
+            this.quit(400, "Bad Request", {"Message": message});
+        }
+
+        // PUT requests can address attributes and elements via XPath.
+        // Multi-axis XPaths allow multiple targets.
+        // The method only supports these two possibilities, other requests are
+        // responsed with an error, because this situation cannot occur because
+        // the XPath is recognized as XPath for an attribute and otherwise an
+        // element is assumed.
+        // In this case it can only happen that the XPath does not address a
+        // target, which is not an error in the true sense. It only affects the
+        // Storage-Effects header.
+        // Therefore there is only one decision here.
+
+        // XPath can address elements and attributes.
+        // If the XPath ends with /attribute.<attribute> or /@<attribute> an
+        // attribute is expected, in all other cases a element.
+
         // TODO:
-        storage.quit(501, "Not Implemented");
+        let matches = this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE);
+        if (matches) {
+
+            // The following Content-Type is supported for attributes:
+            // - text/plain for static values (text)
+            // - text/xpath for dynamic values, based on XPath functions
+
+            // For attributes only the Content-Type text/plain and text/xpath
+            // are supported, for other Content-Types no conversion exists.
+            let media = (this.request.headers["content-type"] || "").toLowerCase();
+            if (![Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media))
+                this.quit(415, "Unsupported Media Type");
+
+            let input = this.request.data;
+
+            // The Content-Type text/xpath is a special of the XMXE Storage.
+            // It expects a plain text which is an XPath function.
+            // The XPath function is first once applied to the current XML
+            // document from the storage and the result is put like the
+            // Content-Type text/plain. Even if the target is mutable, the
+            // XPath function is executed only once and the result is put on
+            // all targets.
+            if (media.toLowerCase() === Storage.CONTENT_TYPE_XPATH) {
+                if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
+                    let message = "Invalid XPath (Axes are not supported)";
+                    this.quit(422, "Unprocessable Entity", {"Message": message});
+                }
+
+                input = this.xml.evaluate(input, this.xml, null, XPathResult.ANY_TYPE, null);
+                if (!Object.exists(input)
+                        || input instanceof Error) {
+                    let message = "Invalid XPath function";
+                    if (input instanceof Error)
+                        message += " (" + input.message + ")";
+                    this.quit(422, "Unprocessable Entity", {"Message": message});
+                }
+            }
+
+            // From here on it continues with a static value for the attribute.
+
+            let xpath = matches[1];
+            let attribute = matches[2];
+
+            let targets = this.xml.evaluate(xpath, this.xml, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+            if (input instanceof Error) {
+                let message = "Invalid XPath axis (" + input.message + ")";
+                this.quit(400, "Bad Request", {"Message": message});
+            }
+            if (!Object.exists(targets) || targets.length <= 0)
+                this.quit(404, "Resource Not Found");
+
+            // The attributes ___rev and ___uid are essential for the internal
+            // organization and management of the data and cannot be changed.
+            // PUT requests for these attributes are ignored and behave as if
+            // no matching node was found. It should say request understood and
+            // executed but without effect.
+            if (!["___rev", "___uid"].includes(attribute)) {
+                let serials = [];
+                targets.forEach((target) => {
+                    // Only elements are supported, this prevents the
+                    // addressing of the XML document by the XPath.
+                    if (target.nodeType !== Node.ELEMENT_NODE)
+                        return;
+                    serials.push(target.getAttribute("___uid") + ":M");
+                    target.setAttribute(attribute, input);
+                    // The revision is updated at the parent nodes, so you
+                    // can later determine which nodes have changed and
+                    // with which revision. Partial access allows the
+                    // client to check if the data or a tree is still up to
+                    // date, because he can compare the revision.
+                    Storage.updateNodeRevision(target, this.revision +1);
+                });
+
+                // Only the list of serials is an indicator that data has
+                // changed and whether the revision changes with it.
+                // If necessary the revision must be corrected if there are
+                // no data changes.
+                if (serials.length > 0)
+                    this.response.setHeader("Storage-Effects", serials.join(" "));
+            }
+
+            this.materialize();
+            this.quit(204, "No Content");
+        }
+
+        /* TODO:
+        // An XPath for element(s) is then expected here.
+        // If this is not the case, the request is responded with status 400.
+        if (!preg_match(Storage.PATTERN_XPATH_PSEUDO, this.xpath, matches, PREG_UNMATCHED_AS_NULL))
+            this.quit(400, "Bad Request", ["Message" => "Invalid XPath axis"]);
+
+        xpath = matches[1];
+        pseudo = matches[2];
+
+        // The following Content-Type is supported for elements:
+        // - application/xslt+xml for XML structures
+        // - text/plain for static values (text)
+        // - text/xpath for dynamic values, based on XPath functions
+
+        if (in_array(strtolower(_SERVER["CONTENT_TYPE"]), [Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH])) {
+
+            // The combination with a pseudo element is not possible for a text
+            // value. Response with status 415 (Unsupported Media Type).
+            if (!empty(pseudo))
+                this.quit(415, "Unsupported Media Type");
+
+            input = file_get_contents("php://input");
+
+            // The Content-Type text/xpath is a special of the XMXE Storage.
+            // It expects a plain text which is an XPath function.
+            // The XPath function is first once applied to the current XML
+            // document from the storage and the result is put like the
+            // Content-Type text/plain. Even if the target is mutable, the
+            // XPath function is executed only once and the result is put on
+            // all targets.
+            if (strcasecmp(_SERVER["CONTENT_TYPE"], Storage.CONTENT_TYPE_XPATH) === 0) {
+                if (!preg_match(Storage.PATTERN_XPATH_FUNCTION, input)) {
+                    message = "Invalid XPath (Axes are not supported)";
+                    this.quit(422, "Unprocessable Entity", ["Message" => message]);
+                }
+                input = (new DOMXpath(this.xml)).evaluate(input);
+                if (input === false
+                    || Storage.fetchLastXmlErrorMessage()) {
+                    message = "Invalid XPath function";
+                    if (Storage.fetchLastXmlErrorMessage())
+                        message .= " (" . Storage.fetchLastXmlErrorMessage() . ")";
+                    this.quit(422, "Unprocessable Entity", ["Message" => message]);
+                }
+            }
+
+            serials = [];
+            targets = (new DOMXpath(this.xml)).query(xpath);
+            if (Storage.fetchLastXmlErrorMessage()) {
+                message = "Invalid XPath axis (" . Storage.fetchLastXmlErrorMessage() . ")";
+                this.quit(400, "Bad Request", ["Message" => message]);
+            }
+            if (!targets || empty(targets) || targets.length <= 0)
+                this.quit(404, "Resource Not Found");
+
+            foreach (targets as target) {
+                // Overwriting of the root element is not possible, as it
+                // is an essential part of the storage, and is ignored. It
+                // does not cause to an error, so the behaviour is
+                // analogous to putting attributes.
+                if (target.nodeType != XML_ELEMENT_NODE)
+                    continue;
+                serials[] = target.getAttribute("___uid") . ":M";
+                replace = this.xml.createElement(target.nodeName, input);
+                foreach (target.attributes as attribute)
+                replace.setAttribute(attribute.nodeName, attribute.nodeValue);
+                target.parentNode.replaceChild(this.xml.importNode(replace, true), target);
+                // The revision is updated at the parent nodes, so you can
+                // later determine which nodes have changed and with which
+                // revision. Partial access allows the client to check if
+                // the data or a tree is still up to date, because he can
+                // compare the revision.
+                Storage.updateNodeRevision(replace, this.revision +1);
+            }
+
+            // Only the list of serials is an indicator that data has changed
+            // and whether the revision changes with it. If necessary the
+            // revision must be corrected if there are no data changes.
+            if (!empty(serials))
+                header("Storage-Effects: " . join(" ", serials));
+
+            this.materialize();
+            this.quit(204, "No Content");
+        }
+
+        // Only an XML structure can be inserted, nothing else is supported.
+        // So only the Content-Type application/xslt+xml can be used.
+
+        if (strcasecmp(_SERVER["CONTENT_TYPE"], Storage.CONTENT_TYPE_XML) !== 0)
+            this.quit(415, "Unsupported Media Type");
+
+        // The request body must also be a valid XML structure, otherwise the
+        // request is quit with an error.
+        input = file_get_contents("php://input");
+        input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data>input</data>";
+
+        // The XML is loaded, but what happens if an error occurs during
+        // parsing? Status 400 or 422 - The decision for 422, because 400 means
+        // faulty request. But this is a (semantic) error in the request body.
+        xml = new DOMDocument();
+        if (!xml.loadXML(input)
+            || Storage.fetchLastXmlErrorMessage()) {
+            message = "Invalid XML document";
+            if (Storage.fetchLastXmlErrorMessage())
+                message .= " (" . Storage.fetchLastXmlErrorMessage() . ")";
+            this.quit(422, "Unprocessable Entity", ["Message" => message]);
+        }
+
+        // The attributes ___rev and ___uid are essential for the internal
+        // organization and management of the data and cannot be changed.
+        // When inserting, the attributes ___rev and ___uid are set
+        // automatically. These attributes must not be  contained in the XML
+        // structure to be inserted, because all XML elements without ___uid
+        // attributes are determined after insertion and it is assumed that
+        // they have been newly inserted. This approach was chosen to avoid a
+        // recursive search/iteration in the XML structure to be inserted.
+        nodes = (new DOMXpath(xml)).query("//*[@___rev|@___uid]");
+        foreach (nodes as node) {
+            node.removeAttribute("___rev");
+            node.removeAttribute("___uid");
+        }
+
+        serials = [];
+        if (xml.firstChild.hasChildNodes()) {
+            targets = (new DOMXpath(this.xml)).query(xpath);
+            if (Storage.fetchLastXmlErrorMessage()) {
+                message = "Invalid XPath axis (" . Storage.fetchLastXmlErrorMessage() . ")";
+                this.quit(400, "Bad Request", ["Message" => message]);
+            }
+            if (!targets || empty(targets) || targets.length <= 0)
+                this.quit(404, "Resource Not Found");
+
+            foreach (targets as target) {
+
+                // Overwriting of the root element is not possible, as it
+                // is an essential part of the storage, and is ignored. It
+                // does not cause to an error, so the behaviour is
+                // analogous to putting attributes.
+                if (target.nodeType != XML_ELEMENT_NODE)
+                    continue;
+
+                // Pseudo elements can be used to put in an XML
+                // substructure relative to the selected element.
+                if (empty(pseudo)) {
+                    // The UIDs of the children that are removed by the
+                    // replacement are determined for storage effects.
+                    childs = (new DOMXpath(this.xml)).query(".//*[@___uid]", target);
+                    foreach (childs as child)
+                    serials[] = child.getAttribute("___uid") . ":D";
+                    replace = target.cloneNode(false);
+                    foreach (xml.firstChild.childNodes as insert)
+                    replace.appendChild(this.xml.importNode(insert.cloneNode(true), true));
+                    target.parentNode.replaceChild(this.xml.importNode(replace, true), target);
+                } else if (strcasecmp(pseudo, "before") === 0) {
+                    if (target.parentNode.nodeType == XML_ELEMENT_NODE)
+                        foreach (xml.firstChild.childNodes as insert)
+                    target.parentNode.insertBefore(this.xml.importNode(insert, true), target);
+                } else if (strcasecmp(pseudo, "after") === 0) {
+                    if (target.parentNode.nodeType == XML_ELEMENT_NODE) {
+                        nodes = [];
+                        foreach(xml.firstChild.childNodes as node)
+                        array_unshift(nodes, node);
+                        foreach (nodes as insert)
+                        if (target.nextSibling)
+                            target.parentNode.insertBefore(this.xml.importNode(insert, true), target.nextSibling);
+                        else target.parentNode.appendChild(this.xml.importNode(insert, true));
+                    }
+                } else if (strcasecmp(pseudo, "first") === 0) {
+                    inserts = xml.firstChild.childNodes;
+                    for (index = inserts.length -1; index >= 0; index--)
+                        target.insertBefore(this.xml.importNode(inserts.item(index), true), target.firstChild);
+                } else if (strcasecmp(pseudo, "last") === 0) {
+                    foreach (xml.firstChild.childNodes as insert)
+                    target.appendChild(this.xml.importNode(insert, true));
+                } else this.quit(400, "Bad Request", ["Message" => "Invalid XPath axis (Unsupported pseudo syntax found)"]);
+            }
+        }
+
+        // The attribute ___uid of all newly inserted elements is set.
+        // It is assumed that all elements without the  ___uid attribute are
+        // new. The revision of all affected nodes are updated, so you can
+        // later determine which nodes have changed and with which revision.
+        // Partial access allows the client to check if the data or a tree is
+        // still up to date, because he can compare the revision.
+
+        nodes = (new DOMXpath(this.xml)).query("//*[not(@___uid)]");
+        foreach (nodes as node) {
+            serial = this.getSerial();
+            serials[] = serial . ":A";
+            node.setAttribute("___uid", serial);
+            Storage.updateNodeRevision(node, this.revision +1);
+
+            // Also the UID of the directly addressed element is transmitted to
+            // the client in the response, because the element itself has not
+            // changed, but its content has. Other parent elements are not
+            // listed because they are only indirectly affected. So the
+            // behaviour is analogous to putting attributes.
+            if (node.parentNode.nodeType != XML_ELEMENT_NODE)
+                continue;
+            serial = node.parentNode.getAttribute("___uid");
+            if (!empty(serial)
+                && !in_array(serial . ":A", serials)
+        && !in_array(serial . ":M", serials))
+            serials[] = serial . ":M";
+        }
+        */
+
+        // Only the list of serials is an indicator that data has changed and
+        // whether the revision changes with it. If necessary the revision must
+        // be corrected if there are no data changes.
+        let serials;
+        if (serials)
+            this.response.setHeader("Storage-Effects", serials.join(" "));
+
+        this.materialize();
+        this.quit(204, "No Content");
     };
 
     doPatch() {
@@ -1121,24 +1559,41 @@ try {
         return object !== undefined && object !== null;
     };
 
-    // XPathResult is an iterator and not as easily usable as an array.
-    // Therefore the change from the return value to an array if it is an XPathResult.
-    let xml = new DOMParser().parseFromString();
-    let prototype = Object.getPrototypeOf(xml);
-    prototype["evaluate$"] = prototype["evaluate"];
-    prototype["evaluate"] = function(...variable) {
-        let result = this.evaluate$(...variable);
-        if (result instanceof XPathResult) {
-            const nodes = [undefined];
-            while (nodes[0] = result.iterateNext())
-                nodes.push(nodes[0]);
-            return nodes.slice(1);
+    // The evaluate method of the Document differs from PHP in behavior.
+    // The following things have been changed to simplify migration:
+    // - Results as XPathResult of type: NUMBER_TYPE/STRING_TYPE/BOOLEAN_TYPE
+    //   returns the simple value
+    // - Results as XPathResult with an iterator, returns an array
+    // - If an error/exception occurs, the return value is the error/exception
+    let prototype = Object.getPrototypeOf(DOMImplementation.createDocument());
+    prototype.evaluate$ = prototype.evaluate;
+    prototype.evaluate = function(...variable) {
+        try {
+            let result = this.evaluate$(...variable);
+            if (result instanceof XPathResult) {
+                if (result.resultType === XPathResult.NUMBER_TYPE)
+                    return result.numberValue;
+                if (result.resultType === XPathResult.STRING_TYPE)
+                    return result.stringValue;
+                if (result.resultType === XPathResult.BOOLEAN_TYPE)
+                    return result.booleanValue;
+                const nodes = [undefined];
+                while (nodes[0] = result.iterateNext())
+                    nodes.push(nodes[0]);
+                return nodes.slice(1);
+            }
+            return result;
+        } catch (exception) {
+            return exception;
         }
-        return result;
     }
 } catch (exception) {
     console.error(exception);
 }
+
+// TODO: [address]:port as CLI application parameter (address optional, otherwiese 0.0.0.0)
+// TODO: certificate files as CLI application parameter (otherwiese HTTP instead of HTTPS)
+// TODO: node.js service.js [address]:port [certificate files]
 
 http.createServer((request, response) => {
 
