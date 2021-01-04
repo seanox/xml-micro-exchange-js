@@ -342,11 +342,11 @@ class Storage {
         if (!fs.existsSync(this.store)
                 || !fs.lstatSync(Storage.DIRECTORY).isDirectory())
             return;
-        var timeout = new Date().getTime() -(Storage.TIMEOUT *1000);
-        var files = fs.readdirSync(Storage.DIRECTORY);
+        let timeout = new Date().getTime() -(Storage.TIMEOUT *1000);
+        let files = fs.readdirSync(Storage.DIRECTORY);
         files.forEach((file) => {
             file = Storage.DIRECTORY + "/" + file;
-            var state = fs.lstatSync(file);
+            let state = fs.lstatSync(file);
             if (state.isFile()
                     && state.mtimeMs < timeout)
                 if (fs.existsSync(file))
@@ -373,7 +373,7 @@ class Storage {
         Storage.cleanUp();
         if (!fs.existsSync(Storage.DIRECTORY))
             fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755});
-        var storage = new Storage(meta);
+        let storage = new Storage(meta);
 
         if (storage.exists()) {
             storage.open(meta.exclusive);
@@ -399,7 +399,7 @@ class Storage {
         // assuming that the port reassignment is greater than one millisecond.
 
         // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
-        var unique = this.request.connection.remotePort.toString(36);
+        let unique = this.request.connection.remotePort.toString(36);
         unique = "0000" + unique;
         unique = unique.substring(unique.length -4);
         unique = new Date().getTime().toString(36) + unique;
@@ -435,7 +435,7 @@ class Storage {
             fs.writeSync(this.share, `<?xml version="1.0" encoding="UTF-8"?>`
                 + `<${this.root} ___rev="0" ___uid="${this.getSerial()}"/>`);
 
-        var buffer = Buffer.alloc(fs.lstatSync(this.store).size);
+        let buffer = Buffer.alloc(fs.lstatSync(this.store).size);
         fs.readSync(this.share, buffer, {position:0});
         this.xml = new DOMParser().parseFromString(buffer.toString());
         this.revision = this.xml.documentElement.getAttribute("___rev");
@@ -458,7 +458,7 @@ class Storage {
         if (this.revision === this.xml.documentElement.getAttribute("___rev"))
             return;
 
-        var output = new XMLSerializer().serializeToString(this.xml);
+        let output = new XMLSerializer().serializeToString(this.xml);
         if (output.length > Storage.SPACE)
             this.quit(413, "Payload Too Large");
         fs.ftruncateSync(this.share, 0);
@@ -585,9 +585,9 @@ class Storage {
         if (this.xpath)
             this.quit(400, "Bad Request", {"Message": "Invalid XPath"});
 
-        var response = [201, "Created"];
+        let response = [201, "Created"];
         if (!this.exists()) {
-            var files = fs.readdirSync(Storage.DIRECTORY);
+            let files = fs.readdirSync(Storage.DIRECTORY);
             files = files.filter(file => fs.lstatSync(Storage.DIRECTORY + "/" + file).isFile());
             if (files.length >= Storage.QUANTITY)
                 this.quit(507, "Insufficient Storage");
@@ -753,11 +753,11 @@ class Storage {
         // This is implemented for scanning and modification of headers.
         // To remove, the headers are set before, so that standard headers like
         // Content-Type are also removed correctly.
-        var fetchHeader = (response, name, remove = false) => {
+        let fetchHeader = (response, name, remove = false) => {
             if (!Object.exists(response)
                     || !Object.exists(response.headers))
                 return;
-            var result = undefined;
+            let result = undefined;
             Object.entries(response.headers || {}).forEach((entry) => {
                 const [name, value] = entry;
                 if (name.toLowerCase() !== name.toLowerCase())
@@ -814,7 +814,7 @@ class Storage {
         // and DELETE methods when elements are recursively modified and then
         // also deleted.
 
-        var serials = fetchHeader(this.response, "Storage-Effects", true);
+        let serials = fetchHeader(this.response, "Storage-Effects", true);
         serials = serials ? serials.value : "";
         if (serials) {
             serials = serials.split(/\s+/);
@@ -832,9 +832,9 @@ class Storage {
             serials = serials.join(" ");
         }
 
-        var accepts = (this.request.headers["accept-effects"] || "").toLowerCase();
+        let accepts = (this.request.headers["accept-effects"] || "").toLowerCase();
         accepts = !accepts ? accepts.split(/\s+/) : [];
-        var pattern = [];
+        let pattern = [];
         if (this.request.method.toUpperCase() !== "DELETE") {
             if (accepts
                     && !accepts.includes("added"))
@@ -870,7 +870,7 @@ class Storage {
                 delete headers[key];
         })
 
-        var media = fetchHeader(this.response, "Content-Type", true);
+        let media = fetchHeader(this.response, "Content-Type", true);
         if (status == 200
                 && Object.exists(data)
                 && data !== "") {
@@ -919,14 +919,14 @@ class Storage {
             // Therefore the code may use computing time or the implementation may
             // not be perfect.
 
-            var cryptoMD5 = (text) => {
+            let cryptoMD5 = (text) => {
                 return crypto.createHash("MD5").update(text).digest("HEX");
             };
 
-            var trace = [];
+            let trace = [];
 
             // Request-Header-Hash
-            var hash = JSON.stringify({
+            let hash = JSON.stringify({
                 "Method": this.request.method.toUpperCase(),
                 "URI": decodeURI(this.request.url),
                 "Storage": (this.request.headers["storage"] || ""),
@@ -945,7 +945,7 @@ class Storage {
 
             // Response-Header-Hash
             // Only the XMEX relevant headers are used.
-            var composite = {...headers};
+            let composite = {...headers};
             Object.keys(composite).forEach((header) => {
                 if (!["storage", "storage-revision", "storage-space",
                         "allow", "content-length", "message"].includes(header.toLowerCase()))
@@ -957,21 +957,21 @@ class Storage {
             // make it comparable. To do this, it is only determined how many
             // unique's there are, in which order they are arranged and which
             // serials each unique has.
-            var header = Object.keys(composite).filter(key => key.toLowerCase() === "storage-effects");
+            let header = Object.keys(composite).filter(key => key.toLowerCase() === "storage-effects");
             if (header) {
                 header = composite[header];
                 if (header) {
-                    var effects = {};
+                    let effects = {};
                     header.split(/s+/).forEach((uid) => {
                         uid = uid.split(/:/);
                         if (!Object.exists(effects[uid[0]]))
                             effects[uid[0]] = [];
                         effects[uid[0]].push(uid[1]);
                     });
-                    var keys = [...Object.keys(effects)];
+                    let keys = [...Object.keys(effects)];
                     keys.sort();
                     keys.forEach((key) => {
-                        var value = effects[key];
+                        let value = effects[key];
                         value.sort();
                         delete effects[key];
                         effects[key] = value.join(":");
@@ -1006,7 +1006,7 @@ class Storage {
             // The UID is variable and must be normalized so that the hash can be
             // compared later. Therefore the uniques of the UIDs are collected in
             // an array. The index in the array is then the new unique.
-            var uniques = [];
+            let uniques = [];
             hash = hash.replace(/\b(___uid(?:(?:=)|(?:"s*:s*))")([A-Zd]+)(:[A-Zd]+")/i, (matched) => {
                 /* TODO:
                 foreach (matches[0] as unique) {
@@ -1030,15 +1030,15 @@ class Storage {
             // during sorting.
             hash = this.xml ? new XMLSerializer().serializeToString(this.xml) : "";
             if (hash) {
-                var xml = new DOMParser().parseFromString(hash);
+                let xml = new DOMParser().parseFromString(hash);
                 uniques = [];
-                var targets = xml.evaluate("//*[@___uid]", xml, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+                let targets = xml.evaluate("//*[@___uid]", xml, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
                 targets.forEach((target) => {
                     uniques.push(target.getAttribute("___uid"));
                 });
                 uniques.sort();
                 uniques.forEach((uid, index) => {
-                    var target = xml.evaluate("//*[@___uid=\"" + uid + "\"]", xml, null, XPathResult.ANY_TYPE, null)[0];
+                    let target = xml.evaluate("//*[@___uid=\"" + uid + "\"]", xml, null, XPathResult.ANY_TYPE, null)[0];
                     target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index));
                 });
                 hash = new XMLSerializer().serializeToString(xml);
@@ -1162,7 +1162,7 @@ http.createServer((request, response) => {
                 (new Storage({request:request, response:response})).quit(404, "Resource Not Found");
 
             // Request method is determined
-            var method = request.method.toUpperCase();
+            let method = request.method.toUpperCase();
 
             // Access-Control headers are received during preflight OPTIONS request
             if (method.toUpperCase() === "OPTIONS"
@@ -1170,7 +1170,7 @@ http.createServer((request, response) => {
                     && !request.headers.storage)
                 (new Storage({request:request, response:response})).quit(200, "Success");
 
-            var storage;
+            let storage;
             if (request.headers.storage)
                 storage = request.headers.storage;
             if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
@@ -1179,7 +1179,7 @@ http.createServer((request, response) => {
             // The XPath is determined from REQUEST_URI.
             // The XPath starts directly after the context path. To improve visual
             // recognition, the context path should always end with a symbol.
-            var xpath = decodeURI(request.url).substr(Storage.CONTEXT_PATH.length);
+            let xpath = decodeURI(request.url).substr(Storage.CONTEXT_PATH.length);
             if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
                 xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
                     return String.fromCharCode(parseInt(matched, 16));
