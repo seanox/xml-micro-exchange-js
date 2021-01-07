@@ -1,0 +1,449 @@
+# Test sequence for putting of attributes to storage elements.
+
+# PATCH changes existing elements and attributes in storage.
+# The position for the insert is defined via an XPath.
+# The method works almost like PUT, but the XPath axis of the request
+# always expects an existing target.
+# XPath uses different notations for elements and attributes.
+
+###
+# Storage is not establish 
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4db0d1a70080997eaf69635725c7dbac");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_patch_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5b7b2e3b0990ebae14bc8efce3de0bc2");
+});
+%}
+
+###
+# Attribute does not exist
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test_value<1>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2868d3eba9296e3a96cdc5d00fb12750");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is added
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Storage-Effects: 1x UID
+PUT {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test_value<1>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a1342c3cb434cfff60a4b94b428c8959");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is patched
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Storage-Effects: 1x UID
+PATCH {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test_value<2>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f7d28ec917359cfaea1ba1b3ed53616e");
+});
+%}
+
+###
+# Using unicode should not cause problems
+# Use of brackets should not be a problem
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is patched
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Double quotation marks and the & are encoded correctly
+# - Unicode characters are inserted as UTF-8
+# - Storage-Effects: 1x UID
+PATCH {{service}}(/books)/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+№ <123> äüö &&amp; "§-ß" '€'
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "be2c9ef9c03f74093b9573d7311da5f3");
+});
+%}
+
+###
+# Using XPath function should work.
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is patched
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Storage-Effects: 1x UID
+# - Double quotation marks and the & are encoded correctly
+# - As value books is used
+PATCH {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/xpath
+
+concat(name(/*), "-Test")
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b9901352acde279c1cd59f5bd92dfdc5");
+});
+%}
+
+###
+# Using invalid XPath function should not cause problems.
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath function (Invalid expression)
+PATCH {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/xpath
+
+name(/+)
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "aa3105d382552e03558145e452bee431");
+});
+%}
+
+###
+# Using Unicode should not cause problems.
+# Here the XML file of the storage is parsed again, which must also work with
+# the previously inserted unicode.
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is patched
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Storage-Effects: 1x UID
+PATCH {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test_value<1>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1eecfb0e36dbbecc26573cb1fb04d011");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is added
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Storage-Effects: 1x UID
+# - Double quotation marks and the & are encoded correctly
+# - As value books is used
+PUT {{service}}/books/@attrB HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "dd5913026ec270121d74ebcc931ad0f3");
+});
+%}
+
+###
+# Expectations:
+# - Status code 415 Unsupported Media Type
+#   because the Content-Type is not text/plain.
+PATCH {{service}}/books/@attrB HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain-x
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a605415fb004de81e1cddb3bc4c0eec4");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - In the storage the attribute is patched
+# - Storage-Effects: 1x UID
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - Content-Length is mssing but without effect (by the REST Client)
+PATCH {{service}}/books/@attrB HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test_value<2>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8af5051031730ac21584bca820f34dec");
+});
+%}
+
+###
+# Everything is case sensitive and therefore the attribute can't be found.
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/books/@attrb HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+test_value<2>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fe48ab187a0a5e3e3c58abd1e84e0615");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+#   attribute ___rev is ignored, but does not cause errors
+# - Response without Storage-Effects header
+# - Storage-Revision is not increased
+# - Storage-Expiration is extended
+PATCH {{service}}/books/@___rev HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0b5edcf7e43b7731ca06a5e19a5db57b");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+#   attribute ___uid is ignored, but does not cause errors
+# - Response without Storage-Effects header
+# - Storage-Revision is not increased
+# - Storage-Expiration is extended
+PATCH {{service}}/books/@___uid HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "64acfe28e145b837ac0c97971a62e1bd");
+});
+%}
+
+###
+# No attributes can be set in the document.
+# Expectations:
+# - Status code 204 No Content
+#   the addressing of the XML document is detected
+# - Response without Storage-Effects header, such a request has no effect
+# - Storage-Revision is not increased
+# - Storage-Expiration is extended
+PUT {{service}}/@attrF HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f3504649622e6e5291077d1fcad53e7c");
+});
+%}
+
+###
+# No attributes can be set in the document.
+# Therefore none is found and status 404 occurs.
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/@attrF HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "db1834789061c4af814a5cbd3763a3e6");
+});
+%}
+
+###
+# PATCH can only set attributes that exist
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/books/@attrE HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/xpath
+
+/wrong/wrong
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1e3dec08edbdf58c96d4434b77fbbd39");
+});
+%}
+
+###
+# XPath as value is not supported
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath (Axes are not supported)
+PATCH {{service}}/books/@attrB HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/xpath
+
+/wrong/wrong
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6c1dd999b7c266c850534699342528f4");
+});
+%}
+
+###
+# XPath with wrong function
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath function (Unregistered function)
+PATCH {{service}}/books/@attrB HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/xpath
+
+wrong(.)
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "290e7490aa6f39c00416d9e2292a081b");
+});
+%}
+
+###
+# PATCH outside the root element, shall be ignored
+# but PATCH can only set attributes that exist
+# Expectations:
+# - Status code 404 Resource Not Found
+# - URI: //books/../@___xxx
+PATCH {{service}}0x2f2f626f6f6b732f2e2e2f405f5f5f787878 HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4037abc411b74d3ea17fda505d59bd55");
+});
+%}
+
+###
+# PATCH outside the root element, shall be ignored
+# but PATCH can only set attributes that exist
+# Expectations:
+# - Status code 404 Resource Not Found
+# - URI: /*/../@___xxx
+PATCH {{service}}0x2f2a2f2e2e2f405f5f5f787878 HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f637661d36247ae04a582a1683aa9b20");
+});
+%}
+
+###
+# XPath without target
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/wrong/@new HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7b0f8cba8d0e60d4314d9bda2c25423c");
+});
+%}
+
+###
+# XPath without target
+# Expectations:
+# - Status code 404 Resource Not Found
+PATCH {{service}}/wrong/wrong/@new HTTP/1.0
+Storage: {{storage_patch_attribute}}
+Content-Type: text/plain
+
+123456789ABCDEF
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6d380d057652bbb86f9dbc92a3419132");
+});
+%}
+
+###

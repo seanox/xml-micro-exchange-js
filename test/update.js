@@ -1,5 +1,5 @@
-const path = require("path")
-const fs = require("fs")
+const path = require("path");
+const fs = require("fs");
 
 (() => {
     const arguments = process.argv
@@ -59,4 +59,4 @@ const fs = require("fs")
 
     console.log("")
     console.log("Done")
-})();
+})()
