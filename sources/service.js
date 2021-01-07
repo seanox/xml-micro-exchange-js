@@ -1184,9 +1184,152 @@ class Storage {
         this.quit(204, "No Content", headers)
     }
 
+    /**
+     * PATCH changes existing elements and attributes in storage.
+     * The position for the insert is defined via an XPath.
+     * The method works almost like PUT, but the XPath axis of the request
+     * always expects an existing target.
+     * XPath uses different notations for elements and attributes.
+     *
+     * The notation for attributes use the following structure at the end.
+     *     <XPath>/@<attribute> or <XPath>/attribute.<attribute>
+     * The attribute values can be static (text) and dynamic (XPath function).
+     * Values are send as request-body.
+     * Whether they are used as text or XPath function is decided by the
+     * Content-Type header of the request.
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *
+     * If the XPath notation does not match the attributes, elements are
+     * assumed. Unlike the PUT method, no pseudo elements are supported for
+     * elements.
+     *
+     * The value of elements can be static (text), dynamic (XPath function) or
+     * be an XML structure. Also here the value is send with the request-body
+     * and the type of processing is determined by the Content-Type:
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *     application/xslt+xml: XML structure
+     *
+     * The PATCH method works resolutely and  overwrites existing data.
+     * The XPath processing is strict and does not accept unnecessary spaces.
+     * The attributes ___rev / ___uid used internally by the storage are
+     * read-only and cannot be changed.
+     *
+     * In general, if no target can be reached via XPath, status 404 will
+     * occur. In all other cases the PATCH method informs the client about
+     * changes with status 204 and the response headers Storage-Effects and
+     * Storage-Revision. The header Storage-Effects contains a list of the UIDs
+     * that were directly affected by the change elements. If no changes were
+     * made because the XPath cannot find a writable target, the header
+     * Storage-Effects can be omitted completely in the response.
+     *
+     * Syntactic and semantics errors in the request and/or XPath and/or value
+     * can cause error status 400 and 415. If errors occur due to the
+     * transmitted request body, this causes status 422.
+     *
+     *     Request:
+     * PATCH /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: application/xslt+xml
+     *     Request-Body:
+     * XML structure
+     *
+     *     Request:
+     * PATCH /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     *  Content-Type: text/plain
+     *     Request-Body:
+     * Value as plain text
+     *
+     *     Request:
+     * PATCH /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: text/xpath
+     *     Request-Body:
+     * Value as XPath function
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage-Effects: ... (list of UIDs)
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Timeout (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Element(s) or attribute(s) successfully created or set
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
+     * - XPath is missing or malformed
+     * - XPath without addressing a target is responded with status 204
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage does not exist
+     * - XPath axis finds no target
+     *         HTTP/1.0 413 Payload Too Large
+     * - Allowed size of the request(-body) and/or storage is exceeded
+     *         HTTP/1.0 415 Unsupported Media Type
+     * - Attribute request without Content-Type text/plain
+     *         HTTP/1.0 422 Unprocessable Entity
+     * - Data in the request body cannot be processed
+     */
     doPatch() {
-        // TODO:
-        storage.quit(501, "Not Implemented")
+
+        // PATCH is implemented like PUT.
+        // There are some additional conditions and restrictions that will be
+        // checked. After that the answer to the request can be passed to PUT.
+        // - Pseudo elements are not supported
+        // - Target must exist, particularly for attributes
+
+        // Without existing storage the request is not valid.
+        if (!this.exists())
+            this.quit(404, "Resource Not Found")
+
+        // In any case an XPath is required for a valid request.
+        if (!Object.exists(this.xpath)
+            || this.xpath === "")
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+
+        // Storage::SPACE also limits the maximum size of writing request(-body).
+        // If the limit is exceeded, the request is quit with status 413.
+        if (Object.exists(this.request.data)
+            && this.request.data.length > Storage.SPACE)
+            this.quit(413, "Payload Too Large")
+
+        // For all PUT requests the Content-Type is needed, because for putting
+        // in XML structures and text is distinguished.
+        if ((this.request.headers["content-type"] || "") === "")
+            this.quit(415, "Unsupported Media Type")
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            let message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+
+        let targets = XPath.select(this.xpath, this.xml)
+        if (targets instanceof Error) {
+            let message = "Invalid XPath axis (" + targets.message + ")"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+
+        if (!this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)
+                && this.xpath.match(/::((\w+)*\)*){0,1}((?:!+\w*){0,})$/)) {
+            let message = "Invalid XPath axis"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+
+        if (!Object.exists(targets) || targets.length <= 0)
+            this.quit(404, "Resource Not Found")
+
+        // The response to the request is delegated to PUT.
+        // The function call is executed and the request is terminated.
+        this.doPut();
     }
 
     doDelete() {
