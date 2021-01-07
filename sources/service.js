@@ -186,15 +186,15 @@
  *  @author  Seanox Software Solutions
  *  @version 1.1.0 20210107
  */
-const http = require("http");
-const fs = require("fs");
-const crypto = require("crypto");
+const http = require("http")
+const fs = require("fs")
+const crypto = require("crypto")
 
-const EOL = require('os').EOL;
-const DOMParser = require("xmldom").DOMParser;
-const DOMImplementation = require("xmldom").DOMImplementation;
-const XPath = require("xpath");
-const XMLSerializer = require("common-xml-features").XMLSerializer;
+const EOL = require('os').EOL
+const DOMParser = require("xmldom").DOMParser
+const DOMImplementation = require("xmldom").DOMImplementation
+const XPath = require("xpath")
+const XMLSerializer = require("common-xml-features").XMLSerializer
 
 // A different XMLSerializer is used because the &gt; is not encoded correctly
 // in the XMLSerializer of xmldom.
@@ -218,36 +218,36 @@ class Storage {
 
     // TODO:
     static get PORT() {
-        return 8000;
-    };
+        return 8000
+    }
 
     // TODO:
     static get CONTEXT_PATH() {
-        return "/xmex!";
-    };
+        return "/xmex!"
+    }
 
     /** Directory of the data storage */
     static get DIRECTORY() {
-        return "./data";
-    };
+        return "./data"
+    }
 
     /** Maximum number of files in data storage */
     static get QUANTITY() {
-        return 65535;
-    };
+        return 65535
+    }
 
     /**
      * Maximum data size of files in data storage in bytes.
      * The value also limits the size of the requests(-body).
      */
     static get SPACE() {
-        return 256 *1024;
-    };
+        return 256 *1024
+    }
 
     /** Maximum idle time of the files in seconds */
     static get TIMEOUT() {
-        return 15 *60;
-    };
+        return 15 *60
+    }
 
     /**
      * Optional CORS response headers as associative array.
@@ -261,7 +261,7 @@ class Storage {
             "Access-Control-Max-Age": "86400",
             "Access-Control-Expose-Headers": "*"
         }
-    };
+    }
 
     /**
      * Pattern for the Storage header
@@ -270,8 +270,8 @@ class Storage {
      *     Group 2. Name of the root element (optional)
      */
     static get PATTERN_HEADER_STORAGE() {
-        return /^(\w{1,64})(?:\s+(\w+)){0,1}$/;
-    };
+        return /^(\w{1,64})(?:\s+(\w+)){0,1}$/
+    }
 
     /**
      * Pattern to determine options (optional directives) at the end of XPath
@@ -280,8 +280,8 @@ class Storage {
      *     Group 2. options (optional)
      */
     static get PATTERN_XPATH_OPTIONS() {
-        return /^(.*?)((?:!+\w+){0,})$/;
-    };
+        return /^(.*?)((?:!+\w+){0,})$/
+    }
 
     /**
      * Pattern to determine the structure of XPath axis expressions for attributes
@@ -290,8 +290,8 @@ class Storage {
      *     Group 2. Attribute
      */
     static get PATTERN_XPATH_ATTRIBUTE() {
-        return /((?:^\/+)|(?:^.*?))\/{0,}(?<=\/)(?:@|attribute::)(\w+)$/i;
-    };
+        return /((?:^\/+)|(?:^.*?))\/{0,}(?<=\/)(?:@|attribute::)(\w+)$/i
+    }
 
     /**
      * Pattern to determine the structure of XPath axis expressions for pseudo elements
@@ -300,8 +300,8 @@ class Storage {
      *     Group 2. Attribute
      */
     static get PATTERN_XPATH_PSEUDO() {
-        return /^(.*?)(?:::(before|after|first|last)){0,1}$/i;
-    };
+        return /^(.*?)(?:::(before|after|first|last)){0,1}$/i
+    }
 
     /**
      * Pattern as indicator for XPath functions
@@ -311,25 +311,25 @@ class Storage {
      * characters at the beginning must be a function.
      */
     static get PATTERN_XPATH_FUNCTION() {
-        return /^[\(\s]*[^\/\.\s\(].*$/;
-    };
+        return /^[\(\s]*[^\/\.\s\(].*$/
+    }
 
     /** Constants of used content types */
     static get CONTENT_TYPE_TEXT() {
-        return "text/plain";
-    };
+        return "text/plain"
+    }
     static get CONTENT_TYPE_XPATH() {
-        return "text/xpath";
-    };
+        return "text/xpath"
+    }
     static get CONTENT_TYPE_HTML() {
-        return "text/html";
-    };
+        return "text/html"
+    }
     static get CONTENT_TYPE_XML() {
-        return "application/xslt+xml";
-    };
+        return "application/xslt+xml"
+    }
     static get CONTENT_TYPE_JSON() {
-        return "application/json";
-    };
+        return "application/json"
+    }
 
     /**
      * Constructor creates a new Storage object.
@@ -340,36 +340,36 @@ class Storage {
         // The storage identifier is case-sensitive.
         // To ensure that this also works with Windows, Base64 encoding is used.
 
-        this.request  = meta.request;
-        this.response = meta.response;
+        this.request  = meta.request
+        this.response = meta.response
 
-        this.storage  = meta.storage || "";
-        this.root     = meta.root || "data";
-        this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ASCII").toString("Base64");
-        this.xpath    = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$1");
-        this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2");
-        this.change   = false;
-        this.unique   = this.uniqueId();
-        this.serial   = 0;
-        this.revision = 0;
-    };
+        this.storage  = meta.storage || ""
+        this.root     = meta.root || "data"
+        this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ASCII").toString("Base64")
+        this.xpath    = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$1")
+        this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2")
+        this.change   = false
+        this.unique   = this.uniqueId()
+        this.serial   = 0
+        this.revision = 0
+    }
 
     /** Cleans up all files that have exceeded the maximum idle time. */
     static cleanUp() {
 
         if (!fs.existsSync(Storage.DIRECTORY)
                 || !fs.lstatSync(Storage.DIRECTORY).isDirectory())
-            return;
-        let timeout = new Date().getTime() -(Storage.TIMEOUT *1000);
-        let files = fs.readdirSync(Storage.DIRECTORY);
+            return
+        let timeout = new Date().getTime() -(Storage.TIMEOUT *1000)
+        let files = fs.readdirSync(Storage.DIRECTORY)
         files.forEach((file) => {
-            file = Storage.DIRECTORY + "/" + file;
-            let state = fs.lstatSync(file);
+            file = Storage.DIRECTORY + "/" + file
+            let state = fs.lstatSync(file)
             if (state.isFile()
                     && state.mtimeMs < timeout)
                 if (fs.existsSync(file))
-                    fs.unlinkSync(file);
-        });
+                    fs.unlinkSync(file)
+        })
     }
 
     /**
@@ -383,25 +383,25 @@ class Storage {
     static share(meta) {
 
         if (!(meta.storage || "").match(Storage.PATTERN_HEADER_STORAGE))
-            (new Storage(meta)).quit(400, "Bad Request", {"Message": "Invalid storage identifier"});
+            (new Storage(meta)).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
 
-        meta.root = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2");
-        meta.storage = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1");
+        meta.root = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
+        meta.storage = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
 
-        Storage.cleanUp();
+        Storage.cleanUp()
         if (!fs.existsSync(Storage.DIRECTORY))
-            fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755});
-        let storage = new Storage(meta);
+            fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
+        let storage = new Storage(meta)
 
         if (storage.exists()) {
-            storage.open(meta.exclusive);
+            storage.open(meta.exclusive)
             // Safe is safe, if not the default 'data' is used,
             // the name of the root element must be known.
             // Otherwise the request is quit with status 404 and terminated.
             if ((meta.root ? meta.root : "data") != storage.xml.documentElement.nodeName)
-                storage.quit(404, "Resource Not Found");
+                storage.quit(404, "Resource Not Found")
         }
-        return storage;
+        return storage
     }
 
     /**
@@ -417,12 +417,12 @@ class Storage {
         // assuming that the port reassignment is greater than one millisecond.
 
         // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
-        let unique = this.request.connection.remotePort.toString(36);
-        unique = "0000" + unique;
-        unique = unique.substring(unique.length -4);
-        unique = new Date().getTime().toString(36) + unique;
-        return unique.toUpperCase();
-    };
+        let unique = this.request.connection.remotePort.toString(36)
+        unique = "0000" + unique
+        unique = unique.substring(unique.length -4)
+        unique = new Date().getTime().toString(36) + unique
+        return unique.toUpperCase()
+    }
 
     /**
      * Return TRUE if the storage already exists.
@@ -430,7 +430,7 @@ class Storage {
      */
     exists() {
         return fs.existsSync(this.store)
-            && fs.lstatSync(this.store).size > 0;
+            && fs.lstatSync(this.store).size > 0
     }
 
     /**
@@ -443,23 +443,23 @@ class Storage {
     open(exclusive = true) {
 
         if (Object.exists(this.share))
-            return;
+            return
 
-        fs.closeSync(fs.openSync(this.store, "as+"));
-        this.share = fs.openSync(this.store, !this.exists() || exclusive ? "rs+" : "r");
+        fs.closeSync(fs.openSync(this.store, "as+"))
+        this.share = fs.openSync(this.store, !this.exists() || exclusive ? "rs+" : "r")
 
         if (fs.lstatSync(this.store).size <= 0)
             fs.writeSync(this.share, `<?xml version="1.0" encoding="UTF-8"?>`
-                + `<${this.root} ___rev="0" ___uid="${this.getSerial()}"/>`);
+                + `<${this.root} ___rev="0" ___uid="${this.getSerial()}"/>`)
 
-        let buffer = Buffer.alloc(fs.lstatSync(this.store).size);
-        fs.readSync(this.share, buffer, {position:0});
-        this.xml = new DOMParser().parseFromString(buffer.toString(), Storage.CONTENT_TYPE_XML);
-        this.revision = this.xml.documentElement.getAttributeNumber("___rev");
+        let buffer = Buffer.alloc(fs.lstatSync(this.store).size)
+        fs.readSync(this.share, buffer, {position:0})
+        this.xml = new DOMParser().parseFromString(buffer.toString(), Storage.CONTENT_TYPE_XML)
+        this.revision = this.xml.documentElement.getAttributeNumber("___rev")
     }
 
     serialize(xml) {
-        return new XMLSerializer().serializeToString(xml || this.xml);
+        return new XMLSerializer().serializeToString(xml || this.xml)
     }
 
     /**
@@ -475,27 +475,27 @@ class Storage {
     materialize() {
 
         if (!Object.exists(this.share))
-            return;
+            return
         if (this.revision === this.xml.documentElement.getAttributeNumber("___rev"))
-            return;
+            return
 
-        let output = this.serialize();
+        let output = this.serialize()
         if (output.length > Storage.SPACE)
-            this.quit(413, "Payload Too Large");
-        fs.ftruncateSync(this.share, 0);
-        fs.writeSync(this.share, output);
+            this.quit(413, "Payload Too Large")
+        fs.ftruncateSync(this.share, 0)
+        fs.writeSync(this.share, output)
     }
 
     /** Closes the storage for the current request. */
     close() {
 
         if (!Object.exists(this.share))
-            return;
+            return
 
-        fs.closeSync(this.share);
+        fs.closeSync(this.share)
 
-        delete this.share;
-        delete this.xml;
+        delete this.share
+        delete this.xml
     }
 
     /**
@@ -503,7 +503,7 @@ class Storage {
      * @return {string} unique incremental ID
      */
     getSerial() {
-        return this.unique + ":" + (this.serial++);
+        return this.unique + ":" + (this.serial++)
     }
 
     /**
@@ -514,13 +514,13 @@ class Storage {
     getSize() {
 
         if (Object.exists(this.xml))
-            return this.serialize().length;
+            return this.serialize().length
         if (Object.exists(this.share))
-            return fs.fstatSync(this.share).size;
+            return fs.fstatSync(this.share).size
         if (Object.exists(this.store)
                 && fs.existsSync(this.store))
-            return fs.lstatSync(this.store).size;
-        return 0;
+            return fs.lstatSync(this.store).size
+        return 0
     }
 
     /**
@@ -531,8 +531,8 @@ class Storage {
     static updateNodeRevision(node, revision) {
 
         while (node && node.nodeType === NodeType.ELEMENT_NODE) {
-            node.setAttribute("___rev", revision);
-            node = node.parentNode;
+            node.setAttribute("___rev", revision)
+            node = node.parentNode
         }
     }
 
@@ -602,20 +602,20 @@ class Storage {
     doConnect() {
 
         if (this.xpath)
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"});
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
 
-        let response = [201, "Created"];
+        let response = [201, "Created"]
         if (!this.exists()) {
-            let files = fs.readdirSync(Storage.DIRECTORY);
-            files = files.filter(file => fs.lstatSync(Storage.DIRECTORY + "/" + file).isFile());
+            let files = fs.readdirSync(Storage.DIRECTORY)
+            files = files.filter(file => fs.lstatSync(Storage.DIRECTORY + "/" + file).isFile())
             if (files.length >= Storage.QUANTITY)
-                this.quit(507, "Insufficient Storage");
-            this.open(true);
-        } else response = [202, "Accepted"];
+                this.quit(507, "Insufficient Storage")
+            this.open(true)
+        } else response = [202, "Accepted"]
 
-        this.materialize();
-        this.quit(response[0], response[1], {"Connection-Unique": this.unique});
-    };
+        this.materialize()
+        this.quit(response[0], response[1], {"Connection-Unique": this.unique})
+    }
 
     /**
      * OPTIONS is used to query the allowed HTTP methods for an XPath, which is
@@ -708,28 +708,28 @@ class Storage {
         // The function call is executed and the request is terminated.
         if (!Object.exists(this.xpath)
                   || this.xpath === "")
-            this.doConnect();
+            this.doConnect()
 
         // Without existing storage the request is not valid.
         if (!this.exists())
-            this.quit(404, "Resource Not Found");
+            this.quit(404, "Resource Not Found")
 
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath))
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"});
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
 
         // TODO:
-    };
+    }
 
     doGet() {
         // TODO:
-        storage.quit(501, "Not Implemented");
-    };
+        storage.quit(501, "Not Implemented")
+    }
 
     doPost() {
         // TODO:
-        storage.quit(501, "Not Implemented");
-    };
+        storage.quit(501, "Not Implemented")
+    }
 
     /**
      * PUT creates elements and attributes in storage and/or changes the value
@@ -834,30 +834,30 @@ class Storage {
 
         // Without existing storage the request is not valid.
         if (!this.exists())
-            this.quit(404, "Resource Not Found");
+            this.quit(404, "Resource Not Found")
 
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath)
                 || this.xpath === "")
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"});
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
 
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
         if (Object.exists(this.request.data)
                 && this.request.data.length > Storage.SPACE)
-            this.quit(413, "Payload Too Large");
+            this.quit(413, "Payload Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
         // in XML structures and text is distinguished.
         if ((this.request.headers["content-type"] || "") === "")
-            this.quit(415, "Unsupported Media Type");
+            this.quit(415, "Unsupported Media Type")
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
-            let message = "Invalid XPath (Functions are not supported)";
-            this.quit(400, "Bad Request", {"Message": message});
+            let message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {"Message": message})
         }
 
-        let headers = {};
+        let headers = {}
 
         // PUT requests can address attributes and elements via XPath.
         // Multi-axis XPaths allow multiple targets.
@@ -874,7 +874,7 @@ class Storage {
         // If the XPath ends with /attribute.<attribute> or /@<attribute> an
         // attribute is expected, in all other cases a element.
 
-        let matches = this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE);
+        let matches = this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)
         if (matches) {
 
             // The following Content-Type is supported for attributes:
@@ -883,11 +883,11 @@ class Storage {
 
             // For attributes only the Content-Type text/plain and text/xpath
             // are supported, for other Content-Types no conversion exists.
-            let media = (this.request.headers["content-type"] || "").toLowerCase();
+            let media = (this.request.headers["content-type"] || "").toLowerCase()
             if (![Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media))
-                this.quit(415, "Unsupported Media Type");
+                this.quit(415, "Unsupported Media Type")
 
-            let input = this.request.data;
+            let input = this.request.data
 
             // The Content-Type text/xpath is a special of the XMXE Storage.
             // It expects a plain text which is an XPath function.
@@ -898,31 +898,31 @@ class Storage {
             // all targets.
             if (media.toLowerCase() === Storage.CONTENT_TYPE_XPATH) {
                 if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
-                    let message = "Invalid XPath (Axes are not supported)";
-                    this.quit(422, "Unprocessable Entity", {"Message": message});
+                    let message = "Invalid XPath (Axes are not supported)"
+                    this.quit(422, "Unprocessable Entity", {"Message": message})
                 }
-                input = XPath.select(input, this.xml);
+                input = XPath.select(input, this.xml)
                 if (!Object.exists(input)
                         || input instanceof Error) {
-                    let message = "Invalid XPath function";
+                    let message = "Invalid XPath function"
                     if (input instanceof Error)
-                        message += " (" + input.message + ")";
-                    this.quit(422, "Unprocessable Entity", {"Message": message});
+                        message += " (" + input.message + ")"
+                    this.quit(422, "Unprocessable Entity", {"Message": message})
                 }
             }
 
             // From here on it continues with a static value for the attribute.
 
-            let xpath = matches[1];
-            let attribute = matches[2];
+            let xpath = matches[1]
+            let attribute = matches[2]
 
-            let targets = XPath.select(xpath, this.xml);
+            let targets = XPath.select(xpath, this.xml)
             if (input instanceof Error) {
-                let message = "Invalid XPath axis (" + input.message + ")";
-                this.quit(400, "Bad Request", {"Message": message});
+                let message = "Invalid XPath axis (" + input.message + ")"
+                this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found");
+                this.quit(404, "Resource Not Found")
 
             // The attributes ___rev and ___uid are essential for the internal
             // organization and management of the data and cannot be changed.
@@ -930,57 +930,57 @@ class Storage {
             // no matching node was found. It should say request understood and
             // executed but without effect.
             if (!["___rev", "___uid"].includes(attribute)) {
-                let serials = [];
+                let serials = []
                 targets.forEach((target) => {
                     // Only elements are supported, this prevents the
                     // addressing of the XML document by the XPath.
                     if (target.nodeType !== NodeType.ELEMENT_NODE)
-                        return;
-                    serials.push(target.getAttribute("___uid") + ":M");
-                    target.setAttribute(attribute, input);
+                        return
+                    serials.push(target.getAttribute("___uid") + ":M")
+                    target.setAttribute(attribute, input)
                     // The revision is updated at the parent nodes, so you
                     // can later determine which nodes have changed and
                     // with which revision. Partial access allows the
                     // client to check if the data or a tree is still up to
                     // date, because he can compare the revision.
-                    Storage.updateNodeRevision(target, this.revision +1);
-                });
+                    Storage.updateNodeRevision(target, this.revision +1)
+                })
 
                 // Only the list of serials is an indicator that data has
                 // changed and whether the revision changes with it.
                 // If necessary the revision must be corrected if there are
                 // no data changes.
                 if (serials.length > 0)
-                    headers["Storage-Effects"] = serials.join(" ");
+                    headers["Storage-Effects"] = serials.join(" ")
             }
 
-            this.materialize();
-            this.quit(204, "No Content", headers);
+            this.materialize()
+            this.quit(204, "No Content", headers)
         }
 
         // An XPath for element(s) is then expected here.
         // If this is not the case, the request is responded with status 400.
-        matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO);
+        matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
         if (!matches)
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"});
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"})
 
-        let xpath = matches[1];
-        let pseudo = (matches[2] || "").toLowerCase();
+        let xpath = matches[1]
+        let pseudo = (matches[2] || "").toLowerCase()
 
         // The following Content-Type is supported for elements:
         // - application/xslt+xml for XML structures
         // - text/plain for static values (text)
         // - text/xpath for dynamic values, based on XPath functions
 
-        let media = (this.request.headers["content-type"] || "").toLowerCase();
+        let media = (this.request.headers["content-type"] || "").toLowerCase()
         if ([Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media)) {
 
             // The combination with a pseudo element is not possible for a text
             // value. Response with status 415 (Unsupported Media Type).
             if (pseudo !== "")
-                this.quit(415, "Unsupported Media Type");
+                this.quit(415, "Unsupported Media Type")
 
-            let input = this.request.data;
+            let input = this.request.data
 
             // The Content-Type text/xpath is a special of the XMXE Storage.
             // It expects a plain text which is an XPath function.
@@ -991,27 +991,27 @@ class Storage {
             // all targets.
             if (media === Storage.CONTENT_TYPE_XPATH) {
                 if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
-                    let message = "Invalid XPath (Axes are not supported)";
-                    this.quit(422, "Unprocessable Entity", {"Message": message});
+                    let message = "Invalid XPath (Axes are not supported)"
+                    this.quit(422, "Unprocessable Entity", {"Message": message})
                 }
-                input = XPath.select(input, this.xml);
+                input = XPath.select(input, this.xml)
                 if (!Object.exists(input)
                         || input instanceof Error) {
-                    let message = "Invalid XPath function";
+                    let message = "Invalid XPath function"
                     if (input instanceof Error)
-                        message += " (" + input.message + ")";
-                    this.quit(422, "Unprocessable Entity", {"Message": message});
+                        message += " (" + input.message + ")"
+                    this.quit(422, "Unprocessable Entity", {"Message": message})
                 }
             }
 
-            let serials = [];
-            let targets = XPath.select(xpath, this.xml);
+            let serials = []
+            let targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
-                let message = "Invalid XPath axis (" + input.message + ")";
-                this.quit(400, "Bad Request", {"Message": message});
+                let message = "Invalid XPath axis (" + input.message + ")"
+                this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found");
+                this.quit(404, "Resource Not Found")
 
             targets.forEach((target) => {
                 // Overwriting of the root element is not possible, as it
@@ -1019,51 +1019,51 @@ class Storage {
                 // does not cause to an error, so the behaviour is
                 // analogous to putting attributes.
                 if (target.nodeType !== NodeType.ELEMENT_NODE)
-                    return;
-                serials.push(target.getAttribute("___uid") + ":M");
+                    return
+                serials.push(target.getAttribute("___uid") + ":M")
                 // A bug in common-xml-features sets the documentElement to
                 // null when using replaceChid. Therefore the quick way:
                 //     clone/add/replace -- is not possible.
                 while (target.lastChild)
                     target.removeChild(target.lastChild)
-                target.appendChild(this.xml.createTextNode(input));
+                target.appendChild(this.xml.createTextNode(input))
                 // The revision is updated at the parent nodes, so you can
                 // later determine which nodes have changed and with which
                 // revision. Partial access allows the client to check if
                 // the data or a tree is still up to date, because he can
                 // compare the revision.
-                Storage.updateNodeRevision(target, this.revision +1);
-            });
+                Storage.updateNodeRevision(target, this.revision +1)
+            })
 
             // Only the list of serials is an indicator that data has changed
             // and whether the revision changes with it. If necessary the
             // revision must be corrected if there are no data changes.
             if (serials.length > 0)
-                headers["Storage-Effects"] = serials.join(" ");
+                headers["Storage-Effects"] = serials.join(" ")
 
-            this.materialize();
-            this.quit(204, "No Content", headers);
+            this.materialize()
+            this.quit(204, "No Content", headers)
         }
 
         // Only an XML structure can be inserted, nothing else is supported.
         // So only the Content-Type application/xslt+xml can be used.
         if (media !== Storage.CONTENT_TYPE_XML)
-            this.quit(415, "Unsupported Media Type");
+            this.quit(415, "Unsupported Media Type")
 
         // The request body must also be a valid XML structure in data
         // container, otherwise the request is quit with an error.
-        let input = "<data>" + (this.request.data || "") + "</data>";
+        let input = "<data>" + (this.request.data || "") + "</data>"
 
         // The XML is loaded, but what happens if an error occurs during
         // parsing? Status 400 or 422 - The decision for 422, because 400 means
         // faulty request. But this is a (semantic) error in the request body.
-        let xml = new DOMParser().parseFromString(input, Storage.CONTENT_TYPE_XML, true);
+        let xml = new DOMParser().parseFromString(input, Storage.CONTENT_TYPE_XML, true)
         if (!Object.exists(xml)
                 || input instanceof Error) {
-            let message = "Invalid XML document";
+            let message = "Invalid XML document"
             if (xml instanceof Error)
-                message += " (" + xml.message + ")";
-            this.quit(422, "Unprocessable Entity", {"Message": message});
+                message += " (" + xml.message + ")"
+            this.quit(422, "Unprocessable Entity", {"Message": message})
         }
 
         // The attributes ___rev and ___uid are essential for the internal
@@ -1074,77 +1074,77 @@ class Storage {
         // attributes are determined after insertion and it is assumed that
         // they have been newly inserted. This approach was chosen to avoid a
         // recursive search/iteration in the XML structure to be inserted.
-        let nodes = XPath.select("//*[@___rev|@___uid]", xml);
+        let nodes = XPath.select("//*[@___rev|@___uid]", xml)
         nodes.forEach((node) => {
-            node.removeAttribute("___rev");
-            node.removeAttribute("___uid");
-        });
+            node.removeAttribute("___rev")
+            node.removeAttribute("___uid")
+        })
 
-        let serials = [];
+        let serials = []
         if (xml.documentElement.hasChildNodes()) {
-            let targets = XPath.select(xpath, this.xml);
+            let targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
-                let message = "Invalid XPath axis (" + targets.message + ")";
-                this.quit(400, "Bad Request", {"Message": message});
+                let message = "Invalid XPath axis (" + targets.message + ")"
+                this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found");
+                this.quit(404, "Resource Not Found")
 
             targets.forEach((target) => {
 
                 let inserts = Array.from(xml.documentElement.childNodes)
-                        .map(insert => insert.cloneNode(true));
+                        .map(insert => insert.cloneNode(true))
 
                 // Overwriting of the root element is not possible, as it
                 // is an essential part of the storage, and is ignored. It
                 // does not cause to an error, so the behaviour is
                 // analogous to putting attributes.
                 if (target.nodeType !== NodeType.ELEMENT_NODE)
-                    return;
+                    return
 
                 // Pseudo elements can be used to put in an XML
                 // substructure relative to the selected element.
                 if (pseudo === "") {
                     // The UIDs of the children that are removed by the
                     // replacement are determined for storage effects.
-                    let childs = XPath.select(".//*[@___uid]", target);
+                    let childs = XPath.select(".//*[@___uid]", target)
                     childs.forEach((child) => {
-                        serials.push(child.getAttribute("___uid") + ":D");
-                    });
+                        serials.push(child.getAttribute("___uid") + ":D")
+                    })
                     // A bug in common-xml-features sets the documentElement to
                     // null when using replaceChid. Therefore the quick way:
                     //     clone/add/replace -- is not possible.
                     while (target.lastChild)
                         target.removeChild(target.lastChild)
                     inserts.forEach((insert) => {
-                        target.appendChild(insert);
-                    });
+                        target.appendChild(insert)
+                    })
                 } else if (pseudo === "before") {
                     if (target.parentNode.nodeType === NodeType.ELEMENT_NODE)
                         inserts.forEach((insert) => {
-                            target.parentNode.insertBefore(insert, target);
-                        });
+                            target.parentNode.insertBefore(insert, target)
+                        })
                 } else if (pseudo === "after") {
                     if (target.parentNode.nodeType === NodeType.ELEMENT_NODE) {
-                        nodes = [];
+                        nodes = []
                         inserts.forEach((node) => {
-                            nodes.unshift(node);
-                        });
+                            nodes.unshift(node)
+                        })
                         nodes.forEach((insert) => {
                             if (target.nextSibling)
-                                target.parentNode.insertBefore(insert, target.nextSibling);
-                            else target.parentNode.appendChild(insert);
-                        });
+                                target.parentNode.insertBefore(insert, target.nextSibling)
+                            else target.parentNode.appendChild(insert)
+                        })
                     }
                 } else if (pseudo === "first") {
                     for (let index = inserts.length -1; index >= 0; index--)
-                        target.insertBefore(inserts[index].cloneNode(true), target.firstChild);
+                        target.insertBefore(inserts[index].cloneNode(true), target.firstChild)
                 } else if (pseudo === "last") {
                     inserts.forEach((insert) => {
-                        target.appendChild(insert);
-                    });
-                } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"});
-            });
+                        target.appendChild(insert)
+                    })
+                } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"})
+            })
         }
 
         // The attribute ___uid of all newly inserted elements is set.
@@ -1153,12 +1153,12 @@ class Storage {
         // later determine which nodes have changed and with which revision.
         // Partial access allows the client to check if the data or a tree is
         // still up to date, because he can compare the revision.
-        nodes = XPath.select("//*[not(@___uid)]", this.xml);
+        nodes = XPath.select("//*[not(@___uid)]", this.xml)
         nodes.forEach((node) => {
-            let serial = this.getSerial();
-            serials.push(serial + ":A");
-            node.setAttribute("___uid", serial);
-            Storage.updateNodeRevision(node, this.revision +1);
+            let serial = this.getSerial()
+            serials.push(serial + ":A")
+            node.setAttribute("___uid", serial)
+            Storage.updateNodeRevision(node, this.revision +1)
 
             // Also the UID of the directly addressed element is transmitted to
             // the client in the response, because the element itself has not
@@ -1166,33 +1166,33 @@ class Storage {
             // listed because they are only indirectly affected. So the
             // behaviour is analogous to putting attributes.
             if (node.parentNode.nodeType !== NodeType.ELEMENT_NODE)
-                return;
-            serial = node.parentNode.getAttribute("___uid");
+                return
+            serial = node.parentNode.getAttribute("___uid")
             if (Object.exists(serial)
                     && !serials.includes(serial + ":A", serials)
                     && !serials.includes(serial + ":M", serials))
-                serials.push(serial + ":M");
-        });
+                serials.push(serial + ":M")
+        })
 
         // Only the list of serials is an indicator that data has changed and
         // whether the revision changes with it. If necessary the revision must
         // be corrected if there are no data changes.
         if (serials)
-            headers["Storage-Effects"] = serials.join(" ");
+            headers["Storage-Effects"] = serials.join(" ")
 
-        this.materialize();
-        this.quit(204, "No Content", headers);
-    };
+        this.materialize()
+        this.quit(204, "No Content", headers)
+    }
 
     doPatch() {
         // TODO:
-        storage.quit(501, "Not Implemented");
-    };
+        storage.quit(501, "Not Implemented")
+    }
 
     doDelete() {
         // TODO:
-        storage.quit(501, "Not Implemented");
-    };
+        storage.quit(501, "Not Implemented")
+    }
 
     /**
      * Quit sends a response and ends the connection and closes the storage.
@@ -1213,8 +1213,8 @@ class Storage {
         if (this.response.headersSent) {
             // The response are already complete.
             // The storage can be closed and the requests can be terminated.
-            this.close();
-            throw Object.getPrototypeOf(this).quit;
+            this.close()
+            throw Object.getPrototypeOf(this).quit
         }
 
         // This is implemented for scanning and modification of headers.
@@ -1222,30 +1222,30 @@ class Storage {
         // Content-Type are also removed correctly.
         let fetchHeader = (headers, name, remove = false) => {
             if (!Object.exists(headers))
-                return;
-            let result = undefined;
+                return
+            let result = undefined
             Object.entries(headers).forEach((entry) => {
-                const [key, value] = entry;
+                const [key, value] = entry
                 if (key.toLowerCase() !== name.toLowerCase())
-                    return;
+                    return
                 if (remove)
-                    delete headers[key];
-                result = {"name":key, "value":value};
-            });
-            return result;
-        };
+                    delete headers[key]
+                result = {"name":key, "value":value}
+            })
+            return result
+        }
 
         if (typeof headers !== "object")
-            headers = {};
+            headers = {}
         if (typeof Storage.CORS === "object")
-            headers = {...headers, ...Storage.CORS};
+            headers = {...headers, ...Storage.CORS}
 
         // Access-Control headers are received during preflight OPTIONS request
         if (this.request.method.toUpperCase() === "OPTIONS") {
             if (this.request.headers["access-control-request-method"])
-                headers["Access-Control-Allow-Methods"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE";
+                headers["Access-Control-Allow-Methods"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
             if (this.request.headers["access-control-request-headers"])
-                headers["Access-Control-Allow-Headers"] = this.request.headers["access-control-request-headers"];
+                headers["Access-Control-Allow-Headers"] = this.request.headers["access-control-request-headers"]
         }
 
         // For status class 2xx the storage headers are added.
@@ -1260,7 +1260,7 @@ class Storage {
                     "Storage-Last-Modified": new Date().toUTCString(),
                     "Storage-Expiration": new Date(new Date().getTime() +Storage.TIMEOUT).toUTCString(),
                     "Storage-Expiration-Time": (Storage.TIMEOUT *1000) + " ms"
-            }};
+            }}
 
         // The response from the Storage-Effects header can be very extensive.
         // With the Request-Header Accept-Effects you can define which classes
@@ -1280,105 +1280,105 @@ class Storage {
         // and DELETE methods when elements are recursively modified and then
         // also deleted.
 
-        let serials = fetchHeader(headers, "Storage-Effects", true);
-        serials = serials ? serials.value : "";
+        let serials = fetchHeader(headers, "Storage-Effects", true)
+        serials = serials ? serials.value : ""
         if (serials) {
-            serials = serials.split(/\s+/);
-            serials = [...new Set(serials)];
+            serials = serials.split(/\s+/)
+            serials = [...new Set(serials)]
             serials.forEach((serial) => {
                 if (serial.slice(-2) !== ":D")
-                    return;
-                var search = serial.slice(-2) + ":M";
+                    return
+                var search = serial.slice(-2) + ":M"
                 if (serials.includes(search))
-                    delete serials[search];
-                var search = serial.slice(-2) + ":A";
+                    delete serials[search]
+                var search = serial.slice(-2) + ":A"
                 if (serials.includes(search))
-                    delete serials[search];
-            });
-            serials = serials.join(" ");
+                    delete serials[search]
+            })
+            serials = serials.join(" ")
         }
 
-        let accepts = fetchHeader(this.request.headers, "Accept-Effects", false);
-        accepts = accepts ? accepts.value.toLowerCase() : "";
-        accepts = accepts ? accepts.split(/\s+/) : null;
-        let pattern = [];
+        let accepts = fetchHeader(this.request.headers, "Accept-Effects", false)
+        accepts = accepts ? accepts.value.toLowerCase() : ""
+        accepts = accepts ? accepts.split(/\s+/) : null
+        let pattern = []
         if (this.request.method.toUpperCase() !== "DELETE") {
             if (accepts
                     && !accepts.includes("added"))
-                pattern.push("A");
+                pattern.push("A")
             if (!accepts
                     || !accepts.includes("deleted"))
-                pattern.push("D");
+                pattern.push("D")
         } else {
             if (!accepts
                     || !accepts.includes("added"))
-                pattern.push("A");
+                pattern.push("A")
             if (accepts
                     && !accepts.includes("deleted"))
-                pattern.push("D");
+                pattern.push("D")
         }
         if (accepts
                 && !accepts.includes("modified"))
-            pattern.push("M");
+            pattern.push("M")
         if (accepts
                 && accepts.includes("none"))
-            pattern = ["A", "M", "D"];
+            pattern = ["A", "M", "D"]
         if (accepts
                 && accepts.includes("all"))
-            pattern = [];
+            pattern = []
         if (pattern)
-            serials = serials.replace(new RegExp("\\s*\\w+:\\w+:[" + pattern.join("|") + "]\\s*", "ig"), " ");
-        serials = serials.replace(/s{2,}/g, " ").trim();
+            serials = serials.replace(new RegExp("\\s*\\w+:\\w+:[" + pattern.join("|") + "]\\s*", "ig"), " ")
+        serials = serials.replace(/s{2,}/g, " ").trim()
         if (serials)
-            headers["Storage-Effects"] = serials;
+            headers["Storage-Effects"] = serials
 
         Object.keys(headers).forEach((key) => {
             if (key.toLowerCase() === "content-length")
-                delete headers[key];
+                delete headers[key]
         })
 
-        let media = fetchHeader(headers, "Content-Type", true);
-        media = media ? media.value : "";
+        let media = fetchHeader(headers, "Content-Type", true)
+        media = media ? media.value : ""
         if (status == 200
                 && Object.exists(data)
                 && data !== "") {
             if (!media) {
                 if (this.options.includes("json")) {
-                    console.log("TODO: !!!");
+                    console.log("TODO: !!!")
                     /* TODO:
-                    media = Storage.CONTENT_TYPE_JSON;
+                    media = Storage.CONTENT_TYPE_JSON
                     if (data instanceof DOMDocument
                             || data instanceof SimpleXMLElement)
-                        data = simplexml_import_dom(data);
-                    data = json_encode(data);
+                        data = simplexml_import_dom(data)
+                    data = json_encode(data)
                     */
                 } else {
-                    console.log("TODO: !!!");
+                    console.log("TODO: !!!")
                     /* TODO:
                     if (data instanceof DOMDocument
                             || data instanceof SimpleXMLElement) {
-                        media = Storage.CONTENT_TYPE_XML;
-                        data = data.saveXML();
-                    } else media = Storage.CONTENT_TYPE_TEXT;
+                        media = Storage.CONTENT_TYPE_XML
+                        data = data.saveXML()
+                    } else media = Storage.CONTENT_TYPE_TEXT
                     */
                 }
-            } else media = media.value;
-            header["Content-Type"] = media;
+            } else media = media.value
+            header["Content-Type"] = media
         }
 
         if (status >= 200 && status < 300)
             if ((Object.exists(data) && data !== "")
                     || status == 200)
-                headers["Content-Length"] = (data || "").length;
+                headers["Content-Length"] = (data || "").length
 
         // When responding to an error, the default Allow header is added.
         // But only if no Allow header was passed.
         // So the header does not always have to be added manually.
         if ([201, 202, 405].includes(status)
                 && Object.keys(headers).filter(header => header.toLowerCase() === "allow").length <= 0)
-            headers["Allow"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE";
+            headers["Allow"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
 
-        headers["Execution-Time"] = (new Date().getTime() -this.request.timing) + " ms";
+        headers["Execution-Time"] = (new Date().getTime() -this.request.timing) + " ms"
 
         {{{
 
@@ -1390,10 +1390,10 @@ class Storage {
             // not be perfect.
 
             let cryptoMD5 = (text) => {
-                return crypto.createHash("MD5").update(text).digest("HEX");
-            };
+                return crypto.createHash("MD5").update(text).digest("HEX")
+            }
 
-            let trace = [];
+            let trace = []
 
             // Request-Header-Hash
             let hash = JSON.stringify({
@@ -1402,24 +1402,24 @@ class Storage {
                 "Storage": (this.request.headers["storage"] || ""),
                 "Content-Length": (this.request.headers["content-length"] || "").toUpperCase(),
                 "Content-Type": (this.request.headers["content-type"] || "").toUpperCase()
-            });
-            headers["Trace-Request-Header-Hash"] = cryptoMD5(hash);
-            trace.push(cryptoMD5(hash) + " Trace-Request-Header-Hash", hash);
+            })
+            headers["Trace-Request-Header-Hash"] = cryptoMD5(hash)
+            trace.push(cryptoMD5(hash) + " Trace-Request-Header-Hash", hash)
 
             // Request-Body-Hash
-            hash = this.request.data || "";
-            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n");
-            hash = hash.replace(/\t/g, " ");
-            headers["Trace-Request-Body-Hash"] = cryptoMD5(hash);
-            trace.push(cryptoMD5(hash) + " Trace-Request-Body-Hash");
+            hash = this.request.data || ""
+            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
+            hash = hash.replace(/\t/g, " ")
+            headers["Trace-Request-Body-Hash"] = cryptoMD5(hash)
+            trace.push(cryptoMD5(hash) + " Trace-Request-Body-Hash")
 
             // Response-Header-Hash
             // Only the XMEX relevant headers are used.
-            let composite = {...headers};
+            let composite = {...headers}
             Object.keys(composite).forEach((header) => {
                 if (!["storage", "storage-revision", "storage-space",
                         "allow", "content-length", "message"].includes(header.toLowerCase()))
-                    delete composite[header];
+                    delete composite[header]
             })
 
             // Storage-Effects are never the same with UIDs.
@@ -1427,69 +1427,69 @@ class Storage {
             // make it comparable. To do this, it is only determined how many
             // unique's there are, in which order they are arranged and which
             // serials each unique has.
-            let serials = fetchHeader(headers, "Storage-Effects", false);
-            serials = serials ? serials.value : "";
+            let serials = fetchHeader(headers, "Storage-Effects", false)
+            serials = serials ? serials.value : ""
             if (serials) {
-                let effects = {};
+                let effects = {}
                 serials.split(/\s+/).forEach((uid) => {
-                    uid = uid.split(/:/);
+                    uid = uid.split(/:/)
                     if (!Object.exists(effects[uid[0]]))
-                        effects[uid[0]] = [];
-                    effects[uid[0]].push(uid[1]);
-                });
-                let keys = [...Object.keys(effects)];
-                keys.sort();
+                        effects[uid[0]] = []
+                    effects[uid[0]].push(uid[1])
+                })
+                let keys = [...Object.keys(effects)]
+                keys.sort()
                 keys.forEach((key) => {
-                    let value = effects[key];
-                    value.sort((v1, v2) => parseInt(v1) -parseInt(v2));
-                    delete effects[key];
-                    effects[key] = value.join(":");
-                });
-                composite["Storage-Effects"] = "#" + Object.values(effects).join(" #");
+                    let value = effects[key]
+                    value.sort((v1, v2) => parseInt(v1) -parseInt(v2))
+                    delete effects[key]
+                    effects[key] = value.join(":")
+                })
+                composite["Storage-Effects"] = "#" + Object.values(effects).join(" #")
             }
 
             // Connection-Unique header is unique and only checked for presence.
             Object.keys(headers).forEach((header) => {
                 if (header.toLowerCase() === "connection-unique")
-                    composite[header] = "";
+                    composite[header] = ""
             })
 
-            hash = [];
+            hash = []
             Object.entries(composite).forEach((entry) => {
-                const [key, value] = entry;
-                hash.push(value ? key + ": " + value : key);
-            });
+                const [key, value] = entry
+                hash.push(value ? key + ": " + value : key)
+            })
 
             // Status Message should not be used because different hashes may be
             // calculated for tests on different web servers.
-            hash.push(status);
-            hash.sort();
-            headers["Trace-Response-Header-Hash"] = cryptoMD5(hash.join("\n"));
-            trace.push(cryptoMD5(hash.join("\n")) + " Trace-Response-Header-Hash", JSON.stringify(hash));
+            hash.push(status)
+            hash.sort()
+            headers["Trace-Response-Header-Hash"] = cryptoMD5(hash.join("\n"))
+            trace.push(cryptoMD5(hash.join("\n")) + " Trace-Response-Header-Hash", JSON.stringify(hash))
 
             // Response-Body-Hash
-            hash = data || "";
-            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n");
-            hash = hash.replace(/\t/g, " ");
+            hash = data || ""
+            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
+            hash = hash.replace(/\t/g, " ")
             // The UID is variable and must be normalized so that the hash can be
             // compared later. Therefore the uniques of the UIDs are collected in
             // an array. The index in the array is then the new unique.
-            let uniques = [];
+            let uniques = []
             hash = hash.replace(/\b(___uid(?:(?:=)|(?:"s*:s*))")([A-Zd]+)(:[A-Zd]+")/i, (matched) => {
-                console.log("TODO: !!!");
+                console.log("TODO: !!!")
                 /* TODO:
                 foreach (matches[0] as unique) {
                     if (preg_match("/\b(___uid(?:(?:=)|(?:\"\s*:\s*))\")([A-Z\d]+)(:[A-Z\d]+\")/i", unique, match)) {
                         if (!in_array(match[2], uniques))
-                            uniques[] = match[2];
-                        unique = array_search(match[2], uniques);
-                        hash = str_replace(match[0], match[1] . unique . match[3], hash);
+                            uniques[] = match[2]
+                        unique = array_search(match[2], uniques)
+                        hash = str_replace(match[0], match[1] . unique . match[3], hash)
                     }
                 }
                 */
-            });
-            headers["Trace-Response-Body-Hash"] = cryptoMD5(hash);
-            trace.push(cryptoMD5(hash) + " Trace-Response-Body-Hash");
+            })
+            headers["Trace-Response-Body-Hash"] = cryptoMD5(hash)
+            trace.push(cryptoMD5(hash) + " Trace-Response-Body-Hash")
 
             // Storage-Hash
             // Also the storage cannot be compared directly, because here the UID's
@@ -1497,29 +1497,29 @@ class Storage {
             // all ___uid attributes are normalized. For this purpose, the unique
             // of the UIDs is determined, sorted and then replaced by the index
             // during sorting.
-            hash = this.xml ? this.serialize() : "";
+            hash = this.xml ? this.serialize() : ""
             if (hash) {
-                let xml = new DOMParser().parseFromString(hash, Storage.CONTENT_TYPE_XML);
-                uniques = [];
-                let targets = XPath.select("//*[@___uid]", xml);
+                let xml = new DOMParser().parseFromString(hash, Storage.CONTENT_TYPE_XML)
+                uniques = []
+                let targets = XPath.select("//*[@___uid]", xml)
                 targets.forEach((target) => {
-                    uniques.push(target.getAttribute("___uid"));
-                });
-                uniques.sort();
+                    uniques.push(target.getAttribute("___uid"))
+                })
+                uniques.sort()
                 uniques.forEach((uid, index) => {
-                    let target = XPath.select("//*[@___uid=\"" + uid + "\"]", xml)[0];
-                    target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index));
-                });
-                hash = this.serialize(xml);
+                    let target = XPath.select("//*[@___uid=\"" + uid + "\"]", xml)[0]
+                    target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index))
+                })
+                hash = this.serialize(xml)
             }
-            hash = hash.replace(/\s+/gs, " ");
-            hash = hash.replace(/\s+(?=[<>])/gs, "");
-            hash = hash.trim();
-            headers["Trace-Storage-Hash"] = cryptoMD5(hash);
-            trace.push(cryptoMD5(hash) + " Trace-Storage-Hash");
+            hash = hash.replace(/\s+/gs, " ")
+            hash = hash.replace(/\s+(?=[<>])/gs, "")
+            hash = hash.trim()
+            headers["Trace-Storage-Hash"] = cryptoMD5(hash)
+            trace.push(cryptoMD5(hash) + " Trace-Storage-Hash")
 
-            headers["Trace-XPath-Hash"] = cryptoMD5(this.xpath || "");
-            trace.push(cryptoMD5(this.xpath || "") + " Trace-XPath-Hash", this.xpath || "");
+            headers["Trace-XPath-Hash"] = cryptoMD5(this.xpath || "")
+            trace.push(cryptoMD5(this.xpath || "") + " Trace-XPath-Hash", this.xpath || "")
 
             hash = [
                 headers["Trace-Request-Header-Hash"],
@@ -1528,34 +1528,34 @@ class Storage {
                 headers["Trace-Response-Body-Hash"],
                 headers["Trace-Storage-Hash"],
                 headers["Trace-XPath-Hash"]
-            ];
-            headers["Trace-Composite-Hash"] = cryptoMD5(hash.join(" "));
-            trace.push(cryptoMD5(hash.join(" ")) + " Trace-Composite-Hash");
-            trace = trace.filter(entry => Object.exists(entry) && entry.trim().length > 0);
+            ]
+            headers["Trace-Composite-Hash"] = cryptoMD5(hash.join(" "))
+            trace.push(cryptoMD5(hash.join(" ")) + " Trace-Composite-Hash")
+            trace = trace.filter(entry => Object.exists(entry) && entry.trim().length > 0)
 
-            trace = "\t" + trace.join(EOL + "\t") + EOL;
+            trace = "\t" + trace.join(EOL + "\t") + EOL
             if (this.xml && this.xml.documentElement)
-                trace = "\tStorage Identifier: " + this.storage + " Revision:" + this.xml.documentElement.getAttribute("___rev") + " Space:" + this.getSize() + EOL + trace;
-            trace = "\tResponse Status:" + status + " Length:" + (data || "").length + EOL + trace;
-            trace = "\tRequest Method:" + this.request.method.toUpperCase() + " XPath:" + this.xpath + " Length:" + (this.request.data || "").length + EOL + trace;
-            trace = cryptoMD5(hash.join(" ")) + EOL + trace;
+                trace = "\tStorage Identifier: " + this.storage + " Revision:" + this.xml.documentElement.getAttribute("___rev") + " Space:" + this.getSize() + EOL + trace
+            trace = "\tResponse Status:" + status + " Length:" + (data || "").length + EOL + trace
+            trace = "\tRequest Method:" + this.request.method.toUpperCase() + " XPath:" + this.xpath + " Length:" + (this.request.data || "").length + EOL + trace
+            trace = cryptoMD5(hash.join(" ")) + EOL + trace
 
             if (fs.existsSync("trace.log")
                     && (new Date().getTime() -fs.lstatSync("trace.log").mtimeMs  > 1000))
-                fs.appendFileSync("trace.log", EOL);
-            fs.appendFileSync("trace.log", trace);
+                fs.appendFileSync("trace.log", EOL)
+            fs.appendFileSync("trace.log", trace)
         }}}
 
         if (!this.response.headersSent) {
-            this.response.writeHead(status, message, headers);
-            this.response.end(data);
+            this.response.writeHead(status, message, headers)
+            this.response.end(data)
         }
 
         // The function and the response are complete.
         // The storage can be closed and the requests can be terminated.
-        this.close();
-        throw Object.getPrototypeOf(this).quit;
-    };
+        this.close()
+        throw Object.getPrototypeOf(this).quit
+    }
 }
 
 console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
@@ -1569,72 +1569,72 @@ console.log()
 try {
 
     // Logging: Output with timestamp
-    console.log$ = console.log;
+    console.log$ = console.log
     console.log = function(...variable) {
-        console.log$(new Date().toTimestampString(), ...variable);
+        console.log$(new Date().toTimestampString(), ...variable)
     }
 
     // Logging: Output with timestamp
-    console.error$ = console.error;
+    console.error$ = console.error
     console.error = function(...variable) {
-        console.error$(new Date().toTimestampString(), ...variable);
+        console.error$(new Date().toTimestampString(), ...variable)
     }
 
     // Date formatting to timestamp string
     Date.prototype.toTimestampString = function() {
-        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2");
-    };
+        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
+    }
 
     // Query if something exists, it minimizes the check of undefined and null
     Object.exists = function(object) {
-        return object !== undefined && object !== null;
-    };
+        return object !== undefined && object !== null
+    }
 
-    let element = new DOMImplementation().createDocument().createElement();
-    prototype = Object.getPrototypeOf(element);
+    let element = new DOMImplementation().createDocument().createElement()
+    prototype = Object.getPrototypeOf(element)
     prototype.getAttributeNumber = function(attribute) {
-        let value = this.getAttribute(attribute);
+        let value = this.getAttribute(attribute)
         if ((value || "").includes("."))
-            return parseFloat(value);
-        return parseInt(value);
-    };
+            return parseFloat(value)
+        return parseInt(value)
+    }
 
     // The evaluate method of the Document differs from PHP in behavior.
     // The following things have been changed to simplify migration:
     // - Additional third paramerer
     //   true catches errors as return value without throwing an exception
-    DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString;
+    DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString
     DOMParser.prototype.parseFromString = function(...variable) {
         if (variable.length < 3)
-            return this.parseFromString$(...variable);
+            return this.parseFromString$(...variable)
         else if (!variable[2])
-            return this.parseFromString$(...variable.slice(0, 2));
-        try {return this.parseFromString$(...variable.slice(0, 2));
+            return this.parseFromString$(...variable.slice(0, 2))
+        try {return this.parseFromString$(...variable.slice(0, 2))
         } catch (exception) {
-            return exception;
+            return exception
         }
     }
 
     // The evaluate method of the Document differs from PHP in behavior.
     // The following things have been changed to simplify migration:
     // - If an error/exception occurs, the return value is the error/exception
-    XPath.evaluate$ = XPath.evaluate;
+    XPath.evaluate$ = XPath.evaluate
     XPath.evaluate = function (...variable) {
-        try {return XPath.evaluate$(...variable);
+        try {return XPath.evaluate$(...variable)
         } catch (exception) {
-            return exception;
+            return exception
         }
     }
 
-    XPath.select$ = XPath.select;
+    XPath.select$ = XPath.select
     XPath.select = function (...variable) {
-        try {return XPath.select$(...variable);
+        try {return XPath.select$(...variable)
         } catch (exception) {
-            return exception;
+            return exception
         }
     }
 } catch (exception) {
-    console.error(exception);
+    console.error(exception)
 }
 
 // TODO: [address]:port as CLI application parameter (address optional, otherwiese 0.0.0.0)
@@ -1645,48 +1645,48 @@ http.createServer((request, response) => {
 
     request.on("data", (data) => {
         if (!Object.exists(request.data))
-            request.data = "";
-        request.data += data;
-    });
+            request.data = ""
+        request.data += data
+    })
 
     request.on("end", () => {
 
         try {
 
             // Marking the start time for request processing
-            request.timing = new Date().getTime();
+            request.timing = new Date().getTime()
 
             // The API should always use a context path so that the separation
             // between URI and XPath is also visually recognizable.
             // Other requests will be answered with status 404.
             if (!decodeURI(request.url).startsWith(Storage.CONTEXT_PATH))
-                (new Storage({request:request, response:response})).quit(404, "Resource Not Found");
+                (new Storage({request:request, response:response})).quit(404, "Resource Not Found")
 
             // Request method is determined
-            let method = request.method.toUpperCase();
+            let method = request.method.toUpperCase()
 
             // Access-Control headers are received during preflight OPTIONS request
             if (method.toUpperCase() === "OPTIONS"
                     && request.headers.origin
                     && !request.headers.storage)
-                (new Storage({request:request, response:response})).quit(200, "Success");
+                (new Storage({request:request, response:response})).quit(200, "Success")
 
-            let storage;
+            let storage
             if (request.headers.storage)
-                storage = request.headers.storage;
+                storage = request.headers.storage
             if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                (new Storage({request:request, response:response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"});
+                (new Storage({request:request, response:response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
 
             // The XPath is determined from REQUEST_URI.
             // The XPath starts directly after the context path. To improve visual
             // recognition, the context path should always end with a symbol.
-            let xpath = decodeURI(request.url).substr(Storage.CONTEXT_PATH.length);
+            let xpath = decodeURI(request.url).substr(Storage.CONTEXT_PATH.length)
             if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
                 xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
-                    return String.fromCharCode(parseInt(matched, 16));
-                });
+                    return String.fromCharCode(parseInt(matched, 16))
+                })
             else if (xpath.match(/^Base64:[A-Za-z0-9\+\/]+=*$/))
-                xpath = new Buffer(xpath.substring(8), "Base64").toString("ASCII");
+                xpath = new Buffer(xpath.substring(8), "Base64").toString("ASCII")
 
             // With the exception of CONNECT, OPTIONS and POST, all requests expect an
             // XPath or XPath function.
@@ -1695,47 +1695,47 @@ http.createServer((request, response) => {
             // data for the transformation and works also without.
             // In the other cases an empty XPath is replaced by the root slash.
             if (!xpath && !["CONNECT", "OPTIONS", "POST"].includes(method))
-                xpath = "/";
+                xpath = "/"
 
-            storage = Storage.share({request:request, response:response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT", "POST"].includes(method)});
+            storage = Storage.share({request:request, response:response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT", "POST"].includes(method)})
 
             try {
                 switch (method) {
                     case "CONNECT":
-                        storage.doConnect();
+                        storage.doConnect()
                     case "OPTIONS":
-                        storage.doOptions();
+                        storage.doOptions()
                     case "GET":
-                        storage.doGet();
+                        storage.doGet()
                     case "POST":
-                        storage.doPost();
+                        storage.doPost()
                     case "PUT":
-                        storage.doPut();
+                        storage.doPut()
                     case "PATCH":
-                        storage.doPatch();
+                        storage.doPatch()
                     case "DELETE":
-                        storage.doDelete();
+                        storage.doDelete()
                     default:
-                        storage.quit(405, "Method Not Allowed");
+                        storage.quit(405, "Method Not Allowed")
                 }
             } finally {
-                storage.close();
+                storage.close()
             }
         } catch (exception1) {
             if (exception1 !== Storage.prototype.quit) {
-                let storage = (new Storage({request:request, response:response}));
-                let unique = storage.uniqueId();
-                console.error("Service", "#" + unique, exception1);
-                try {storage.quit(500, "Internal Server Error", {"Error": "#" + unique});
+                let storage = (new Storage({request:request, response:response}))
+                let unique = storage.uniqueId()
+                console.error("Service", "#" + unique, exception1)
+                try {storage.quit(500, "Internal Server Error", {"Error": "#" + unique})
                 } catch (exception2) {
                     if (exception2 !== Storage.prototype.quit)
-                        console.error("Service", "#" + unique, exception2);
+                        console.error("Service", "#" + unique, exception2)
                 }
             }
         } finally {
             // TODO: access-log
         }
-    });
+    })
 }).listen(Storage.PORT, () => {
-    console.log("Service", `Listening at port ${Storage.PORT}`);
+    console.log("Service", `Listening at port ${Storage.PORT}`)
 })
