@@ -718,7 +718,37 @@ class Storage {
         if (!Object.exists(this.xpath))
             this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
 
-        // TODO:
+        let headers = {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"}
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            let result = XPath.select(this.xpath, this.xml)
+            if (result instanceof Error) {
+                let message = "Invalid XPath function (" + result.message + ")"
+                this.quit(400, "Bad Request", {"Message": message})
+            }
+            headers["Allow"] = "CONNECT, OPTIONS, GET, POST"
+        } else {
+            let targets = XPath.select(this.xpath, this.xml)
+            if (targets instanceof Error) {
+                let message = "Invalid XPath axis (" + targets.message + ")"
+                this.quit(400, "Bad Request", {"Message": message})
+            }
+            if (Object.exists(targets) && targets.length > 0) {
+                let serials = []
+                Array.from(targets).forEach((target) => {
+                    if (target.nodeType === NodeType.ATTRIBUTE_NODE)
+                        target = target.ownerElement
+                    if (target.nodeType === NodeType.ELEMENT_NODE)
+                        serials.push(target.getAttribute("___uid"))
+                });
+                if (serials.length > 0)
+                    headers["Storage-Effects"] = serials.join(" ")
+                headers["Allow"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
+
+            } else headers["Allow"] = "CONNECT, OPTIONS, PUT"
+        }
+
+        this.quit(204, "No Content", headers);
     }
 
     doGet() {
