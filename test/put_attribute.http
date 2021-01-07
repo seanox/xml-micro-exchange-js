@@ -105,7 +105,7 @@ client.test("unittest", function() {
 # Using invalid XPath function should not cause problems.
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Invalid XPath function (Invalid expression)
+# - Message: Invalid XPath function (XPath parse error)
 PUT {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_put_attribute}}
 Content-Type: text/xpath
@@ -114,7 +114,7 @@ name(/+)
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e004da2b31500439cd4ba4a1d603814d");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "afdced9c7ae0c3390c8e8b03a4be4538");
 });
 %}
 
