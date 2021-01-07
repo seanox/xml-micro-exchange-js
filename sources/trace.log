@@ -11,18 +11,18 @@ ce45d35e5927332972ac2ada46f83e9a
 	a0721c16c96f044d5d405fef10a701de Trace-XPath-Hash
 	/books
 	ce45d35e5927332972ac2ada46f83e9a Trace-Composite-Hash
-ce6b9517829cb7aebd08d9f43b1f5441
+5d11a93555860ffafb883d603c34e187
 	Request Method:OPTIONS XPath: Length:0
 	Response Status:200 Length:0
 	9e52ab2b14083692d3c529ae4554ef60 Trace-Request-Header-Hash
 	{"Method":"OPTIONS","URI":"/xmex!","Storage":"","Content-Length":"","Content-Type":""}
 	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
-	0b331543f9c7c935ccf8502c013ad8c1 Trace-Response-Header-Hash
-	[200,"Content-Length"]
+	6a3bb8530269fbce3cce6a91cfe392d5 Trace-Response-Header-Hash
+	[200,"Content-Length: 0"]
 	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
 	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
 	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
-	ce6b9517829cb7aebd08d9f43b1f5441 Trace-Composite-Hash
+	5d11a93555860ffafb883d603c34e187 Trace-Composite-Hash
 bc8630a57af9580af61630c604d470b9
 	Request Method:OPTIONS XPath: Length:0
 	Response Status:201 Length:0

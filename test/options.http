@@ -37,7 +37,7 @@ Origin: {{origin}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ce6b9517829cb7aebd08d9f43b1f5441");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5d11a93555860ffafb883d603c34e187");
 });
 %}
 
