@@ -1,0 +1,419 @@
+# Test sequence for storing XML structures into storage using pseudo elements.
+# Pseudo elements serve as relative navigation to elements that are addressed
+# by XPath: BEFORE AFTER FIRST LAST
+# They are used to relativize the position of an element.
+
+# PUT creates elements and attributes in storage and/or changes the value
+# of existing ones.
+# The position for the insert is defined via an XPath.
+# XPath uses different notations for elements and attributes.
+
+###
+# Storage is not establish
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/books/book%5B1%5D::before HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<before id="beforeA"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "84eb3707738fe89b892955f951ff779a");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8f192a257e2479dc4d42c2a8eb028f42");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 4x UID-A 1x UID-M
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<book title="A2"/>
+<book title="B2"/>
+<book title="C2"/>
+<book title="D2"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0c71ce2bc4df1da9ef54ce9894000806");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID-A 1x UID-M
+# - before-elements are put in /books before first book (order A,B,C)
+PUT {{service}}/books/book%5B1%5D::before HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<before id="beforeA"/>
+<before id="beforeB"/>
+<before id="beforeC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "336f3c4086b54e4cda67cda52b2f3da3");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID-A 1x UID-M
+# - after-elements are put in /books after last book (order A,B,C)
+PUT {{service}}/books/book%5Blast()%5D::after HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<after id="afterA"/>
+<after id="afterB"/>
+<after id="afterC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "981b9ea223cdc6bb3c016fc58e5d8327");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID-A 1x UID-M
+# - first-elements are put in /books as first elements before the existing (order A,B,C)
+PUT {{service}}/books::first HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<first id="firstA"/>
+<first id="firstB"/>
+<first id="firstC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "37ee058ab1809500de6a39cb66389516");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID-A 1x UID-M
+# - last-elements are put in /books as last elements after the existing (order A,B,C)
+PUT {{service}}/books::last HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<last id="lastA"/>
+<last id="lastB"/>
+<last id="lastC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3e44548a75162a818922c40011f9dd74");
+});
+%}
+
+###
+# Use of brackets should not be a problem
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID-A 1x UID-M
+# - test are put in before all last elements
+# - URI: (/books)//last::before
+PUT {{service}}0x282f626f6f6b73292f2f6c6173743a3a6265666f7265 HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<test/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a8888192e0683d3a29904512319a6a12");
+});
+%}
+
+###
+# Invalid XPath axis / pseudo cause status 404
+# Other than PHP, it does not detect XPath errors.
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/books::wrong HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7be7236eeb43e9dc70936d53a5599d22");
+});
+%}
+
+###
+# PUT outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+PUT {{service}}/books::before HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f0c83e046f0b1558b3bb0ec065672fce");
+});
+%}
+
+###
+# PUT outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+PUT {{service}}/books::after HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "191eb09ffa2cd8c6930ef3db009a843b");
+});
+%}
+
+###
+# PUT outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+# - URI: /*/..::before
+PUT {{service}}0x2f2a2f2e2e3a3a6265666f7265 HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d558c047e4fc659c7f94330d8770f668");
+});
+%}
+
+###
+# PUT outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+# - URI: /books/..::before
+PUT {{service}}0x2f626f6f6b732f2e2e3a3a6265666f7265 HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "aca2f5a28d074fdcd2b69d5f9bc9787d");
+});
+%}
+
+###
+# XPath without target
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/wrong::before HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8280ba74156af24172f5b64f0585bcbe");
+});
+%}
+
+###
+# XPath without target
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/wrong/wrong::before HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<wrong id="wrongA"/>
+<wrong id="wrongB"/>
+<wrong id="wrongC"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e01ccd53c72ab2ecd8aa5580e6da003e");
+});
+%}
+
+###
+# Pseudo-element first for an empty element should work
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 2x UID (A/M)
+# - URI: //*[@id='lastC']::first
+PUT {{service}}0x2f2f2a5b4069643d276c61737443275d3a3a6669727374 HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<test/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b62e8add850c196975d44acf96935863");
+});
+%}
+
+###
+# Preparation for the next test
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 9x UID-A, 20x UID-D, 1x UID-M
+# - Storage-Revision is increased
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Accept-Effects: ALL
+Content-Type: application/xslt+xml
+
+<book>
+  <chapter title="Chapter-X-A">
+    <text title="Text X4"/>
+    <text title="Text X5"/>
+    <text title="Text X6" ___uid="KIC2D3GJ1DWE:35" ___rev="5">
+      Text
+      <!-- Comment -->
+      Text
+      <a><b/></a>
+      Text
+      <c/>
+      Text
+    </text>
+  </chapter>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a9b791c194ec46f493b4fdfbea93b90e");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-A, 1x UID-M
+# - Storage-Revision is increased
+# - Storage: <fist/> after <text title="Text X6"> and before text
+PUT {{service}}/books/book/chapter/text%5B3%5D::first HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<first/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6ea4eec255441f1403fa7004c3d3fedf");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-A, 1x UID-M
+# - Storage-Revision is increased
+# - Storage: <last/> as last in <text title="Text X6">
+PUT {{service}}/books/book/chapter/text%5B3%5D::last HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<last/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9819cefa92c5a1c205fc5c6933e6c877");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-A, 1x UID-M
+# - Storage-Revision is increased
+# - Storage: <before/> directly before <a/>
+PUT {{service}}/books/book/chapter/text%5B3%5D/a::before HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<before/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4e59fbb1a1a6f0649e790c4bfa337983");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-A, 1x UID-M
+# - Storage-Revision is increased
+# - Storage: <after/> directly after <a/>
+PUT {{service}}/books/book/chapter/text%5B3%5D/a::after HTTP/1.0
+Storage: {{storage_put_element_pseudo}}
+Content-Type: application/xslt+xml
+
+<after/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2ba9afc4be7c9e55a996b51451b82aae");
+});
+%}
+
+###

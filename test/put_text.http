@@ -1,0 +1,363 @@
+# Test sequence for putting text into elements of the storage.
+
+# PUT creates elements and attributes in storage and/or changes the value
+# of existing ones.
+# The position for the insert is defined via an XPath.
+# XPath uses different notations for elements and attributes.
+
+###
+# Storage is not establish 
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Hello Internet!
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "af558f5148555c54a76bd43fc6374121");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_put_text}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "878cea09ba1229193278b423613ab5d9");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-M
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - books element with text and without further elements
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Hello Internet!
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4776a40aea71972a81ecbdc19d50626c");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 8x UID-A 1x UID-M
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - books element with text and without further elements
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: application/xslt+xml
+
+<book title="A2">
+  <comment></comment>
+</book>
+<book title="B2">
+  <comment></comment>
+</book>
+<book title="C2">
+  <comment></comment>
+</book>
+<book title="D2">
+  <comment></comment>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "63b8c771138331222c5bc18929cd82b8");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-M
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - books element with text and without further elements
+PUT {{service}}/books/book%5B1%5D HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Text A
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "80085a488caa6c677d9fd4a35604255b");
+});
+%}
+
+###
+# Use of brackets should not be a problem
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID-M
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - books element with text and without further elements
+PUT {{service}}(/books/book)/comment HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Text B
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "024e93eaca6034a5c8b07705d0a9ea31");
+});
+%}
+
+###
+# Using unicode should not cause problems.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-M
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - books element with encoded text and without further elements
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+№ <123> äüö &&amp; "§-ß" '€'
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a24fc5b03feecf0b7a9010f607b9aebe");
+});
+%}
+
+###
+# Using XPath function should work.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-M
+# - Storage-Revision is increased
+# - Storage-Space is used more
+# - Storage-Expiration is extended
+# - books element with books as text and without further elements
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/xpath
+
+name(/*)
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c89ff185cb4fd1ef691e5ff6c4d406fd");
+});
+%}
+
+###
+# Using invalid XPath function should not cause problems.
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath function (XPath parse error)
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/xpath
+
+name(/+)
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4e0be646ce63d54664e89f463180e412");
+});
+%}
+
+###
+# Using invalid XPath function should not cause problems.
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath function (Unknown function wrong)
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/xpath
+
+wrong(.)
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d751915a1fedd9a71fd71c9723d98d8d");
+});
+%}
+
+###
+# Using invalid XPath function should not cause problems.
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath (Axes are not supported)
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/xpath
+
+/wrong/wrong
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "098071ee986b40ec8ebd737b020f71dd");
+});
+%}
+
+###
+# Using invalid XPath function should not cause problems.
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Invalid XPath (Axes are not supported)
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/xpath
+
+.
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "057897a9ed37a62b2ad0dd4eb2f10781");
+});
+%}
+
+###
+# PUT outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+# - URI: /*/..
+PUT {{service}}0x2f2a2f2e2e HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c9ef2c2aae8945469317e3b8b1555dcc");
+});
+%}
+
+###
+# PUT outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+# - URI: /books/..
+PUT {{service}}0x2f626f6f6b732f2e2e HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5ee7c0a0190b89c6b235c6e62b6ddf5d");
+});
+%}
+
+###
+# XPath without a target
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/wrong HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a1aa1324e0a14105f07931a091241c9b");
+});
+%}
+
+###
+# XPath without a target
+# Expectations:
+# - Status code 404 Resource Not Found
+PUT {{service}}/wrong/wrong HTTP/1.0
+Storage: {{storage_put_text}}
+Content-Type: text/plain
+
+Test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1778f2e4b137c1657623a03742bf427f");
+});
+%}
+
+###
+# Preparation for the next test
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 10x UID-A, 1x UID-M
+# - Storage-Revision is increased
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_put_text}}
+Accept-Effects: ALL
+Content-Type: application/xslt+xml
+
+<chapter title="Chapter-X-A">
+  <text title="Text X1"/>
+  <text title="Text X2"/>
+  <text title="Text X3"/>
+</chapter>
+<chapter title="Chapter-X-B">
+  <text title="Text X4"/>
+  <text title="Text X5"/>
+  <text title="Text X6" ___uid="KIC2D3GJ1DWE:35" ___rev="5">
+    Text
+    <!-- Comment -->
+    Text
+    <a><b></b></a>
+  </text>
+</chapter>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4e2844536c1d8da42f64dabd68bb70a5");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID-M
+# - Storage-Revision is increased
+# - Storage: text title="Text X6" includes only "test", comments and text were deleted
+PUT {{service}}/books/chapter%5B2%5D/text%5B3%5D HTTP/1.0
+Storage: {{storage_put_text}}
+Accept-Effects: ALL
+Content-Type: text/plain
+
+test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1df579f82c960fe60b5cc267fcc0280c");
+});
+%}
+
+###
