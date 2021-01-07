@@ -1,0 +1,318 @@
+# Test sequence for OPTIONS requests
+
+# OPTIONS is used to request the functions to an XPath, which is responded
+# with the Allow header.
+# This method distinguishes between XPath axis and XPath function and uses
+# different Allow headers. Also the existence of the target on an XPath
+# axis has an influence on the response. The method will not use status
+# 404 in relation to non-existing targets, but will offer the methods
+# CONNECT, OPTIONS, PUT via Allow-Header.
+# If the XPath is a function, it is executed and thus validated, but
+# without returning the result.
+# The XPath processing is strict and does not accept unnecessary spaces.
+# Faulty XPath will cause the status 400.
+
+###
+# Storage is not establish 
+# Expectations:
+# - Status code 404 Resource Not Found
+OPTIONS {{service}}/books HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ce45d35e5927332972ac2ada46f83e9a");
+});
+%}
+
+###
+# CORS preflight OPTIONS
+# Expectations:
+# - Status code 200 Success
+# - Access-Control-Allow-Origin: *
+# - Access-Control-Allow-Credentials: true
+# - Access-Control-Max-Age: 86400
+OPTIONS {{service}} HTTP/1.0
+Origin: {{origin}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ce6b9517829cb7aebd08d9f43b1f5441");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "bc8630a57af9580af61630c604d470b9");
+});
+%}
+
+###
+# Initial request to establish an existing storage
+# Expectations:
+# - Status code 202 Accepted
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e94c1a6c361069927550224bb59a7f99");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 39x UID-A 1x UID-M
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_options}}
+Content-Type: application/xslt+xml
+
+<book title="A1">
+  <chapter title="Chapter A1-1">
+    <paragraph title="Paragraph A1-1-1"/>
+    <paragraph title="Paragraph A1-1-2"/>
+    <paragraph title="Paragraph A1-1-3"/>
+  </chapter>
+  <chapter title="Chapter A1-2">
+    <paragraph title="Paragraph A1-2-1"/>
+    <paragraph title="Paragraph A1-2-2"/>
+    <paragraph title="Paragraph A1-2-3"/>
+  </chapter>
+  <chapter title="Chapter A1-3">
+    <paragraph title="Paragraph A1-3-1"/>
+    <paragraph title="Paragraph A1-3-2"/>
+    <paragraph title="Paragraph A1-3-3"/>
+  </chapter>
+</book>
+<book title="B1">
+  <chapter title="Chapter B1-1">
+    <paragraph title="Paragraph B1-1-1"/>
+    <paragraph title="Paragraph B1-1-2"/>
+    <paragraph title="Paragraph B1-1-3"/>
+  </chapter>
+  <chapter title="Chapter B1-2">
+    <paragraph title="Paragraph B1-2-1"/>
+    <paragraph title="Paragraph B1-2-2"/>
+    <paragraph title="Paragraph B1-2-3"/>
+  </chapter>
+  <chapter title="Chapter B1-3">
+    <paragraph title="Paragraph B1-3-1"/>
+    <paragraph title="Paragraph B1-3-2"/>
+    <paragraph title="Paragraph B1-3-3"/>
+  </chapter>
+</book>
+<book title="C1">
+  <chapter title="Chapter C1-1">
+    <paragraph title="Paragraph C1-1-1"/>
+    <paragraph title="Paragraph C1-1-2"/>
+    <paragraph title="Paragraph C1-1-3"/>
+  </chapter>
+  <chapter title="Chapter C1-2">
+    <paragraph title="Paragraph C1-2-1"/>
+    <paragraph title="Paragraph C1-2-2"/>
+    <paragraph title="Paragraph C1-2-3"/>
+  </chapter>
+  <chapter title="Chapter C1-3">
+    <paragraph title="Paragraph C1-3-1"/>
+    <paragraph title="Paragraph C1-3-2"/>
+    <paragraph title="Paragraph C1-3-3"/>
+  </chapter>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "aad7e4a4947d4ffd341b14207c141c0a");
+});
+%}
+
+###
+# XPath axis addresses the document and thus has a usable target
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects header
+# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - URI: /
+OPTIONS {{service}}0x2f HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7cb44061b93a7394ecad9cf865fb2ab5");
+});
+%}
+
+###
+# XPath axis without usable target
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath axis (Invalid expression)
+# - URI: //
+OPTIONS {{service}}0x2f2f HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e5b16b8d1fdf08a19190b029807d12f0");
+});
+%}
+
+###
+# XPath axis with a usable target
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID
+# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+OPTIONS {{service}}/books HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "432e44fc76813b564e37cc7ec405df93");
+});
+%}
+
+###
+# XPath axis with a usable target
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 9x UID
+# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - URI: (/books)//chapter
+OPTIONS {{service}}0x282f626f6f6b73292f2f63686170746572 HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "bc12e4a5087c520e0d932721343be3a3");
+});
+%}
+
+###
+# XPath axis with a usable target
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 27x UID
+# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - URI: (/books)//paragraph
+OPTIONS {{service}}0x282f626f6f6b73292f2f706172616772617068 HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d9790c2895742504f6f72159a22d4ad8");
+});
+%}
+
+###
+# XPath axis with a usable target
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 3x UID
+# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+OPTIONS {{service}}/books/book HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "be7415928c1632099ba498ed42002f2a");
+});
+%}
+
+###
+# XPath axis with a usable target
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects header
+# - Allow: CONNECT, OPTIONS, PUT
+OPTIONS {{service}}/books/book/new/new HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "51ce31a0de7984abbcc6a54c188b7b47");
+});
+%}
+
+###
+# XPath function has no effects
+# Expectations:
+# - Status code 204 No Content
+# - Allow: CONNECT, OPTIONS, GET, POST
+OPTIONS {{service}}name(/books) HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5f6d726ed3579bb6a4db6a37c55f5e07");
+});
+%}
+
+###
+# Wrong XPath function has no effects
+# Because XPath functions are not evaluated or validated via OPTIPONS.
+# The request checks more whether it can be processed.
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath function (Unknown function wrong)
+OPTIONS {{service}}wrong(/books) HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "475191b98e6056647fc625a4e1fd3cd9");
+});
+%}
+
+###
+# XPath axis with a target attribute
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID
+# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+OPTIONS {{service}}/books/book%5B1%5D/@title HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "12fbcba0d0a72cb3efdc25d3e73cbd85");
+});
+%}
+
+###
+# XPath axis without a target attribute
+# Expectations:
+# - Status code 204 No Content
+# - Allow: CONNECT, OPTIONS, PUT
+OPTIONS {{service}}/books/book%5B1%5D/@titlex HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "27aaebd97a9b86feabc134e0e6235105");
+});
+%}
+
+###
+# Invalid XPath /books/book[1]x
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath axis (XPath parse error)
+OPTIONS {{service}}/books/book%5B1%5Dx HTTP/1.0
+Storage: {{storage_options}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "79ae3f8aee28a87d68bbb660ccc76b49");
+});
+%}
+
+###
