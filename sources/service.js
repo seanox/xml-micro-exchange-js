@@ -179,23 +179,40 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210102
+ *  Service 1.1.0 20210107
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210102
+ *  @version 1.1.0 20210107
  */
 const http = require("http");
 const fs = require("fs");
 const crypto = require("crypto");
 
 const EOL = require('os').EOL;
+const DOMParser = require("xmldom").DOMParser;
+const DOMImplementation = require("xmldom").DOMImplementation;
+const XPath = require("xpath");
 const XMLSerializer = require("common-xml-features").XMLSerializer;
-const DOMParser = require("common-xml-features").DOMParser;
-const XPathResult = require("common-xml-features").XPathResult;
-const DOMImplementation = require("common-xml-features").domImplementation;
-const Node = require("common-xml-features").Node;
+
+// A different XMLSerializer is used because the &gt; is not encoded correctly
+// in the XMLSerializer of xmldom.
+
+class NodeType {
+    static get ELEMENT_NODE()                {return 1}
+    static get ATTRIBUTE_NODE()              {return 2}
+    static get TEXT_NODE()                   {return 3}
+    static get CDATA_SECTION_NODE()          {return 4}
+    static get ENTITY_REFERENCE_NODE()       {return 5}
+    static get ENTITY_NODE()                 {return 6}
+    static get PROCESSING_INSTRUCTION_NODE() {return 7}
+    static get COMMENT_NODE()                {return 8}
+    static get DOCUMENT_NODE()               {return 9}
+    static get DOCUMENT_TYPE_NODE()          {return 10}
+    static get DOCUMENT_FRAGMENT_NODE()      {return 11}
+    static get NOTATION_NODE()               {return 12}
+}
 
 class Storage {
 
@@ -437,8 +454,12 @@ class Storage {
 
         let buffer = Buffer.alloc(fs.lstatSync(this.store).size);
         fs.readSync(this.share, buffer, {position:0});
-        this.xml = new DOMParser().parseFromString(buffer.toString());
-        this.revision = this.xml.documentElement.getAttribute("___rev");
+        this.xml = new DOMParser().parseFromString(buffer.toString(), Storage.CONTENT_TYPE_XML);
+        this.revision = this.xml.documentElement.getAttributeNumber("___rev");
+    }
+
+    serialize(xml) {
+        return new XMLSerializer().serializeToString(xml || this.xml);
     }
 
     /**
@@ -455,10 +476,10 @@ class Storage {
 
         if (!Object.exists(this.share))
             return;
-        if (this.revision === this.xml.documentElement.getAttribute("___rev"))
+        if (this.revision === this.xml.documentElement.getAttributeNumber("___rev"))
             return;
 
-        let output = new XMLSerializer().serializeToString(this.xml);
+        let output = this.serialize();
         if (output.length > Storage.SPACE)
             this.quit(413, "Payload Too Large");
         fs.ftruncateSync(this.share, 0);
@@ -493,7 +514,7 @@ class Storage {
     getSize() {
 
         if (Object.exists(this.xml))
-            return new XMLSerializer().serializeToString(this.xml).length;
+            return this.serialize().length;
         if (Object.exists(this.share))
             return fs.fstatSync(this.share).size;
         if (Object.exists(this.store)
@@ -509,8 +530,7 @@ class Storage {
      */
     static updateNodeRevision(node, revision) {
 
-        // TODO:
-        while (node && node.nodeType === Node.ELEMENT_NODE) {
+        while (node && node.nodeType === NodeType.ELEMENT_NODE) {
             node.setAttribute("___rev", revision);
             node = node.parentNode;
         }
@@ -837,6 +857,8 @@ class Storage {
             this.quit(400, "Bad Request", {"Message": message});
         }
 
+        let headers = {};
+
         // PUT requests can address attributes and elements via XPath.
         // Multi-axis XPaths allow multiple targets.
         // The method only supports these two possibilities, other requests are
@@ -852,7 +874,6 @@ class Storage {
         // If the XPath ends with /attribute.<attribute> or /@<attribute> an
         // attribute is expected, in all other cases a element.
 
-        // TODO:
         let matches = this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE);
         if (matches) {
 
@@ -880,8 +901,7 @@ class Storage {
                     let message = "Invalid XPath (Axes are not supported)";
                     this.quit(422, "Unprocessable Entity", {"Message": message});
                 }
-
-                input = this.xml.evaluate(input, this.xml, null, XPathResult.ANY_TYPE, null);
+                input = XPath.select(input, this.xml);
                 if (!Object.exists(input)
                         || input instanceof Error) {
                     let message = "Invalid XPath function";
@@ -896,7 +916,7 @@ class Storage {
             let xpath = matches[1];
             let attribute = matches[2];
 
-            let targets = this.xml.evaluate(xpath, this.xml, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+            let targets = XPath.select(xpath, this.xml);
             if (input instanceof Error) {
                 let message = "Invalid XPath axis (" + input.message + ")";
                 this.quit(400, "Bad Request", {"Message": message});
@@ -914,7 +934,7 @@ class Storage {
                 targets.forEach((target) => {
                     // Only elements are supported, this prevents the
                     // addressing of the XML document by the XPath.
-                    if (target.nodeType !== Node.ELEMENT_NODE)
+                    if (target.nodeType !== NodeType.ELEMENT_NODE)
                         return;
                     serials.push(target.getAttribute("___uid") + ":M");
                     target.setAttribute(attribute, input);
@@ -931,35 +951,36 @@ class Storage {
                 // If necessary the revision must be corrected if there are
                 // no data changes.
                 if (serials.length > 0)
-                    this.response.setHeader("Storage-Effects", serials.join(" "));
+                    headers["Storage-Effects"] = serials.join(" ");
             }
 
             this.materialize();
-            this.quit(204, "No Content");
+            this.quit(204, "No Content", headers);
         }
 
-        /* TODO:
         // An XPath for element(s) is then expected here.
         // If this is not the case, the request is responded with status 400.
-        if (!preg_match(Storage.PATTERN_XPATH_PSEUDO, this.xpath, matches, PREG_UNMATCHED_AS_NULL))
-            this.quit(400, "Bad Request", ["Message" => "Invalid XPath axis"]);
+        matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO);
+        if (!matches)
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"});
 
-        xpath = matches[1];
-        pseudo = matches[2];
+        let xpath = matches[1];
+        let pseudo = (matches[2] || "").toLowerCase();
 
         // The following Content-Type is supported for elements:
         // - application/xslt+xml for XML structures
         // - text/plain for static values (text)
         // - text/xpath for dynamic values, based on XPath functions
 
-        if (in_array(strtolower(_SERVER["CONTENT_TYPE"]), [Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH])) {
+        let media = (this.request.headers["content-type"] || "").toLowerCase();
+        if ([Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media)) {
 
             // The combination with a pseudo element is not possible for a text
             // value. Response with status 415 (Unsupported Media Type).
-            if (!empty(pseudo))
+            if (pseudo !== "")
                 this.quit(415, "Unsupported Media Type");
 
-            input = file_get_contents("php://input");
+            let input = this.request.data;
 
             // The Content-Type text/xpath is a special of the XMXE Storage.
             // It expects a plain text which is an XPath function.
@@ -968,81 +989,81 @@ class Storage {
             // Content-Type text/plain. Even if the target is mutable, the
             // XPath function is executed only once and the result is put on
             // all targets.
-            if (strcasecmp(_SERVER["CONTENT_TYPE"], Storage.CONTENT_TYPE_XPATH) === 0) {
-                if (!preg_match(Storage.PATTERN_XPATH_FUNCTION, input)) {
-                    message = "Invalid XPath (Axes are not supported)";
-                    this.quit(422, "Unprocessable Entity", ["Message" => message]);
+            if (media === Storage.CONTENT_TYPE_XPATH) {
+                if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
+                    let message = "Invalid XPath (Axes are not supported)";
+                    this.quit(422, "Unprocessable Entity", {"Message": message});
                 }
-                input = (new DOMXpath(this.xml)).evaluate(input);
-                if (input === false
-                    || Storage.fetchLastXmlErrorMessage()) {
-                    message = "Invalid XPath function";
-                    if (Storage.fetchLastXmlErrorMessage())
-                        message .= " (" . Storage.fetchLastXmlErrorMessage() . ")";
-                    this.quit(422, "Unprocessable Entity", ["Message" => message]);
+                input = XPath.select(input, this.xml);
+                if (!Object.exists(input)
+                        || input instanceof Error) {
+                    let message = "Invalid XPath function";
+                    if (input instanceof Error)
+                        message += " (" + input.message + ")";
+                    this.quit(422, "Unprocessable Entity", {"Message": message});
                 }
             }
 
-            serials = [];
-            targets = (new DOMXpath(this.xml)).query(xpath);
-            if (Storage.fetchLastXmlErrorMessage()) {
-                message = "Invalid XPath axis (" . Storage.fetchLastXmlErrorMessage() . ")";
-                this.quit(400, "Bad Request", ["Message" => message]);
+            let serials = [];
+            let targets = XPath.select(xpath, this.xml);
+            if (targets instanceof Error) {
+                let message = "Invalid XPath axis (" + input.message + ")";
+                this.quit(400, "Bad Request", {"Message": message});
             }
-            if (!targets || empty(targets) || targets.length <= 0)
+            if (!Object.exists(targets) || targets.length <= 0)
                 this.quit(404, "Resource Not Found");
 
-            foreach (targets as target) {
+            targets.forEach((target) => {
                 // Overwriting of the root element is not possible, as it
                 // is an essential part of the storage, and is ignored. It
                 // does not cause to an error, so the behaviour is
                 // analogous to putting attributes.
-                if (target.nodeType != XML_ELEMENT_NODE)
-                    continue;
-                serials[] = target.getAttribute("___uid") . ":M";
-                replace = this.xml.createElement(target.nodeName, input);
-                foreach (target.attributes as attribute)
-                replace.setAttribute(attribute.nodeName, attribute.nodeValue);
-                target.parentNode.replaceChild(this.xml.importNode(replace, true), target);
+                if (target.nodeType !== NodeType.ELEMENT_NODE)
+                    return;
+                serials.push(target.getAttribute("___uid") + ":M");
+                // A bug in common-xml-features sets the documentElement to
+                // null when using replaceChid. Therefore the quick way:
+                //     clone/add/replace -- is not possible.
+                while (target.lastChild)
+                    target.removeChild(target.lastChild)
+                target.appendChild(this.xml.createTextNode(input));
                 // The revision is updated at the parent nodes, so you can
                 // later determine which nodes have changed and with which
                 // revision. Partial access allows the client to check if
                 // the data or a tree is still up to date, because he can
                 // compare the revision.
-                Storage.updateNodeRevision(replace, this.revision +1);
-            }
+                Storage.updateNodeRevision(target, this.revision +1);
+            });
 
             // Only the list of serials is an indicator that data has changed
             // and whether the revision changes with it. If necessary the
             // revision must be corrected if there are no data changes.
-            if (!empty(serials))
-                header("Storage-Effects: " . join(" ", serials));
+            if (serials.length > 0)
+                headers["Storage-Effects"] = serials.join(" ");
 
             this.materialize();
-            this.quit(204, "No Content");
+            this.quit(204, "No Content", headers);
         }
 
         // Only an XML structure can be inserted, nothing else is supported.
         // So only the Content-Type application/xslt+xml can be used.
-
-        if (strcasecmp(_SERVER["CONTENT_TYPE"], Storage.CONTENT_TYPE_XML) !== 0)
+        if (media !== Storage.CONTENT_TYPE_XML)
             this.quit(415, "Unsupported Media Type");
 
-        // The request body must also be a valid XML structure, otherwise the
-        // request is quit with an error.
-        input = file_get_contents("php://input");
-        input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data>input</data>";
+        // The request body must also be a valid XML structure in data
+        // container, otherwise the request is quit with an error.
+        let input = "<data>" + (this.request.data || "") + "</data>";
 
         // The XML is loaded, but what happens if an error occurs during
         // parsing? Status 400 or 422 - The decision for 422, because 400 means
         // faulty request. But this is a (semantic) error in the request body.
-        xml = new DOMDocument();
-        if (!xml.loadXML(input)
-            || Storage.fetchLastXmlErrorMessage()) {
-            message = "Invalid XML document";
-            if (Storage.fetchLastXmlErrorMessage())
-                message .= " (" . Storage.fetchLastXmlErrorMessage() . ")";
-            this.quit(422, "Unprocessable Entity", ["Message" => message]);
+        let xml = new DOMParser().parseFromString(input, Storage.CONTENT_TYPE_XML, true);
+        if (!Object.exists(xml)
+                || input instanceof Error) {
+            let message = "Invalid XML document";
+            if (xml instanceof Error)
+                message += " (" + xml.message + ")";
+            this.quit(422, "Unprocessable Entity", {"Message": message});
         }
 
         // The attributes ___rev and ___uid are essential for the internal
@@ -1053,66 +1074,77 @@ class Storage {
         // attributes are determined after insertion and it is assumed that
         // they have been newly inserted. This approach was chosen to avoid a
         // recursive search/iteration in the XML structure to be inserted.
-        nodes = (new DOMXpath(xml)).query("//*[@___rev|@___uid]");
-        foreach (nodes as node) {
+        let nodes = XPath.select("//*[@___rev|@___uid]", xml);
+        nodes.forEach((node) => {
             node.removeAttribute("___rev");
             node.removeAttribute("___uid");
-        }
+        });
 
-        serials = [];
-        if (xml.firstChild.hasChildNodes()) {
-            targets = (new DOMXpath(this.xml)).query(xpath);
-            if (Storage.fetchLastXmlErrorMessage()) {
-                message = "Invalid XPath axis (" . Storage.fetchLastXmlErrorMessage() . ")";
-                this.quit(400, "Bad Request", ["Message" => message]);
+        let serials = [];
+        if (xml.documentElement.hasChildNodes()) {
+            let targets = XPath.select(xpath, this.xml);
+            if (targets instanceof Error) {
+                let message = "Invalid XPath axis (" + targets.message + ")";
+                this.quit(400, "Bad Request", {"Message": message});
             }
-            if (!targets || empty(targets) || targets.length <= 0)
+            if (!Object.exists(targets) || targets.length <= 0)
                 this.quit(404, "Resource Not Found");
 
-            foreach (targets as target) {
+            targets.forEach((target) => {
+
+                let inserts = Array.from(xml.documentElement.childNodes)
+                        .map(insert => insert.cloneNode(true));
 
                 // Overwriting of the root element is not possible, as it
                 // is an essential part of the storage, and is ignored. It
                 // does not cause to an error, so the behaviour is
                 // analogous to putting attributes.
-                if (target.nodeType != XML_ELEMENT_NODE)
-                    continue;
+                if (target.nodeType !== NodeType.ELEMENT_NODE)
+                    return;
 
                 // Pseudo elements can be used to put in an XML
                 // substructure relative to the selected element.
-                if (empty(pseudo)) {
+                if (pseudo === "") {
                     // The UIDs of the children that are removed by the
                     // replacement are determined for storage effects.
-                    childs = (new DOMXpath(this.xml)).query(".//*[@___uid]", target);
-                    foreach (childs as child)
-                    serials[] = child.getAttribute("___uid") . ":D";
-                    replace = target.cloneNode(false);
-                    foreach (xml.firstChild.childNodes as insert)
-                    replace.appendChild(this.xml.importNode(insert.cloneNode(true), true));
-                    target.parentNode.replaceChild(this.xml.importNode(replace, true), target);
-                } else if (strcasecmp(pseudo, "before") === 0) {
-                    if (target.parentNode.nodeType == XML_ELEMENT_NODE)
-                        foreach (xml.firstChild.childNodes as insert)
-                    target.parentNode.insertBefore(this.xml.importNode(insert, true), target);
-                } else if (strcasecmp(pseudo, "after") === 0) {
-                    if (target.parentNode.nodeType == XML_ELEMENT_NODE) {
+                    let childs = XPath.select(".//*[@___uid]", target);
+                    childs.forEach((child) => {
+                        serials.push(child.getAttribute("___uid") + ":D");
+                    });
+                    // A bug in common-xml-features sets the documentElement to
+                    // null when using replaceChid. Therefore the quick way:
+                    //     clone/add/replace -- is not possible.
+                    while (target.lastChild)
+                        target.removeChild(target.lastChild)
+                    inserts.forEach((insert) => {
+                        target.appendChild(insert);
+                    });
+                } else if (pseudo === "before") {
+                    if (target.parentNode.nodeType === NodeType.ELEMENT_NODE)
+                        inserts.forEach((insert) => {
+                            target.parentNode.insertBefore(insert, target);
+                        });
+                } else if (pseudo === "after") {
+                    if (target.parentNode.nodeType === NodeType.ELEMENT_NODE) {
                         nodes = [];
-                        foreach(xml.firstChild.childNodes as node)
-                        array_unshift(nodes, node);
-                        foreach (nodes as insert)
-                        if (target.nextSibling)
-                            target.parentNode.insertBefore(this.xml.importNode(insert, true), target.nextSibling);
-                        else target.parentNode.appendChild(this.xml.importNode(insert, true));
+                        inserts.forEach((node) => {
+                            nodes.unshift(node);
+                        });
+                        nodes.forEach((insert) => {
+                            if (target.nextSibling)
+                                target.parentNode.insertBefore(insert, target.nextSibling);
+                            else target.parentNode.appendChild(insert);
+                        });
                     }
-                } else if (strcasecmp(pseudo, "first") === 0) {
-                    inserts = xml.firstChild.childNodes;
-                    for (index = inserts.length -1; index >= 0; index--)
-                        target.insertBefore(this.xml.importNode(inserts.item(index), true), target.firstChild);
-                } else if (strcasecmp(pseudo, "last") === 0) {
-                    foreach (xml.firstChild.childNodes as insert)
-                    target.appendChild(this.xml.importNode(insert, true));
-                } else this.quit(400, "Bad Request", ["Message" => "Invalid XPath axis (Unsupported pseudo syntax found)"]);
-            }
+                } else if (pseudo === "first") {
+                    for (let index = inserts.length -1; index >= 0; index--)
+                        target.insertBefore(inserts[index].cloneNode(true), target.firstChild);
+                } else if (pseudo === "last") {
+                    inserts.forEach((insert) => {
+                        target.appendChild(insert);
+                    });
+                } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"});
+            });
         }
 
         // The attribute ___uid of all newly inserted elements is set.
@@ -1121,11 +1153,10 @@ class Storage {
         // later determine which nodes have changed and with which revision.
         // Partial access allows the client to check if the data or a tree is
         // still up to date, because he can compare the revision.
-
-        nodes = (new DOMXpath(this.xml)).query("//*[not(@___uid)]");
-        foreach (nodes as node) {
-            serial = this.getSerial();
-            serials[] = serial . ":A";
+        nodes = XPath.select("//*[not(@___uid)]", this.xml);
+        nodes.forEach((node) => {
+            let serial = this.getSerial();
+            serials.push(serial + ":A");
             node.setAttribute("___uid", serial);
             Storage.updateNodeRevision(node, this.revision +1);
 
@@ -1134,25 +1165,23 @@ class Storage {
             // changed, but its content has. Other parent elements are not
             // listed because they are only indirectly affected. So the
             // behaviour is analogous to putting attributes.
-            if (node.parentNode.nodeType != XML_ELEMENT_NODE)
-                continue;
+            if (node.parentNode.nodeType !== NodeType.ELEMENT_NODE)
+                return;
             serial = node.parentNode.getAttribute("___uid");
-            if (!empty(serial)
-                && !in_array(serial . ":A", serials)
-        && !in_array(serial . ":M", serials))
-            serials[] = serial . ":M";
-        }
-        */
+            if (Object.exists(serial)
+                    && !serials.includes(serial + ":A", serials)
+                    && !serials.includes(serial + ":M", serials))
+                serials.push(serial + ":M");
+        });
 
         // Only the list of serials is an indicator that data has changed and
         // whether the revision changes with it. If necessary the revision must
         // be corrected if there are no data changes.
-        let serials;
         if (serials)
-            this.response.setHeader("Storage-Effects", serials.join(" "));
+            headers["Storage-Effects"] = serials.join(" ");
 
         this.materialize();
-        this.quit(204, "No Content");
+        this.quit(204, "No Content", headers);
     };
 
     doPatch() {
@@ -1191,18 +1220,17 @@ class Storage {
         // This is implemented for scanning and modification of headers.
         // To remove, the headers are set before, so that standard headers like
         // Content-Type are also removed correctly.
-        let fetchHeader = (response, name, remove = false) => {
-            if (!Object.exists(response)
-                    || !Object.exists(response.headers))
+        let fetchHeader = (headers, name, remove = false) => {
+            if (!Object.exists(headers))
                 return;
             let result = undefined;
-            Object.entries(response.headers || {}).forEach((entry) => {
-                const [name, value] = entry;
-                if (name.toLowerCase() !== name.toLowerCase())
+            Object.entries(headers).forEach((entry) => {
+                const [key, value] = entry;
+                if (key.toLowerCase() !== name.toLowerCase())
                     return;
                 if (remove)
-                    response.removeHeader(name);
-                result = {"name":name, "value":value};
+                    delete headers[key];
+                result = {"name":key, "value":value};
             });
             return result;
         };
@@ -1252,26 +1280,27 @@ class Storage {
         // and DELETE methods when elements are recursively modified and then
         // also deleted.
 
-        let serials = fetchHeader(this.response, "Storage-Effects", true);
+        let serials = fetchHeader(headers, "Storage-Effects", true);
         serials = serials ? serials.value : "";
         if (serials) {
             serials = serials.split(/\s+/);
             serials = [...new Set(serials)];
             serials.forEach((serial) => {
-                if (substr(serial, -2) !== ":D")
+                if (serial.slice(-2) !== ":D")
                     return;
-                var search = serial.slice(0, -2) + ":M";
+                var search = serial.slice(-2) + ":M";
                 if (serials.includes(search))
                     delete serials[search];
-                var search = serial.slice(0, -2) + ":A";
+                var search = serial.slice(-2) + ":A";
                 if (serials.includes(search))
                     delete serials[search];
             });
             serials = serials.join(" ");
         }
 
-        let accepts = (this.request.headers["accept-effects"] || "").toLowerCase();
-        accepts = !accepts ? accepts.split(/\s+/) : [];
+        let accepts = fetchHeader(this.request.headers, "Accept-Effects", false);
+        accepts = accepts ? accepts.value.toLowerCase() : "";
+        accepts = accepts ? accepts.split(/\s+/) : null;
         let pattern = [];
         if (this.request.method.toUpperCase() !== "DELETE") {
             if (accepts
@@ -1298,7 +1327,7 @@ class Storage {
                 && accepts.includes("all"))
             pattern = [];
         if (pattern)
-            serials = serials.replace(/\s*\w+:\w+:[" + pattern.join("|") + "]\s*/ig, " ");
+            serials = serials.replace(new RegExp("\\s*\\w+:\\w+:[" + pattern.join("|") + "]\\s*", "ig"), " ");
         serials = serials.replace(/s{2,}/g, " ").trim();
         if (serials)
             headers["Storage-Effects"] = serials;
@@ -1308,12 +1337,14 @@ class Storage {
                 delete headers[key];
         })
 
-        let media = fetchHeader(this.response, "Content-Type", true);
+        let media = fetchHeader(headers, "Content-Type", true);
+        media = media ? media.value : "";
         if (status == 200
                 && Object.exists(data)
                 && data !== "") {
             if (!media) {
                 if (this.options.includes("json")) {
+                    console.log("TODO: !!!");
                     /* TODO:
                     media = Storage.CONTENT_TYPE_JSON;
                     if (data instanceof DOMDocument
@@ -1322,6 +1353,7 @@ class Storage {
                     data = json_encode(data);
                     */
                 } else {
+                    console.log("TODO: !!!");
                     /* TODO:
                     if (data instanceof DOMDocument
                             || data instanceof SimpleXMLElement) {
@@ -1395,27 +1427,25 @@ class Storage {
             // make it comparable. To do this, it is only determined how many
             // unique's there are, in which order they are arranged and which
             // serials each unique has.
-            let header = Object.keys(composite).filter(key => key.toLowerCase() === "storage-effects");
-            if (header) {
-                header = composite[header];
-                if (header) {
-                    let effects = {};
-                    header.split(/s+/).forEach((uid) => {
-                        uid = uid.split(/:/);
-                        if (!Object.exists(effects[uid[0]]))
-                            effects[uid[0]] = [];
-                        effects[uid[0]].push(uid[1]);
-                    });
-                    let keys = [...Object.keys(effects)];
-                    keys.sort();
-                    keys.forEach((key) => {
-                        let value = effects[key];
-                        value.sort();
-                        delete effects[key];
-                        effects[key] = value.join(":");
-                    });
-                    composite["Storage-Effects"] = Object.values(effects).join("\t");
-                }
+            let serials = fetchHeader(headers, "Storage-Effects", false);
+            serials = serials ? serials.value : "";
+            if (serials) {
+                let effects = {};
+                serials.split(/\s+/).forEach((uid) => {
+                    uid = uid.split(/:/);
+                    if (!Object.exists(effects[uid[0]]))
+                        effects[uid[0]] = [];
+                    effects[uid[0]].push(uid[1]);
+                });
+                let keys = [...Object.keys(effects)];
+                keys.sort();
+                keys.forEach((key) => {
+                    let value = effects[key];
+                    value.sort((v1, v2) => parseInt(v1) -parseInt(v2));
+                    delete effects[key];
+                    effects[key] = value.join(":");
+                });
+                composite["Storage-Effects"] = "#" + Object.values(effects).join(" #");
             }
 
             // Connection-Unique header is unique and only checked for presence.
@@ -1446,6 +1476,7 @@ class Storage {
             // an array. The index in the array is then the new unique.
             let uniques = [];
             hash = hash.replace(/\b(___uid(?:(?:=)|(?:"s*:s*))")([A-Zd]+)(:[A-Zd]+")/i, (matched) => {
+                console.log("TODO: !!!");
                 /* TODO:
                 foreach (matches[0] as unique) {
                     if (preg_match("/\b(___uid(?:(?:=)|(?:\"\s*:\s*))\")([A-Z\d]+)(:[A-Z\d]+\")/i", unique, match)) {
@@ -1466,23 +1497,23 @@ class Storage {
             // all ___uid attributes are normalized. For this purpose, the unique
             // of the UIDs is determined, sorted and then replaced by the index
             // during sorting.
-            hash = this.xml ? new XMLSerializer().serializeToString(this.xml) : "";
+            hash = this.xml ? this.serialize() : "";
             if (hash) {
-                let xml = new DOMParser().parseFromString(hash);
+                let xml = new DOMParser().parseFromString(hash, Storage.CONTENT_TYPE_XML);
                 uniques = [];
-                let targets = xml.evaluate("//*[@___uid]", xml, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+                let targets = XPath.select("//*[@___uid]", xml);
                 targets.forEach((target) => {
                     uniques.push(target.getAttribute("___uid"));
                 });
                 uniques.sort();
                 uniques.forEach((uid, index) => {
-                    let target = xml.evaluate("//*[@___uid=\"" + uid + "\"]", xml, null, XPathResult.ANY_TYPE, null)[0];
+                    let target = XPath.select("//*[@___uid=\"" + uid + "\"]", xml)[0];
                     target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index));
                 });
-                hash = new XMLSerializer().serializeToString(xml);
+                hash = this.serialize(xml);
             }
-            hash = hash.replace(/\s+/g, " ");
-            hash = hash.replace(/\s+(?=[<>])/g, "");
+            hash = hash.replace(/\s+/gs, " ");
+            hash = hash.replace(/\s+(?=[<>])/gs, "");
             hash = hash.trim();
             headers["Trace-Storage-Hash"] = cryptoMD5(hash);
             trace.push(cryptoMD5(hash) + " Trace-Storage-Hash");
@@ -1525,11 +1556,11 @@ class Storage {
         this.close();
         throw Object.getPrototypeOf(this).quit;
     };
-};
+}
 
-console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]");
-console.log("Copyright (C) 0000 Seanox Software Solutions");
-console.log();
+console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
+console.log("Copyright (C) 0000 Seanox Software Solutions")
+console.log()
 
 // Some things of the API are adjusted.
 // These are only small changes, but they greatly simplify the use.
@@ -1559,30 +1590,45 @@ try {
         return object !== undefined && object !== null;
     };
 
+    let element = new DOMImplementation().createDocument().createElement();
+    prototype = Object.getPrototypeOf(element);
+    prototype.getAttributeNumber = function(attribute) {
+        let value = this.getAttribute(attribute);
+        if ((value || "").includes("."))
+            return parseFloat(value);
+        return parseInt(value);
+    };
+
     // The evaluate method of the Document differs from PHP in behavior.
     // The following things have been changed to simplify migration:
-    // - Results as XPathResult of type: NUMBER_TYPE/STRING_TYPE/BOOLEAN_TYPE
-    //   returns the simple value
-    // - Results as XPathResult with an iterator, returns an array
+    // - Additional third paramerer
+    //   true catches errors as return value without throwing an exception
+    DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString;
+    DOMParser.prototype.parseFromString = function(...variable) {
+        if (variable.length < 3)
+            return this.parseFromString$(...variable);
+        else if (!variable[2])
+            return this.parseFromString$(...variable.slice(0, 2));
+        try {return this.parseFromString$(...variable.slice(0, 2));
+        } catch (exception) {
+            return exception;
+        }
+    }
+
+    // The evaluate method of the Document differs from PHP in behavior.
+    // The following things have been changed to simplify migration:
     // - If an error/exception occurs, the return value is the error/exception
-    let prototype = Object.getPrototypeOf(DOMImplementation.createDocument());
-    prototype.evaluate$ = prototype.evaluate;
-    prototype.evaluate = function(...variable) {
-        try {
-            let result = this.evaluate$(...variable);
-            if (result instanceof XPathResult) {
-                if (result.resultType === XPathResult.NUMBER_TYPE)
-                    return result.numberValue;
-                if (result.resultType === XPathResult.STRING_TYPE)
-                    return result.stringValue;
-                if (result.resultType === XPathResult.BOOLEAN_TYPE)
-                    return result.booleanValue;
-                const nodes = [undefined];
-                while (nodes[0] = result.iterateNext())
-                    nodes.push(nodes[0]);
-                return nodes.slice(1);
-            }
-            return result;
+    XPath.evaluate$ = XPath.evaluate;
+    XPath.evaluate = function (...variable) {
+        try {return XPath.evaluate$(...variable);
+        } catch (exception) {
+            return exception;
+        }
+    }
+
+    XPath.select$ = XPath.select;
+    XPath.select = function (...variable) {
+        try {return XPath.select$(...variable);
         } catch (exception) {
             return exception;
         }
@@ -1692,4 +1738,4 @@ http.createServer((request, response) => {
     });
 }).listen(Storage.PORT, () => {
     console.log("Service", `Listening at port ${Storage.PORT}`);
-});
+})
