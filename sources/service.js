@@ -1630,7 +1630,7 @@ class Storage {
             hash = []
             Object.entries(composite).forEach((entry) => {
                 const [key, value] = entry
-                hash.push(value ? key + ": " + value : key)
+                hash.push(Object.exists(value) && String(value).trim() !== "" ? key + ": " + value : key)
             })
 
             // Status Message should not be used because different hashes may be
