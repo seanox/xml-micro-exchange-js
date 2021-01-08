@@ -331,6 +331,23 @@ class Storage {
         return "application/json"
     }
 
+    static get XML() {
+        return class {
+            static get VERSION() {
+                return "1.0"
+            }
+            static get ENCODING() {
+                return "UTF-8"
+            }
+            static createDeclaration() {
+                return `<?xml version=\"${Storage.XML.VERSION}\" encoding=\"${Storage.XML.ENCODING}\"?>`
+            }
+            static createDocument() {
+                return new DOMParser().parseFromString(Storage.XML.createDeclaration());
+            }
+        }
+    }
+
     /**
      * Constructor creates a new Storage object.
      * @param {object} meta {request, response, storage, root, xpath}
@@ -347,7 +364,7 @@ class Storage {
         this.root     = meta.root || "data"
         this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ASCII").toString("Base64")
         this.xpath    = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$1")
-        this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2")
+        this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2").toLowerCase().split(/!+/)
         this.change   = false
         this.unique   = this.uniqueId()
         this.serial   = 0
@@ -445,11 +462,14 @@ class Storage {
         if (Object.exists(this.share))
             return
 
-        fs.closeSync(fs.openSync(this.store, "as+"))
+        let now = new Date();
+        if (this.exists())
+            fs.utimesSync(this.store, now, now)
+        else fs.closeSync(fs.openSync(this.store, "as+"))
         this.share = fs.openSync(this.store, !this.exists() || exclusive ? "rs+" : "r")
 
         if (fs.lstatSync(this.store).size <= 0)
-            fs.writeSync(this.share, `<?xml version="1.0" encoding="UTF-8"?>`
+            fs.writeSync(this.share, Storage.XML.createDeclaration()
                 + `<${this.root} ___rev="0" ___uid="${this.getSerial()}"/>`)
 
         let buffer = Buffer.alloc(fs.lstatSync(this.store).size)
@@ -751,9 +771,103 @@ class Storage {
         this.quit(204, "No Content", headers);
     }
 
+    /**
+     * GET queries data about XPath axes and functions.
+     * For this, the XPath axis or function is sent with URI.
+     * Depending on whether the request is an XPath axis or an XPath function,
+     * different Content-Type are used for the response.
+     *
+     *     XPath axis
+     * Content-Type: application/xslt+xml
+     * When the XPath axis addresses one target, the addressed target is the
+     * root element of the returned XML structure.
+     * If the XPath addresses multiple targets, their XML structure is combined
+     * in the root element collection.
+     *
+     *     XPath function
+     * Content-Type: text/plain
+     * The result of XPath functions is returned as plain text.
+     * Decimal results use float, booleans the values true and false.
+     *
+     * The XPath processing is strict and does not accept unnecessary spaces.
+     *
+     *     Request:
+     * GET /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     *
+     *     Response:
+     * HTTP/1.0 200 Success
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Timeout (milliseconds)
+     * Content-Length: (bytes)
+     *     Response-Body:
+     * The result of the XPath request
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 200 Success
+     * - Request was successfully executed
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
+     * - XPath is missing or malformed
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage does not exist
+     * - XPath axis finds no target
+     */
     doGet() {
-        // TODO:
-        storage.quit(501, "Not Implemented")
+
+        // Without existing storage the request is not valid.
+        if (!this.exists())
+            this.quit(404, "Resource Not Found")
+
+        // In any case an XPath is required for a valid request.
+        if (!Object.exists(this.xpath))
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+
+        let result = XPath.select(this.xpath, this.xml)
+        if (result instanceof Error) {
+            let message = "Invalid XPath"
+            if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION))
+                message = "Invalid XPath function";
+            message += " (" + result.message + ")"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+        if (!this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)
+                && (!Object.exists(result) || result.length <= 0))
+            this.quit(404, "Resource Not Found");
+
+        if (Array.isArray(result)) {
+            if (result.length == 1) {
+                if (result[0].nodeType === NodeType.DOCUMENT_NODE)
+                    result = [result[0].documentElement]
+                if (result[0].nodeType === NodeType.ATTRIBUTE_NODE) {
+                    result = result[0].value
+                } else {
+                    let xml = Storage.XML.createDocument()
+                    xml.appendChild(result[0].cloneNode(true))
+                    result = xml
+                }
+            } else if (result.length > 0) {
+                let xml = Storage.XML.createDocument()
+                let collection = xml.createElement("collection")
+                result.forEach((entry) => {
+                    if (entry.nodeType === NodeType.ATTRIBUTE_NODE) {
+                        let text = xml.createTextNode(entry.nodeValue);
+                        entry = xml.createElement(entry.nodeName);
+                        entry.appendChild(text);
+                    }
+                    collection.appendChild(entry.cloneNode(true));
+                })
+                xml.appendChild(collection);
+                result = xml;
+            } else result = ""
+        } else if (typeof result === "boolean")
+            result = result ? "true" : "false"
+
+        this.quit(200, "Success", null, result);
     }
 
     doPost() {
@@ -1517,32 +1631,26 @@ class Storage {
                 && data !== "") {
             if (!media) {
                 if (this.options.includes("json")) {
-                    console.log("TODO: !!!")
-                    /* TODO:
                     media = Storage.CONTENT_TYPE_JSON
-                    if (data instanceof DOMDocument
-                            || data instanceof SimpleXMLElement)
-                        data = simplexml_import_dom(data)
-                    data = json_encode(data)
-                    */
+                    data = JSON.stringify(data)
                 } else {
-                    console.log("TODO: !!!")
-                    /* TODO:
-                    if (data instanceof DOMDocument
-                            || data instanceof SimpleXMLElement) {
+                    if (typeof data === "object"
+                            && Object.getPrototypeOf(data)
+                            && Object.getPrototypeOf(data).constructor
+                            && Object.getPrototypeOf(data).constructor.name === "Document") {
                         media = Storage.CONTENT_TYPE_XML
-                        data = data.saveXML()
+                        data = this.serialize(data)
                     } else media = Storage.CONTENT_TYPE_TEXT
-                    */
                 }
             } else media = media.value
-            header["Content-Type"] = media
+            headers["Content-Type"] = media
         }
 
+        data = Object.exists(data) ? String(data) : ""
+
         if (status >= 200 && status < 300)
-            if ((Object.exists(data) && data !== "")
-                    || status == 200)
-                headers["Content-Length"] = (data || "").length
+            if (data !== "" || status == 200)
+                headers["Content-Length"] = data.length
 
         // When responding to an error, the default Allow header is added.
         // But only if no Allow header was passed.
@@ -1580,7 +1688,7 @@ class Storage {
             trace.push(cryptoMD5(hash) + " Trace-Request-Header-Hash", hash)
 
             // Request-Body-Hash
-            hash = this.request.data || ""
+            hash = Object.exists(this.request.data) ? this.request.data : ""
             hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
             hash = hash.replace(/\t/g, " ")
             headers["Trace-Request-Body-Hash"] = cryptoMD5(hash)
@@ -1641,8 +1749,7 @@ class Storage {
             trace.push(cryptoMD5(hash.join("\n")) + " Trace-Response-Header-Hash", JSON.stringify(hash))
 
             // Response-Body-Hash
-            hash = data || ""
-            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
+            hash = data.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
             hash = hash.replace(/\t/g, " ")
             // The UID is variable and must be normalized so that the hash can be
             // compared later. Therefore the uniques of the UIDs are collected in
@@ -1806,6 +1913,48 @@ try {
             return exception
         }
     }
+
+    JSON.stringify$ = JSON.stringify
+    JSON.stringify = function(...variable) {
+        if (variable.length > 0
+                && typeof variable[0] === "object"
+                && Object.getPrototypeOf(variable[0])
+                && Object.getPrototypeOf(variable[0]).constructor
+                && Object.getPrototypeOf(variable[0]).constructor.name === "Document")
+            return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
+        return JSON.stringify$(...variable)
+    }
+    JSON.stringify$xml = function(xml) {
+        var json = {};
+        if (xml.nodeType === NodeType.ELEMENT_NODE) {
+            if (xml.attributes.length > 0) {
+                json["@attributes"] = {}
+                Array.from(xml.attributes).forEach((attribute) => {
+                    json["@attributes"][attribute.nodeName] = attribute.nodeValue
+                })
+            }
+        } else if (xml.nodeType === NodeType.TEXT_NODE)
+            json = xml.nodeValue
+        if (xml.hasChildNodes()) {
+            Array.from(xml.childNodes).forEach((item) => {
+                if (![NodeType.DOCUMENT_NODE, NodeType.ELEMENT_NODE,
+                        NodeType.ATTRIBUTE_NODE, NodeType.TEXT_NODE].includes(item.nodeType))
+                    return;
+                if (item.nodeType === NodeType.TEXT_NODE
+                        && item.nodeValue.trim().length <= 0)
+                    return;
+                var nodeName = item.nodeName
+                if (json[nodeName] === undefined) {
+                    json[nodeName] = JSON.stringify$xml(item)
+                } else {
+                    if (!Array.isArray(json[nodeName]))
+                        json[nodeName] = [json[nodeName]]
+                    json[nodeName].push(JSON.stringify$xml(item))
+                }
+            })
+        }
+        return json;
+    }
 } catch (exception) {
     console.error(exception)
 }
@@ -1813,6 +1962,7 @@ try {
 // TODO: [address]:port as CLI application parameter (address optional, otherwiese 0.0.0.0)
 // TODO: certificate files as CLI application parameter (otherwiese HTTP instead of HTTPS)
 // TODO: node.js service.js [address]:port [certificate files]
+// TODO: PUT/PATCH autoescape to HTML entities, so that the storage contains only ASCII
 
 http.createServer((request, response) => {
 
@@ -1860,6 +2010,7 @@ http.createServer((request, response) => {
                 })
             else if (xpath.match(/^Base64:[A-Za-z0-9\+\/]+=*$/))
                 xpath = new Buffer(xpath.substring(8), "Base64").toString("ASCII")
+            else xpath = decodeURIComponent(xpath);
 
             // With the exception of CONNECT, OPTIONS and POST, all requests expect an
             // XPath or XPath function.
