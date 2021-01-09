@@ -365,7 +365,6 @@ class Storage {
         this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ASCII").toString("Base64")
         this.xpath    = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$1")
         this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2").toLowerCase().split(/!+/)
-        this.change   = false
         this.unique   = this.uniqueId()
         this.serial   = 0
         this.revision = 0
@@ -415,7 +414,7 @@ class Storage {
             // Safe is safe, if not the default 'data' is used,
             // the name of the root element must be known.
             // Otherwise the request is quit with status 404 and terminated.
-            if ((meta.root ? meta.root : "data") != storage.xml.documentElement.nodeName)
+            if ((meta.root ? meta.root : "data") !== storage.xml.documentElement.nodeName)
                 storage.quit(404, "Resource Not Found")
         }
         return storage
@@ -840,7 +839,7 @@ class Storage {
             this.quit(404, "Resource Not Found");
 
         if (Array.isArray(result)) {
-            if (result.length == 1) {
+            if (result.length === 1) {
                 if (result[0].nodeType === NodeType.DOCUMENT_NODE)
                     result = [result[0].documentElement]
                 if (result[0].nodeType === NodeType.ATTRIBUTE_NODE) {
@@ -872,7 +871,7 @@ class Storage {
 
     doPost() {
         // TODO:
-        storage.quit(501, "Not Implemented")
+        this.quit(501, "Not Implemented")
     }
 
     /**
@@ -1166,7 +1165,7 @@ class Storage {
                     return
                 serials.push(target.getAttribute("___uid") + ":M")
                 // A bug in common-xml-features sets the documentElement to
-                // null when using replaceChid. Therefore the quick way:
+                // null when using replaceChild. Therefore the quick way:
                 //     clone/add/replace -- is not possible.
                 while (target.lastChild)
                     target.removeChild(target.lastChild)
@@ -1256,7 +1255,7 @@ class Storage {
                         serials.push(child.getAttribute("___uid") + ":D")
                     })
                     // A bug in common-xml-features sets the documentElement to
-                    // null when using replaceChid. Therefore the quick way:
+                    // null when using replaceChild. Therefore the quick way:
                     //     clone/add/replace -- is not possible.
                     while (target.lastChild)
                         target.removeChild(target.lastChild)
@@ -1476,9 +1475,171 @@ class Storage {
         this.doPut();
     }
 
+    /**
+     * DELETE deletes elements and attributes in the storage.
+     * The position for deletion is defined via an XPath.
+     * XPath uses different notations for elements and attributes.
+     *
+     * The notation for attributes use the following structure at the end.
+     *     <XPath>/@<attribute> or <XPath>/attribute.<attribute>
+     *
+     * If the XPath notation does not match the attributes, elements are
+     * assumed. For elements, the notation for pseudo elements is supported:
+     *     <XPath>.first, <XPath>.last, <XPath>.before or <XPath>.after
+     * Pseudo elements are a relative position specification to the selected
+     * element.
+     *
+     * The DELETE method works resolutely and deletes existing data.
+     * The XPath processing is strict and does not accept unnecessary spaces.
+     * The attributes ___rev / ___uid used internally by the storage are
+     * read-only and cannot be changed.
+     *
+     * In general, if no target can be reached via XPath, status 404 will
+     * occur. In all other cases the DELETE method informs the client about
+     * changes with status 204 and the response headers Storage-Effects and
+     * Storage-Revision. The header Storage-Effects contains a list of the UIDs
+     * that were directly affected by the change and also contains the UIDs of
+     * newly created elements (e.g. when the root element is deleted, a new one
+     * is automatically created). If no changes were made because the XPath
+     * cannot find a writable target, the header Storage-Effects can be omitted
+     * completely in the response.
+     *
+     * Syntactic and semantic errors in the request and/or XPath can cause
+     * error status 400.
+     *
+     *     Request:
+     * DELETE /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage-Effects: ... (list of UIDs)
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Timeout (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Element(s) or attribute(s) successfully deleted
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
+     * - XPath is missing or malformed
+     * - XPath without addressing a target is responded with status 204
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage does not exist
+     * - XPath axis finds no target
+     */
     doDelete() {
-        // TODO:
-        storage.quit(501, "Not Implemented")
+
+        // Without existing storage the request is not valid.
+        if (!this.exists())
+            this.quit(404, "Resource Not Found")
+
+        // In any case an XPath is required for a valid request.
+        if (!Object.exists(this.xpath)
+                || this.xpath === "")
+            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            let message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+
+        let xpath = this.xpath
+        let pseudo = ""
+        if (!this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)) {
+            // An XPath for element(s) is then expected here.
+            // If this is not the case, the request is responded with status 400.
+            let matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
+            if (!matches)
+                this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"})
+            xpath = matches[1];
+            pseudo = (matches[2] || "").toLowerCase()
+        }
+
+        let targets = XPath.select(xpath, this.xml)
+        if (targets instanceof Error) {
+            let message = "Invalid XPath axis (" + targets.message + ")"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+
+        if (!Object.exists(targets) || targets.length <= 0)
+            this.quit(404, "Resource Not Found");
+
+        // Pseudo elements can be used to delete in an XML substructure
+        // relative to the selected element.
+        if (pseudo !== "") {
+            if (pseudo === "before") {
+                let childs = [];
+                targets.forEach((target) => {
+                    if (!target.previousSibling)
+                        return
+                    for (let previous = target.previousSibling; previous; previous = previous.previousSibling)
+                        childs.push(previous)
+                })
+                targets = childs
+            } else if (pseudo === "after") {
+                let childs = [];
+                targets.forEach((target) => {
+                    if (!target.nextSibling)
+                        return
+                    for (let next = target.nextSibling; next; next = next.nextSibling)
+                        childs.push(next);
+                })
+                targets = childs
+            } else if (pseudo === "first") {
+                targets = targets.filter(target => target.firstChild)
+            } else if (pseudo === "last") {
+                targets = targets.filter(target => target.lastChild)
+            } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"});
+        }
+
+        let serials = [];
+        targets.forEach((target) => {
+            if (target.nodeType === NodeType.ATTRIBUTE_NODE) {
+                if (!target.ownerElement
+                        || target.ownerElement.nodeType !== NodeType.ELEMENT_NODE
+                        || ["___rev", "___uid"].includes(target.name))
+                    return
+                let parent = target.ownerElement;
+                parent.removeAttribute(target.name);
+                serials.push(parent.getAttribute("___uid") + ":M")
+                Storage.updateNodeRevision(parent, this.revision +1)
+            } else if (target.nodeType === NodeType.ELEMENT_NODE) {
+                serials.push(target.getAttribute("___uid") + ":D")
+                let nodes = XPath.select(".//*[@___uid]", target)
+                nodes.forEach((node) => {
+                    serials.push(node.getAttribute("___uid") + ":D")
+                })
+                let parent = target.parentNode
+                parent.removeChild(target)
+                if (parent.nodeType === NodeType.DOCUMENT_NODE) {
+                    let target = this.xml.createElement(this.root)
+                    target = this.xml.appendChild(target);
+                    Storage.updateNodeRevision(target, this.revision +1)
+                    let serial = this.getSerial()
+                    serials.push(serial + ":A")
+                    target.setAttribute("___uid", serial)
+                } else {
+                    serials.push(parent.getAttribute("___uid") + ":M")
+                    Storage.updateNodeRevision(parent, this.revision +1)
+                }
+            }
+        })
+
+        let headers = {}
+
+        // Only the list of serials is an indicator that data has changed and
+        // whether the revision changes with it. If necessary the revision must
+        // be corrected if there are no data changes.
+        if (serials)
+            headers["Storage-Effects"] = serials.join(" ")
+
+        this.materialize();
+        this.quit(204, "No Content", headers);
     }
 
     /**
@@ -1626,7 +1787,7 @@ class Storage {
 
         let media = fetchHeader(headers, "Content-Type", true)
         media = media ? media.value : ""
-        if (status == 200
+        if (status === 200
                 && Object.exists(data)
                 && data !== "") {
             if (!media) {
@@ -1649,7 +1810,7 @@ class Storage {
         data = Object.exists(data) ? String(data) : ""
 
         if (status >= 200 && status < 300)
-            if (data !== "" || status == 200)
+            if (data !== "" || status === 200)
                 headers["Content-Length"] = data.length
 
         // When responding to an error, the default Allow header is added.
@@ -1874,7 +2035,7 @@ try {
 
     // The evaluate method of the Document differs from PHP in behavior.
     // The following things have been changed to simplify migration:
-    // - Additional third paramerer
+    // - Additional third parameter
     //   true catches errors as return value without throwing an exception
     DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString
     DOMParser.prototype.parseFromString = function(...variable) {
@@ -1934,7 +2095,7 @@ try {
         return JSON.stringify$(...variable)
     }
     JSON.stringify$xml = function(xml) {
-        var result = {};
+        let result = {};
         if (!Object.exists(xml))
             return null
         if (xml.nodeType === NodeType.TEXT_NODE
@@ -1984,8 +2145,8 @@ try {
     console.error(exception)
 }
 
-// TODO: [address]:port as CLI application parameter (address optional, otherwiese 0.0.0.0)
-// TODO: certificate files as CLI application parameter (otherwiese HTTP instead of HTTPS)
+// TODO: [address]:port as CLI application parameter (address optional, otherwise 0.0.0.0)
+// TODO: certificate files as CLI application parameter (otherwise HTTP instead of HTTPS)
 // TODO: node.js service.js [address]:port [certificate files]
 // TODO: PUT/PATCH autoescape to HTML entities, so that the storage contains only ASCII
 
