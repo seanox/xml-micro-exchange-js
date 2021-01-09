@@ -1736,12 +1736,14 @@ class Storage {
             serials.forEach((serial) => {
                 if (serial.slice(-2) !== ":D")
                     return
-                var search = serial.slice(-2) + ":M"
-                if (serials.includes(search))
+                var search = serial.slice(0, -2) + ":M"
+                search = serials.indexOf(search)
+                if (search >= 0)
                     delete serials[search]
-                var search = serial.slice(-2) + ":A"
-                if (serials.includes(search))
-                    delete serials[search]
+                var search = serial.slice(0, -2) + ":A"
+                search = serials.indexOf(search)
+                if (search >= 0)
+                    delete serials[search];
             })
             serials = serials.join(" ")
         }
