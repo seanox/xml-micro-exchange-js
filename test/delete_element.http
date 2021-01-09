@@ -1,0 +1,363 @@
+# Test sequence for deleting of elements in the storage.
+
+# DELETE deletes elements and attributes in the storage.
+# The position for deletion  is defined via an XPath.
+# XPath uses different notations for elements and attributes.
+
+###
+# Storage is not establish
+# Round brackets in XPath should not be a problem.
+# Expectations:
+# - Status code 404 Resource Not Found
+DELETE {{service}}(/books/book%5B1%5D)/chapter%5B1%5D/text%5B1%5D HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "04e691173c995233574b2e08b4a8de99");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e03f250bb25d6b5c7b77da669e6716de");
+});
+%}
+
+###
+# Preparation of the storage for the tests
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 36x UID-A 1x UID-M
+# - 4 books are overwritten
+# - 4 books with chapter are created
+# - all new elements have the attributes ___rev and ___uid
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_delete_element}}
+Content-Type: application/xslt+xml
+
+<book title="Book-A" a="A" b="A" c="A" d="A">
+  <chapter title="Chapter-A-A">
+    <text title="Text A1"/>
+    <text title="Text A2"/>
+    <text title="Text A3"/>
+  </chapter>
+  <chapter title="Chapter-B">
+    <text title="Text A4"/>
+    <text title="Text A5"/>
+    <text title="Text A6"/>
+  </chapter>
+</book>
+<book title="Book-B" a="B" b="B" c="B" d="B">
+  <chapter title="Chapter-B-A">
+    <text title="Text B1"/>
+    <text title="Text B2"/>
+    <text title="Text B3"/>
+  </chapter>
+  <chapter title="Chapter-B-B">
+    <text title="Text B4"/>
+    <text title="Text B5"/>
+    <text title="Text B6"/>
+  </chapter>
+</book>
+<book title="Book-C" a="C" b="C" c="C" d="C">
+  <chapter title="Chapter-C-A">
+    <text title="Text C1"/>
+    <text title="Text C2"/>
+    <text title="Text C3"/>
+  </chapter>
+  <chapter title="Chapter-C-B">
+    <text title="Text C4"/>
+    <text title="Text C5"/>
+    <text title="Text C6"/>
+  </chapter>
+</book>
+<book title="Book-D" a="D" b="D" c="D" d="D">
+  <chapter title="Chapter-D-A">
+    <text title="Text D1"/>
+    <text title="Text D2"/>
+    <text title="Text D3"/>
+  </chapter>
+  <chapter title="Chapter-D-B">
+    <text title="Text D4"/>
+    <text title="Text D5"/>
+    <text title="Text D6"/>
+  </chapter>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c389657d6628cb91bc2a7ae2d2d2a0d5");
+});
+%}
+
+###
+# Invalid XPath /books/book[1]x
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath axis (XPath parse error)
+DELETE {{service}}(/books/book%5B1%5D)/chapter%5B1%5D/text%5B1%5Dx HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e7bbaf9c3e963c51209e25b7dda1f7f3");
+});
+%}
+
+###
+# Deleting an element must work
+# The indirectly deleted UIDs must be contained in Storage-Effects
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 9x UID-D, 1x UID-M
+# - Storage-Revision is increased
+DELETE {{service}}/books/book%5B1%5D HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b3dd0e1afab6a94bc00585299e450fac");
+});
+%}
+
+###
+# Deleting an element must work
+# The indirectly deleted UIDs must be contained in Storage-Effects
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 9x UID-D, 1x UID-M
+# - Storage-Revision is increased
+DELETE {{service}}/books/book%5B@title='Book-B'%5D HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2a3dd1fedf61a38b5463f8422da89ac0");
+});
+%}
+
+###
+# The Book-B is deleted and cannot be deleted again
+# The indirectly deleted UIDs must be contained in Storage-Effects
+# Expectations:
+# - Status code 404 Resource Not Found
+# - Storage-Revision is not increased
+DELETE {{service}}/books/book%5B@title='Book-B'%5D HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3b014aa9c4070af9231ab5ec667b494a");
+});
+%}
+
+###
+# DELETE outside the root element, shall be ignored
+# Expectations:
+# - Status code 204 No Content
+# - Without Storage-Effects
+# - No changes in the storage
+# - Storage-Revision is not increased
+# - URI: /books/..
+DELETE {{service}}0x2f626f6f6b732f2e2e HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "449acfd6671e4d2f354591659b9acbb8");
+});
+%}
+
+###
+#  XPath functions are not supported
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath (Functions are not supported)
+DELETE {{service}}name(.) HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "303108fc99e2cd711a7fd532ee837665");
+});
+%}
+
+###
+# Root element can be deleted,
+# but is automatically recreated with a new UID and incremented revision.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 19x UID-D, 1x UID-A
+# - Storage-Revision is increased
+DELETE {{service}}/books HTTP/1.0
+Storage: {{storage_delete_element}}
+Accept-Effects: ALL
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ddc59e8d38e9e73e83680186a6f14c7e");
+});
+%}
+
+###
+# Preparation of the storage for the tests
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 36x UID-A 1x UID-M
+# - 4 books are overwritten
+# - 4 books with chapter are created
+# - all new elements have the attributes ___rev and ___uid
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_delete_element}}
+Content-Type: application/xslt+xml
+
+<book title="Book-A" a="A" b="A" c="A" d="A">
+  <chapter title="Chapter-A-A">
+    <text title="Text A1"/>
+    <text title="Text A2"/>
+    <text title="Text A3"/>
+  </chapter>
+  <chapter title="Chapter-B">
+    <text title="Text A4"/>
+    <text title="Text A5"/>
+    <text title="Text A6"/>
+  </chapter>
+</book>
+<book title="Book-B" a="B" b="B" c="B" d="B">
+  <chapter title="Chapter-B-A">
+    <text title="Text B1"/>
+    <text title="Text B2"/>
+    <text title="Text B3"/>
+  </chapter>
+  <chapter title="Chapter-B-B">
+    <text title="Text B4"/>
+    <text title="Text B5"/>
+    <text title="Text B6"/>
+  </chapter>
+</book>
+<book title="Book-C" a="C" b="C" c="C" d="C">
+  <chapter title="Chapter-C-A">
+    <text title="Text C1"/>
+    <text title="Text C2"/>
+    <text title="Text C3"/>
+  </chapter>
+  <chapter title="Chapter-C-B">
+    <text title="Text C4"/>
+    <text title="Text C5"/>
+    <text title="Text C6"/>
+  </chapter>
+</book>
+<book title="Book-D" a="D" b="D" c="D" d="D">
+  <chapter title="Chapter-D-A">
+    <text title="Text D1"/>
+    <text title="Text D2"/>
+    <text title="Text D3"/>
+  </chapter>
+  <chapter title="Chapter-D-B">
+    <text title="Text D4">D4</text>
+    <text title="Text D5">D5</text>
+    <text title="Text D6">D6</text>
+  </chapter>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3d1537a88a9ed732a9539bfae5485221");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 9x UID-D, 1x UID-M
+# - Storage-Revision is increased
+DELETE {{service}}/books/book%5B@title='Book-D'%5D HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a5d1b05a6e8c5b74285111e905f58b97");
+});
+%}
+
+###
+# Recursive deletion of all elements by a relative and generous XPath.
+# The root element must be recreated.
+# The Storage-Effects must be optimized and obsolete entries must be cleaned up.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 28x UID-D, 1x UID-A
+# - Storage-Revision is increased
+# - URI: //*[@___uid]
+DELETE {{service}}0x2f2f2a5b405f5f5f7569645d HTTP/1.0
+Storage: {{storage_delete_element}}
+Accept-Effects: ALL
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f98147197eacd30b4242cfbe64dbb359");
+});
+%}
+
+###
+# Preparation of the storage for the tests
+# Text nodes are also added, but they have no UID, so they are added, but have
+# no effect on storage effects.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 9x UID-A 1x UID-M
+# - 4 books are overwritten
+# - 4 books with chapter are created
+# - all new elements have the attributes ___rev and ___uid
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_delete_element}}
+Content-Type: application/xslt+xml
+
+<book title="Book-A" a="A" b="A" c="A" d="A">
+  <chapter title="Chapter-A-A">
+    Text Text 1
+    <text title="Text A1"/>
+    Text Text 2
+    <text title="Text A2"/>
+    Text Text 3
+    <text title="Text A3"/>
+    Text Text 4
+  </chapter>
+  <chapter title="Chapter-B">
+    <text title="Text A4"/>
+    <text title="Text A5"/>
+    <text title="Text A6"/>
+  </chapter>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "eb279eea069cbcf37c1172dd4ff30491");
+});
+%}
+
+###
+# Text nodes are also deleted, but they have no UID, so they are removed, but
+# have no effect on storage effects.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 8x UID-D, 1x UID-M
+# - Storage-Revision is increased
+DELETE {{service}}/books/book/chapter HTTP/1.0
+Storage: {{storage_delete_element}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f42dd553e0e73e7ffdf18e71fe03b40f");
+});
+%}
+
+###
