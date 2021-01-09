@@ -179,18 +179,18 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210107
+ *  Service 1.1.0 20210109
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210107
+ *  @version 1.1.0 20210109
  */
 const http = require("http")
 const fs = require("fs")
 const crypto = require("crypto")
 
-const EOL = require('os').EOL
+const EOL = require("os").EOL
 const DOMParser = require("xmldom").DOMParser
 const DOMImplementation = require("xmldom").DOMImplementation
 const XPath = require("xpath")
@@ -1874,12 +1874,21 @@ class Storage {
             let serials = fetchHeader(headers, "Storage-Effects", false)
             serials = serials ? serials.value : ""
             if (serials) {
+                let counter = [0, 0, 0, 0]
                 let effects = {}
                 serials.split(/\s+/).forEach((uid) => {
                     uid = uid.split(/:/)
                     if (!Object.exists(effects[uid[0]]))
                         effects[uid[0]] = []
                     effects[uid[0]].push(uid[1])
+                    if (uid.length < 3)
+                        counter[3]++
+                    else if (uid[2] === "A")
+                        counter[0]++
+                    else if (uid[2] === "M")
+                        counter[1]++
+                    else if (uid[2] === "D")
+                        counter[2]++
                 })
                 let keys = [...Object.keys(effects)]
                 keys.sort()
@@ -1889,7 +1898,8 @@ class Storage {
                     delete effects[key]
                     effects[key] = value.join(":")
                 })
-                composite["Storage-Effects"] = "#" + Object.values(effects).join(" #")
+                composite["Storage-Effects"] = `${counter[0]}xA/${counter[1]}xM/${counter[2]}xD/${counter[3]}xN`
+                    + " #" + Object.values(effects).join(" #")
             }
 
             // Connection-Unique header is unique and only checked for presence.
