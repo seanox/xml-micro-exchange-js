@@ -1699,7 +1699,7 @@ class Storage {
             let composite = {...headers}
             Object.keys(composite).forEach((header) => {
                 if (!["storage", "storage-revision", "storage-space",
-                        "allow", "content-length", "message"].includes(header.toLowerCase()))
+                        "allow", "content-length", "content-type", "message"].includes(header.toLowerCase()))
                     delete composite[header]
             })
 
@@ -1755,18 +1755,11 @@ class Storage {
             // compared later. Therefore the uniques of the UIDs are collected in
             // an array. The index in the array is then the new unique.
             let uniques = []
-            hash = hash.replace(/\b(___uid(?:(?:=)|(?:"s*:s*))")([A-Zd]+)(:[A-Zd]+")/i, (matched) => {
-                console.log("TODO: !!!")
-                /* TODO:
-                foreach (matches[0] as unique) {
-                    if (preg_match("/\b(___uid(?:(?:=)|(?:\"\s*:\s*))\")([A-Z\d]+)(:[A-Z\d]+\")/i", unique, match)) {
-                        if (!in_array(match[2], uniques))
-                            uniques[] = match[2]
-                        unique = array_search(match[2], uniques)
-                        hash = str_replace(match[0], match[1] . unique . match[3], hash)
-                    }
-                }
-                */
+            hash = hash.replace(/\b(___uid(?:(?:=)|(?:\"\s*:\s*))\")([A-Z\d]+)(:[A-Z\d]+\")/ig, (matched, prefix, unique, serial) => {
+                if (!uniques.includes(unique))
+                    uniques.push(unique)
+                unique = uniques.indexOf(unique);
+                return prefix + unique + serial;
             })
             headers["Trace-Response-Body-Hash"] = cryptoMD5(hash)
             trace.push(cryptoMD5(hash) + " Trace-Response-Body-Hash")
@@ -1914,6 +1907,22 @@ try {
         }
     }
 
+    // DOM serialization is implemented very differently.
+    // So that the result is the same and all rules are known, the
+    // serialization itself was implemented.
+    // - Considered are: DOCUMENT_NODE, ELEMENT_NODE, ATTRIBUTE_NODE, CDATA_SECTION_NODE
+    // - Non-existing values (undefined / null) are used as null
+    // - DOCUMENT_NODE uses as starting point document element
+    // - Attributes are hold only for elements in the sub-object @attributes
+    // - CDATA_SECTION_NODE are used as text elements
+    // - Empty text elements (no printable characters) are ignored
+    // - If an element contains only text elements as children,
+    //   these are combined as one value, separated by a simple line break \n,
+    //   also here empty text elements (no printable characters) will be ignored
+    // - if an element contains text elements mixed with other elements,
+    //   the contents of the text elements are combined in the sub-object #text,
+    //   separated by a simple line break \n,
+    //   also here empty text elements (no printable characters) will be ignored
     JSON.stringify$ = JSON.stringify
     JSON.stringify = function(...variable) {
         if (variable.length > 0
@@ -1925,35 +1934,51 @@ try {
         return JSON.stringify$(...variable)
     }
     JSON.stringify$xml = function(xml) {
-        var json = {};
-        if (xml.nodeType === NodeType.ELEMENT_NODE) {
-            if (xml.attributes.length > 0) {
-                json["@attributes"] = {}
-                Array.from(xml.attributes).forEach((attribute) => {
-                    json["@attributes"][attribute.nodeName] = attribute.nodeValue
-                })
-            }
-        } else if (xml.nodeType === NodeType.TEXT_NODE)
-            json = xml.nodeValue
-        if (xml.hasChildNodes()) {
-            Array.from(xml.childNodes).forEach((item) => {
-                if (![NodeType.DOCUMENT_NODE, NodeType.ELEMENT_NODE,
-                        NodeType.ATTRIBUTE_NODE, NodeType.TEXT_NODE].includes(item.nodeType))
-                    return;
-                if (item.nodeType === NodeType.TEXT_NODE
-                        && item.nodeValue.trim().length <= 0)
-                    return;
-                var nodeName = item.nodeName
-                if (json[nodeName] === undefined) {
-                    json[nodeName] = JSON.stringify$xml(item)
-                } else {
-                    if (!Array.isArray(json[nodeName]))
-                        json[nodeName] = [json[nodeName]]
-                    json[nodeName].push(JSON.stringify$xml(item))
-                }
+        var result = {};
+        if (!Object.exists(xml))
+            return null
+        if (xml.nodeType === NodeType.TEXT_NODE
+                || xml.nodeType === NodeType.CDATA_SECTION_NODE)
+            return xml.nodeValue.trim()
+        if (xml.nodeType === NodeType.DOCUMENT_NODE)
+            xml = xml.documentElement
+        if (xml.nodeType !== NodeType.ELEMENT_NODE)
+            return null
+        if (xml.attributes.length > 0) {
+            result["@attributes"] = {}
+            Array.from(xml.attributes).forEach((attribute) => {
+                result["@attributes"][attribute.nodeName] = attribute.nodeValue
             })
         }
-        return json;
+        let buffer = {text:"", mixed:Object.exists(result["@attributes"])}
+        Array.from(xml.childNodes).forEach((item) => {
+            if (item.nodeType === NodeType.TEXT_NODE
+                    || item.nodeType === NodeType.CDATA_SECTION_NODE) {
+                let text = item.nodeValue.trim();
+                if (text.length <= 0)
+                    return
+                if (buffer.text.length > 0)
+                    buffer.text += "\n"
+                buffer.text += text
+                return;
+            }
+            if (item.nodeType !== NodeType.ELEMENT_NODE)
+                return
+            buffer.mixed = true;
+            let nodeName = item.nodeName
+            if (result[nodeName] === undefined) {
+                result[nodeName] = JSON.stringify$xml(item)
+                return
+            }
+            if (!Array.isArray(result[nodeName]))
+                result[nodeName] = [result[nodeName]]
+            result[nodeName].push(JSON.stringify$xml(item))
+        })
+        if (!buffer.mixed)
+            return buffer.text
+        if (buffer.text.length > 0)
+            result["#text"] = buffer.text
+        return result
     }
 } catch (exception) {
     console.error(exception)
