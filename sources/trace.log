@@ -1,3 +1,295 @@
+b4f99fde4022739cabc80627335a6de5
+	Request Method:DELETE XPath:/books/attribute::attrA Length:4
+	Response Status:404 Length:0
+	817ba7b97f540371a40d8758e9cf2b8e Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/attribute::attrA","Storage":"UnitTest_Storage_DA books","Content-Length":"4","Content-Type":"TEXT/PLAIN"}
+	098f6bcd4621d373cade4e832627b4f6 Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	939c4695313c5430be8edb9f834f226d Trace-XPath-Hash
+	/books/attribute::attrA
+	b4f99fde4022739cabc80627335a6de5 Trace-Composite-Hash
+4cdbb2e2f6a796405108ff5312f6455e
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:0 Space:81
+	8c0ef72f1df041396aec8131b71661d1 Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	619c21e28c46e79e0eceea83a78033fe Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/81 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b28cde05da236e79b1de06539f79b96f Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	4cdbb2e2f6a796405108ff5312f6455e Trace-Composite-Hash
+bd8864c97f2b83f7404bc2dd953f9763
+	Request Method:PUT XPath:/books Length:1245
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:1 Space:2619
+	f3c1f6c266960ece78c5e9c2cd6f75b1 Trace-Request-Header-Hash
+	{"Method":"PUT","URI":"/xmex!/books","Storage":"UnitTest_Storage_DA books","Content-Length":"1245","Content-Type":"APPLICATION/XSLT+XML"}
+	00e2c359698f8dcfcbcc96d374841383 Trace-Request-Body-Hash
+	f545b3331e3b17542516afbcb7f8b1bd Trace-Response-Header-Hash
+	[204,"Storage-Effects: #0 #0:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35","Storage-Revision: 1","Storage-Space: 262144/2619 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	78a31eef5c5208c5c422c1b47be259f2 Trace-Storage-Hash
+	a0721c16c96f044d5d405fef10a701de Trace-XPath-Hash
+	/books
+	bd8864c97f2b83f7404bc2dd953f9763 Trace-Composite-Hash
+f704df6764e8c8ac99783c463ac9061f
+	Request Method:PUT XPath:/books/@xa Length:2
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:2 Space:2627
+	b9c69e5337eb5d7c63996d844da7e44c Trace-Request-Header-Hash
+	{"Method":"PUT","URI":"/xmex!/books/@xa","Storage":"UnitTest_Storage_DA books","Content-Length":"2","Content-Type":"TEXT/PLAIN"}
+	53e59fface936ea788f7cf51e7b25531 Trace-Request-Body-Hash
+	6eed7591dff3c19269e6e1681ea86c8c Trace-Response-Header-Hash
+	[204,"Storage-Effects: #0","Storage-Revision: 2","Storage-Space: 262144/2627 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	6b171a9af96e651fc17fddbc59474888 Trace-Storage-Hash
+	a38f20cc5d28081f9f1b1c13f2832f9f Trace-XPath-Hash
+	/books/@xa
+	f704df6764e8c8ac99783c463ac9061f Trace-Composite-Hash
+e0992043ffe852774939159f8c8a7394
+	Request Method:DELETE XPath:/books/book[1]/attribute::not_exists Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:2 Space:2627
+	08cba63b93fe9bbb0ae0b2927987ded5 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[1]/attribute::not_exists","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	6b171a9af96e651fc17fddbc59474888 Trace-Storage-Hash
+	ac45529666e40b7a3af68a69a28187d4 Trace-XPath-Hash
+	/books/book[1]/attribute::not_exists
+	e0992043ffe852774939159f8c8a7394 Trace-Composite-Hash
+4c272e98a37037b91b28234c09397cfa
+	Request Method:DELETE XPath:/books/book[1]/@not_exists Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:2 Space:2627
+	58fee3415f19d75fe562dd317de6253d Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[1]/@not_exists","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	6b171a9af96e651fc17fddbc59474888 Trace-Storage-Hash
+	eec58a71c4cb197a3bda2fe0830f1b26 Trace-XPath-Hash
+	/books/book[1]/@not_exists
+	4c272e98a37037b91b28234c09397cfa Trace-Composite-Hash
+9513ff4dfb056d2e100aa8df6c14afc9
+	Request Method:DELETE XPath:name(.) Length:0
+	Response Status:400 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:2 Space:2627
+	be5150198b7f6f0ab7d4b5cb52a46db6 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!name(.)","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	7edf5b060b6b88021d0828593faa9979 Trace-Response-Header-Hash
+	[400,"Message: Invalid XPath (Functions are not supported)"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	6b171a9af96e651fc17fddbc59474888 Trace-Storage-Hash
+	3e97c642af0d59074a0df636167a815e Trace-XPath-Hash
+	name(.)
+	9513ff4dfb056d2e100aa8df6c14afc9 Trace-Composite-Hash
+1627726c7bcd1d67e0c5a29a64f1902f
+	Request Method:DELETE XPath:/books/book[1]/attribute::a Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:3 Space:2621
+	e703eb9d67b7e77d7dcb6831daac0898 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[1]/attribute::a","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	81c16015c48293cb0aa4573d19f2b9ed Trace-Response-Header-Hash
+	[204,"Storage-Effects: #0","Storage-Revision: 3","Storage-Space: 262144/2621 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	8dc1bdcd385f4193d8b8d1978e3cecec Trace-Storage-Hash
+	2f5ea85d5b08ca3fda2f8032e54bea46 Trace-XPath-Hash
+	/books/book[1]/attribute::a
+	1627726c7bcd1d67e0c5a29a64f1902f Trace-Composite-Hash
+cad2b2db0a29e9ece7e2fd908ce71051
+	Request Method:DELETE XPath:/books/book[1]/attribute::a Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:3 Space:2621
+	e703eb9d67b7e77d7dcb6831daac0898 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[1]/attribute::a","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	8dc1bdcd385f4193d8b8d1978e3cecec Trace-Storage-Hash
+	2f5ea85d5b08ca3fda2f8032e54bea46 Trace-XPath-Hash
+	/books/book[1]/attribute::a
+	cad2b2db0a29e9ece7e2fd908ce71051 Trace-Composite-Hash
+316a0c030982691f29d66bc013aeffff
+	Request Method:DELETE XPath:/books/book[1]/@b Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:4 Space:2615
+	1ccfd2e8cfb1234246acc0c39fe51dd0 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[1]/@b","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	0fccd5e533884f1e4f9eadc54d808219 Trace-Response-Header-Hash
+	[204,"Storage-Effects: #0","Storage-Revision: 4","Storage-Space: 262144/2615 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	7270ccf09cb4534b939c9a9c602a7fe7 Trace-Storage-Hash
+	3c2d435a01fba3097894981360f9f05d Trace-XPath-Hash
+	/books/book[1]/@b
+	316a0c030982691f29d66bc013aeffff Trace-Composite-Hash
+2191b0c0bbe4df4cd90de7590faaf87f
+	Request Method:DELETE XPath:/books/book[1]/@b Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:4 Space:2615
+	1ccfd2e8cfb1234246acc0c39fe51dd0 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[1]/@b","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	7270ccf09cb4534b939c9a9c602a7fe7 Trace-Storage-Hash
+	3c2d435a01fba3097894981360f9f05d Trace-XPath-Hash
+	/books/book[1]/@b
+	2191b0c0bbe4df4cd90de7590faaf87f Trace-Composite-Hash
+4efeae7518e9f4decee3c2c443e3324c
+	Request Method:GET XPath:count(//book[1]//text[@title]) Length:0
+	Response Status:200 Length:1
+	Storage Identifier: UnitTest_Storage_DA Revision:4 Space:2615
+	dae3bf9ec59e1a03c75eed6a9c069a91 Trace-Request-Header-Hash
+	{"Method":"GET","URI":"/xmex!0x636f756e74282f2f626f6f6b5b315d2f2f746578745b407469746c655d29","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	7a4b023d9cd0490a26b90010807e5bb5 Trace-Response-Header-Hash
+	[200,"Content-Length: 1","Content-Type: text/plain","Storage-Revision: 4","Storage-Space: 262144/2615 bytes","Storage: UnitTest_Storage_DA"]
+	1679091c5a880faf6fb5e6087eb1b2dc Trace-Response-Body-Hash
+	7270ccf09cb4534b939c9a9c602a7fe7 Trace-Storage-Hash
+	d485da657fd1100e92eee845fd8f2f03 Trace-XPath-Hash
+	count(//book[1]//text[@title])
+	4efeae7518e9f4decee3c2c443e3324c Trace-Composite-Hash
+a8d0c66806bb7acef54710e50b975fa8
+	Request Method:DELETE XPath://book[1]//text/@title Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:5 Space:2519
+	5397c204939f0f5fb379d1a1541fae6b Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f626f6f6b5b315d2f2f746578742f407469746c65","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	2dca2acaa11004c08dba695dc8c5a206 Trace-Response-Header-Hash
+	[204,"Storage-Effects: #2:3:4:6:7:8","Storage-Revision: 5","Storage-Space: 262144/2519 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	cc658d8a6a5208cc41d62d4bece5adcb Trace-Storage-Hash
+	e0a3b530933ec77fb94a86702e14aab9 Trace-XPath-Hash
+	//book[1]//text/@title
+	a8d0c66806bb7acef54710e50b975fa8 Trace-Composite-Hash
+160fa1dcebfe504d1c0016362232ed35
+	Request Method:GET XPath:count(//book[1]//text[@title]) Length:0
+	Response Status:200 Length:1
+	Storage Identifier: UnitTest_Storage_DA Revision:5 Space:2519
+	dae3bf9ec59e1a03c75eed6a9c069a91 Trace-Request-Header-Hash
+	{"Method":"GET","URI":"/xmex!0x636f756e74282f2f626f6f6b5b315d2f2f746578745b407469746c655d29","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	38407a3ddd3760df16596198d1ba0a7d Trace-Response-Header-Hash
+	[200,"Content-Length: 1","Content-Type: text/plain","Storage-Revision: 5","Storage-Space: 262144/2519 bytes","Storage: UnitTest_Storage_DA"]
+	cfcd208495d565ef66e7dff9f98764da Trace-Response-Body-Hash
+	cc658d8a6a5208cc41d62d4bece5adcb Trace-Storage-Hash
+	d485da657fd1100e92eee845fd8f2f03 Trace-XPath-Hash
+	count(//book[1]//text[@title])
+	160fa1dcebfe504d1c0016362232ed35 Trace-Composite-Hash
+17776b945e83d9aef0cad46142c593ac
+	Request Method:GET XPath:count(//book[2]//text[attribute::title]) Length:0
+	Response Status:200 Length:1
+	Storage Identifier: UnitTest_Storage_DA Revision:5 Space:2519
+	52a3f1f53594cc6449111420917a86ae Trace-Request-Header-Hash
+	{"Method":"GET","URI":"/xmex!0x636f756e74282f2f626f6f6b5b325d2f2f746578745b6174747269627574653a3a7469746c655d29","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	38407a3ddd3760df16596198d1ba0a7d Trace-Response-Header-Hash
+	[200,"Content-Length: 1","Content-Type: text/plain","Storage-Revision: 5","Storage-Space: 262144/2519 bytes","Storage: UnitTest_Storage_DA"]
+	1679091c5a880faf6fb5e6087eb1b2dc Trace-Response-Body-Hash
+	cc658d8a6a5208cc41d62d4bece5adcb Trace-Storage-Hash
+	59b4b6033a3db110d2a5697db2b98d9c Trace-XPath-Hash
+	count(//book[2]//text[attribute::title])
+	17776b945e83d9aef0cad46142c593ac Trace-Composite-Hash
+d196791e64332f2660b0d9e597ee7e85
+	Request Method:DELETE XPath:(//book[2]//text)/attribute::title Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:6 Space:2423
+	a0e26690860d993a3e38987e53e74d13 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x282f2f626f6f6b5b325d2f2f74657874292f6174747269627574653a3a7469746c65","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4e343bba1148909e7c26b6b5731706f4 Trace-Response-Header-Hash
+	[204,"Storage-Effects: #11:12:13:15:16:17","Storage-Revision: 6","Storage-Space: 262144/2423 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c5f5b96e1423de24a8fbfc9c55cf311b Trace-Storage-Hash
+	f04a197a41a7a9ad0cadbcfd67d83c25 Trace-XPath-Hash
+	(//book[2]//text)/attribute::title
+	d196791e64332f2660b0d9e597ee7e85 Trace-Composite-Hash
+2fb47609ceeb7a3734efef7b0b2864ee
+	Request Method:GET XPath:count(//book[2]//text[attribute::title]) Length:0
+	Response Status:200 Length:1
+	Storage Identifier: UnitTest_Storage_DA Revision:6 Space:2423
+	52a3f1f53594cc6449111420917a86ae Trace-Request-Header-Hash
+	{"Method":"GET","URI":"/xmex!0x636f756e74282f2f626f6f6b5b325d2f2f746578745b6174747269627574653a3a7469746c655d29","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	69cd443ac205c21e71940ddd5f60755f Trace-Response-Header-Hash
+	[200,"Content-Length: 1","Content-Type: text/plain","Storage-Revision: 6","Storage-Space: 262144/2423 bytes","Storage: UnitTest_Storage_DA"]
+	cfcd208495d565ef66e7dff9f98764da Trace-Response-Body-Hash
+	c5f5b96e1423de24a8fbfc9c55cf311b Trace-Storage-Hash
+	59b4b6033a3db110d2a5697db2b98d9c Trace-XPath-Hash
+	count(//book[2]//text[attribute::title])
+	2fb47609ceeb7a3734efef7b0b2864ee Trace-Composite-Hash
+b782e25c249b5c23f981f6bd10d7da39
+	Request Method:DELETE XPath:/books/@___rev Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:6 Space:2423
+	a7498c960e13d1bbf27d6820872b649e Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/@___rev","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f5e8e5214c9bcffef61778db3e9d091f Trace-Response-Header-Hash
+	[204,"Storage-Revision: 6","Storage-Space: 262144/2423 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c5f5b96e1423de24a8fbfc9c55cf311b Trace-Storage-Hash
+	41994736c364025c6e75a988e4f592f5 Trace-XPath-Hash
+	/books/@___rev
+	b782e25c249b5c23f981f6bd10d7da39 Trace-Composite-Hash
+6ed8c8816fd2e3aaa4b8def53fe2e89b
+	Request Method:DELETE XPath:/books/@___uid Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:6 Space:2423
+	53d9900df40292d828ae3ab25d92512f Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/@___uid","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f5e8e5214c9bcffef61778db3e9d091f Trace-Response-Header-Hash
+	[204,"Storage-Revision: 6","Storage-Space: 262144/2423 bytes","Storage: UnitTest_Storage_DA"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c5f5b96e1423de24a8fbfc9c55cf311b Trace-Storage-Hash
+	80b64598027516db0d7f78ec14248251 Trace-XPath-Hash
+	/books/@___uid
+	6ed8c8816fd2e3aaa4b8def53fe2e89b Trace-Composite-Hash
+67be8fd392adae64579b1b7d9f58cda9
+	Request Method:DELETE XPath:/*/../@___xxx Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:6 Space:2423
+	d5dbb13df946aff878e3d588e92073e1 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2a2f2e2e2f405f5f5f787878","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c5f5b96e1423de24a8fbfc9c55cf311b Trace-Storage-Hash
+	5e92c4f7d87260650bbc7d07b0091bef Trace-XPath-Hash
+	/*/../@___xxx
+	67be8fd392adae64579b1b7d9f58cda9 Trace-Composite-Hash
+874eb85411d2ba4646f10c085f5dab5b
+	Request Method:DELETE XPath://books/../@___xxx Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DA Revision:6 Space:2423
+	e3f350e5ae8af8d11e2f949424e94104 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f626f6f6b732f2e2e2f405f5f5f787878","Storage":"UnitTest_Storage_DA books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c5f5b96e1423de24a8fbfc9c55cf311b Trace-Storage-Hash
+	300d1210a190bf4670af8a57c79cfedd Trace-XPath-Hash
+	//books/../@___xxx
+	874eb85411d2ba4646f10c085f5dab5b Trace-Composite-Hash
 d8b1b20da76b6aa159e7c1908298c560
 	Request Method:GET XPath:/ Length:0
 	Response Status:404 Length:0

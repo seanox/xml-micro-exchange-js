@@ -1,0 +1,385 @@
+# Test sequence for deleting of attributes of storage elements.
+
+# DELETE deletes elements and attributes in the storage.
+# The position for deletion  is defined via an XPath.
+# XPath uses different notations for elements and attributes.
+
+###
+# Storage is not establish 
+# Expectations:
+# - Status code 404 Resource Not Found
+DELETE {{service}}/books/attribute::attrA HTTP/1.0
+Storage: {{storage_delete_attribute}}
+Content-Type: text/plain
+
+test
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b4f99fde4022739cabc80627335a6de5");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4cdbb2e2f6a796405108ff5312f6455e");
+});
+%}
+
+###
+# Preparation of the storage for the tests
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 36x UID-A 1x UID-M
+# - 4 books are overwritten
+# - 4 books with chapter are created
+# - all new elements have the attributes ___rev and ___uid
+PUT {{service}}/books HTTP/1.0
+Storage: {{storage_delete_attribute}}
+Content-Type: application/xslt+xml
+
+<book title="Book-A" a="A" b="A" c="A" d="A">
+  <chapter title="Chapter-A-A">
+    <text title="Text A1"/>
+    <text title="Text A2"/>
+    <text title="Text A3"/>
+  </chapter>
+  <chapter title="Chapter-B">
+    <text title="Text A4"/>
+    <text title="Text A5"/>
+    <text title="Text A6"/>
+  </chapter>
+</book>
+<book title="Book-B" a="B" b="B" c="B" d="B">
+  <chapter title="Chapter-B-A">
+    <text title="Text B1"/>
+    <text title="Text B2"/>
+    <text title="Text B3"/>
+  </chapter>
+  <chapter title="Chapter-B-B">
+    <text title="Text B4"/>
+    <text title="Text B5"/>
+    <text title="Text B6"/>
+  </chapter>
+</book>
+<book title="Book-C" a="C" b="C" c="C" d="C">
+  <chapter title="Chapter-C-A">
+    <text title="Text C1"/>
+    <text title="Text C2"/>
+    <text title="Text C3"/>
+  </chapter>
+  <chapter title="Chapter-C-B">
+    <text title="Text C4"/>
+    <text title="Text C5"/>
+    <text title="Text C6"/>
+  </chapter>
+</book>
+<book title="Book-D" a="D" b="D" c="D" d="D">
+  <chapter title="Chapter-D-A">
+    <text title="Text D1"/>
+    <text title="Text D2"/>
+    <text title="Text D3"/>
+  </chapter>
+  <chapter title="Chapter-D-B">
+    <text title="Text D4"/>
+    <text title="Text D5"/>
+    <text title="Text D6"/>
+  </chapter>
+</book>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "bd8864c97f2b83f7404bc2dd953f9763");
+});
+%}
+
+###
+# Preparation of the storage for the tests
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID
+PUT {{service}}/books/@xa HTTP/1.0
+Storage: {{storage_delete_attribute}}
+Content-Type: text/plain
+
+xa
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f704df6764e8c8ac99783c463ac9061f");
+});
+%}
+
+###
+# Attribute does not exist
+# Expectations:
+# - Status code 404 Resource Not Found
+DELETE {{service}}/books/book%5B1%5D/attribute::not_exists HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e0992043ffe852774939159f8c8a7394");
+});
+%}
+
+###
+# Attribute does not exist
+# Expectations:
+# - Status code 404 Resource Not Found
+DELETE {{service}}/books/book%5B1%5D/@not_exists HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4c272e98a37037b91b28234c09397cfa");
+});
+%}
+
+###
+# XPath functions are not supported
+# Round brackets in XPath should not be a problem.
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath (Functions are not supported)
+DELETE {{service}}name(.) HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9513ff4dfb056d2e100aa8df6c14afc9");
+});
+%}
+
+###
+# Attribute a does exist and can be deleted
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID (M)
+# - Storage-Revision: was increased
+# - Attribute /books/book[1]/attribute::a was deleted
+DELETE {{service}}/books/book%5B1%5D/attribute::a HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1627726c7bcd1d67e0c5a29a64f1902f");
+});
+%}
+
+###
+# Attribute a no longer exists
+# Expectations:
+# - Status code 404 Resource Not Found
+DELETE {{service}}/books/book%5B1%5D/attribute::a HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "cad2b2db0a29e9ece7e2fd908ce71051");
+});
+%}
+
+###
+# Attribute b does exist and can be deleted
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 1x UID (M)
+# - Storage-Revision: was increased
+# - Attribute /books/book[1]/@b was deleted
+DELETE {{service}}/books/book%5B1%5D/@b HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "316a0c030982691f29d66bc013aeffff");
+});
+%}
+
+###
+# Attribute b no longer exists
+# Expectations:
+# - Status code 404 Resource Not Found
+DELETE {{service}}/books/book%5B1%5D/@b HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2191b0c0bbe4df4cd90de7590faaf87f");
+});
+%}
+
+###
+# Count of text-attributes in book[1]
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 1
+# - Content-Type: text/plain
+# - Response-Body: 6
+# - URI: count(//book[1]//text[@title])
+GET {{service}}0x636f756e74282f2f626f6f6b5b315d2f2f746578745b407469746c655d29 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4efeae7518e9f4decee3c2c443e3324c");
+});
+%}
+
+###
+# Attribute does not exist
+# Round brackets in XPath should not be a problem.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 6x UIDs (M)
+# - Storage-Revision: was increased
+# - All title attributes in  book[1] was deleted
+# - URI: (//book[1]//text)/@title
+DELETE {{service}}0x2f2f626f6f6b5b315d2f2f746578742f407469746c65 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a8d0c66806bb7acef54710e50b975fa8");
+});
+%}
+
+###
+# Count of text-attributes in book[1]
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 1
+# - Content-Type: text/plain
+# - Response-Body: 0
+# - URI: count(//book[1]//text[@title])
+GET {{service}}0x636f756e74282f2f626f6f6b5b315d2f2f746578745b407469746c655d29 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "160fa1dcebfe504d1c0016362232ed35");
+});
+%}
+
+###
+# Count of text-attributes in book[1]
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 1
+# - Content-Type: text/plain
+# - Response-Body: 6
+# - URI: count(//book[2]//text[attribute::title])
+GET {{service}}0x636f756e74282f2f626f6f6b5b325d2f2f746578745b6174747269627574653a3a7469746c655d29 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "17776b945e83d9aef0cad46142c593ac");
+});
+%}
+
+###
+# Attribute does not exist
+# Round brackets in XPath should not be a problem.
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: 6x UIDs (M)
+# - Storage-Revision: was increased
+# - All title attributes in  book[2] was deleted
+# - URI: (//book[2]//text)/attribute::title
+DELETE {{service}}0x282f2f626f6f6b5b325d2f2f74657874292f6174747269627574653a3a7469746c65 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d196791e64332f2660b0d9e597ee7e85");
+});
+%}
+
+###
+# Count of text-attributes in book[1]
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 1
+# - Content-Type: text/plain
+# - Response-Body: 0
+# - URI: count(//book[2]//text[attribute::title])
+GET {{service}}0x636f756e74282f2f626f6f6b5b325d2f2f746578745b6174747269627574653a3a7469746c655d29 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2fb47609ceeb7a3734efef7b0b2864ee");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+#   attribute ___rev is ignored, but does not cause errors
+# - Response without Storage-Effects header
+# - Storage-Revision is not increased
+# - Storage-Expiration is extended
+DELETE {{service}}/books/@___rev HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b782e25c249b5c23f981f6bd10d7da39");
+});
+%}
+
+###
+# Expectations:
+# - Status code 204 No Content
+#   attribute ___uid is ignored, but does not cause errors
+# - Response without Storage-Effects header
+# - Storage-Revision is not increased
+# - Storage-Expiration is extended
+DELETE {{service}}/books/@___uid HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6ed8c8816fd2e3aaa4b8def53fe2e89b");
+});
+%}
+
+###
+# DELETE outside the root element, shall be ignored
+# but PATCH can only set attributes that exist
+# Expectations:
+# - Status code 404 Resource Not Found
+# - URI: /*/../@___xxx
+DELETE {{service}}0x2f2a2f2e2e2f405f5f5f787878 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "67be8fd392adae64579b1b7d9f58cda9");
+});
+%}
+
+###
+# DELETE outside the root element, shall be ignored
+# but PATCH can only set attributes that exist
+# Expectations:
+# - Status code 404 Resource Not Found
+# - URI: //books/../@___xxx
+DELETE {{service}}0x2f2f626f6f6b732f2e2e2f405f5f5f787878 HTTP/1.0
+Storage: {{storage_delete_attribute}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "874eb85411d2ba4646f10c085f5dab5b");
+});
+%}
+
+###
