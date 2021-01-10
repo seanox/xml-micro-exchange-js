@@ -179,12 +179,12 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210109
+ *  Service 1.1.0 20210110
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210109
+ *  @version 1.1.0 20210110
  */
 const http = require("http")
 const fs = require("fs")
@@ -199,20 +199,18 @@ const XMLSerializer = require("common-xml-features").XMLSerializer
 // A different XMLSerializer is used because the &gt; is not encoded correctly
 // in the XMLSerializer of xmldom.
 
-class NodeType {
-    static get ELEMENT_NODE()                {return 1}
-    static get ATTRIBUTE_NODE()              {return 2}
-    static get TEXT_NODE()                   {return 3}
-    static get CDATA_SECTION_NODE()          {return 4}
-    static get ENTITY_REFERENCE_NODE()       {return 5}
-    static get ENTITY_NODE()                 {return 6}
-    static get PROCESSING_INSTRUCTION_NODE() {return 7}
-    static get COMMENT_NODE()                {return 8}
-    static get DOCUMENT_NODE()               {return 9}
-    static get DOCUMENT_TYPE_NODE()          {return 10}
-    static get DOCUMENT_FRAGMENT_NODE()      {return 11}
-    static get NOTATION_NODE()               {return 12}
-}
+const XML_ELEMENT_NODE                = 1
+const XML_ATTRIBUTE_NODE              = 2
+const XML_TEXT_NODE                   = 3
+const XML_CDATA_SECTION_NODE          = 4
+const XML_ENTITY_REFERENCE_NODE       = 5
+const XML_ENTITY_NODE                 = 6
+const XML_PROCESSING_INSTRUCTION_NODE = 7
+const XML_COMMENT_NODE                = 8
+const XML_DOCUMENT_NODE               = 9
+const XML_DOCUMENT_TYPE_NODE          = 10
+const XML_DOCUMENT_FRAGMENT_NODE      = 11
+const XML_NOTATION_NODE               = 12
 
 class Storage {
 
@@ -549,7 +547,7 @@ class Storage {
      */
     static updateNodeRevision(node, revision) {
 
-        while (node && node.nodeType === NodeType.ELEMENT_NODE) {
+        while (node && node.nodeType === XML_ELEMENT_NODE) {
             node.setAttribute("___rev", revision)
             node = node.parentNode
         }
@@ -755,9 +753,9 @@ class Storage {
             if (Object.exists(targets) && targets.length > 0) {
                 let serials = []
                 Array.from(targets).forEach((target) => {
-                    if (target.nodeType === NodeType.ATTRIBUTE_NODE)
+                    if (target.nodeType === XML_ATTRIBUTE_NODE)
                         target = target.ownerElement
-                    if (target.nodeType === NodeType.ELEMENT_NODE)
+                    if (target.nodeType === XML_ELEMENT_NODE)
                         serials.push(target.getAttribute("___uid"))
                 });
                 if (serials.length > 0)
@@ -840,9 +838,9 @@ class Storage {
 
         if (Array.isArray(result)) {
             if (result.length === 1) {
-                if (result[0].nodeType === NodeType.DOCUMENT_NODE)
+                if (result[0].nodeType === XML_DOCUMENT_NODE)
                     result = [result[0].documentElement]
-                if (result[0].nodeType === NodeType.ATTRIBUTE_NODE) {
+                if (result[0].nodeType === XML_ATTRIBUTE_NODE) {
                     result = result[0].value
                 } else {
                     let xml = Storage.XML.createDocument()
@@ -853,7 +851,7 @@ class Storage {
                 let xml = Storage.XML.createDocument()
                 let collection = xml.createElement("collection")
                 result.forEach((entry) => {
-                    if (entry.nodeType === NodeType.ATTRIBUTE_NODE) {
+                    if (entry.nodeType === XML_ATTRIBUTE_NODE) {
                         let text = xml.createTextNode(entry.nodeValue);
                         entry = xml.createElement(entry.nodeName);
                         entry.appendChild(text);
@@ -1077,7 +1075,7 @@ class Storage {
                 targets.forEach((target) => {
                     // Only elements are supported, this prevents the
                     // addressing of the XML document by the XPath.
-                    if (target.nodeType !== NodeType.ELEMENT_NODE)
+                    if (target.nodeType !== XML_ELEMENT_NODE)
                         return
                     serials.push(target.getAttribute("___uid") + ":M")
                     target.setAttribute(attribute, input)
@@ -1161,7 +1159,7 @@ class Storage {
                 // is an essential part of the storage, and is ignored. It
                 // does not cause to an error, so the behaviour is
                 // analogous to putting attributes.
-                if (target.nodeType !== NodeType.ELEMENT_NODE)
+                if (target.nodeType !== XML_ELEMENT_NODE)
                     return
                 serials.push(target.getAttribute("___uid") + ":M")
                 // A bug in common-xml-features sets the documentElement to
@@ -1242,7 +1240,7 @@ class Storage {
                 // is an essential part of the storage, and is ignored. It
                 // does not cause to an error, so the behaviour is
                 // analogous to putting attributes.
-                if (target.nodeType !== NodeType.ELEMENT_NODE)
+                if (target.nodeType !== XML_ELEMENT_NODE)
                     return
 
                 // Pseudo elements can be used to put in an XML
@@ -1263,12 +1261,12 @@ class Storage {
                         target.appendChild(insert)
                     })
                 } else if (pseudo === "before") {
-                    if (target.parentNode.nodeType === NodeType.ELEMENT_NODE)
+                    if (target.parentNode.nodeType === XML_ELEMENT_NODE)
                         inserts.forEach((insert) => {
                             target.parentNode.insertBefore(insert, target)
                         })
                 } else if (pseudo === "after") {
-                    if (target.parentNode.nodeType === NodeType.ELEMENT_NODE) {
+                    if (target.parentNode.nodeType === XML_ELEMENT_NODE) {
                         nodes = []
                         inserts.forEach((node) => {
                             nodes.unshift(node)
@@ -1308,7 +1306,7 @@ class Storage {
             // changed, but its content has. Other parent elements are not
             // listed because they are only indirectly affected. So the
             // behaviour is analogous to putting attributes.
-            if (node.parentNode.nodeType !== NodeType.ELEMENT_NODE)
+            if (node.parentNode.nodeType !== XML_ELEMENT_NODE)
                 return
             serial = node.parentNode.getAttribute("___uid")
             if (Object.exists(serial)
@@ -1591,34 +1589,41 @@ class Storage {
                 })
                 targets = childs
             } else if (pseudo === "first") {
-                targets = targets.filter(target => target.firstChild)
+                targets = targets.map(target => target.firstChild)
+                targets = targets.filter(Object.exists)
             } else if (pseudo === "last") {
-                targets = targets.filter(target => target.lastChild)
+                targets = targets.map(target => target.lastChild)
+                targets = targets.filter(Object.exists)
             } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"});
         }
 
         let serials = [];
         targets.forEach((target) => {
-            if (target.nodeType === NodeType.ATTRIBUTE_NODE) {
+            if (target.nodeType === XML_ATTRIBUTE_NODE) {
                 if (!target.ownerElement
-                        || target.ownerElement.nodeType !== NodeType.ELEMENT_NODE
+                        || target.ownerElement.nodeType !== XML_ELEMENT_NODE
                         || ["___rev", "___uid"].includes(target.name))
                     return
                 let parent = target.ownerElement;
                 parent.removeAttribute(target.name);
                 serials.push(parent.getAttribute("___uid") + ":M")
                 Storage.updateNodeRevision(parent, this.revision +1)
-            } else if (target.nodeType === NodeType.ELEMENT_NODE) {
-                serials.push(target.getAttribute("___uid") + ":D")
-                let nodes = XPath.select(".//*[@___uid]", target)
-                nodes.forEach((node) => {
-                    serials.push(node.getAttribute("___uid") + ":D")
-                })
-                let parent = target.parentNode
+            } else if (target.nodeType !== XML_DOCUMENT_NODE) {
+                let parent = target.parentNode;
+                if (!Object.exists(parent)
+                        || ![XML_ELEMENT_NODE, XML_DOCUMENT_NODE].includes(parent.nodeType))
+                    return
+                if (Object.exists(target.getAttribute)) {
+                    serials.push(target.getAttribute("___uid") + ":D")
+                    let nodes = XPath.select(".//*[@___uid]", target)
+                    nodes.forEach((node) => {
+                        serials.push(node.getAttribute("___uid") + ":D")
+                    })
+                }
                 parent.removeChild(target)
-                if (parent.nodeType === NodeType.DOCUMENT_NODE) {
-                    let target = this.xml.createElement(this.root)
-                    target = this.xml.appendChild(target);
+                if (parent.nodeType === XML_DOCUMENT_NODE) {
+                    target = this.xml.createElement(this.root)
+                    target = this.xml.appendChild(target)
                     Storage.updateNodeRevision(target, this.revision +1)
                     let serial = this.getSerial()
                     serials.push(serial + ":A")
@@ -1797,10 +1802,7 @@ class Storage {
                     media = Storage.CONTENT_TYPE_JSON
                     data = JSON.stringify(data)
                 } else {
-                    if (typeof data === "object"
-                            && Object.getPrototypeOf(data)
-                            && Object.getPrototypeOf(data).constructor
-                            && Object.getPrototypeOf(data).constructor.name === "Document") {
+                    if (Object.getClassName(data) === "Document") {
                         media = Storage.CONTENT_TYPE_XML
                         data = this.serialize(data)
                     } else media = Storage.CONTENT_TYPE_TEXT
@@ -2036,6 +2038,14 @@ try {
         return object !== undefined && object !== null
     }
 
+    Object.getClassName = function(object) {
+        if (typeof object === "object"
+                && Object.getPrototypeOf(object)
+                && Object.getPrototypeOf(object).constructor)
+            return Object.getPrototypeOf(object).constructor.name;
+        return null;
+    }
+
     let element = new DOMImplementation().createDocument().createElement()
     prototype = Object.getPrototypeOf(element)
     prototype.getAttributeNumber = function(attribute) {
@@ -2099,10 +2109,7 @@ try {
     JSON.stringify$ = JSON.stringify
     JSON.stringify = function(...variable) {
         if (variable.length > 0
-                && typeof variable[0] === "object"
-                && Object.getPrototypeOf(variable[0])
-                && Object.getPrototypeOf(variable[0]).constructor
-                && Object.getPrototypeOf(variable[0]).constructor.name === "Document")
+                && Object.getClassName(variable[0]) === "Document")
             return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
         return JSON.stringify$(...variable)
     }
@@ -2110,12 +2117,12 @@ try {
         let result = {};
         if (!Object.exists(xml))
             return null
-        if (xml.nodeType === NodeType.TEXT_NODE
-                || xml.nodeType === NodeType.CDATA_SECTION_NODE)
+        if (xml.nodeType === XML_TEXT_NODE
+                || xml.nodeType === XML_CDATA_SECTION_NODE)
             return xml.nodeValue.trim()
-        if (xml.nodeType === NodeType.DOCUMENT_NODE)
+        if (xml.nodeType === XML_DOCUMENT_NODE)
             xml = xml.documentElement
-        if (xml.nodeType !== NodeType.ELEMENT_NODE)
+        if (xml.nodeType !== XML_ELEMENT_NODE)
             return null
         if (xml.attributes.length > 0) {
             result["@attributes"] = {}
@@ -2125,8 +2132,8 @@ try {
         }
         let buffer = {text:"", mixed:Object.exists(result["@attributes"])}
         Array.from(xml.childNodes).forEach((item) => {
-            if (item.nodeType === NodeType.TEXT_NODE
-                    || item.nodeType === NodeType.CDATA_SECTION_NODE) {
+            if (item.nodeType === XML_TEXT_NODE
+                    || item.nodeType === XML_CDATA_SECTION_NODE) {
                 let text = item.nodeValue.trim();
                 if (text.length <= 0)
                     return
@@ -2135,7 +2142,7 @@ try {
                 buffer.text += text
                 return;
             }
-            if (item.nodeType !== NodeType.ELEMENT_NODE)
+            if (item.nodeType !== XML_ELEMENT_NODE)
                 return
             buffer.mixed = true;
             let nodeName = item.nodeName
