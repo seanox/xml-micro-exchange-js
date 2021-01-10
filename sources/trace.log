@@ -498,6 +498,354 @@ b584ee57c1513452a83e8fae83556afb
 	ef3ad85c72a0e2d0acbce4f1b512e27a Trace-XPath-Hash
 	/books/book/chapter
 	1311a7493e02ca11f3b3fdb1abd2e8f0 Trace-Composite-Hash
+d9206ddee86b2824a0f7544127f86ec7
+	Request Method:DELETE XPath:(/books/book[1])/chapter[1]::first Length:0
+	Response Status:404 Length:0
+	735f9b7d9cc906505ba60726881a8304 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!(/books/book[1])/chapter[1]::first","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
+	5470fc41a5afbb47d3e178bc3357b4db Trace-XPath-Hash
+	(/books/book[1])/chapter[1]::first
+	d9206ddee86b2824a0f7544127f86ec7 Trace-Composite-Hash
+f04958e569cebabc47bd4e8098dc0e32
+	Request Method:OPTIONS XPath: Length:0
+	Response Status:201 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:0 Space:81
+	72435fa95d4df1dd7456b2009ed2664d Trace-Request-Header-Hash
+	{"Method":"OPTIONS","URI":"/xmex!","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	086cdb1855ebc39814922a7c0dd646af Trace-Response-Header-Hash
+	[201,"Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE","Connection-Unique","Storage-Revision: 0","Storage-Space: 262144/81 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b28cde05da236e79b1de06539f79b96f Trace-Storage-Hash
+	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
+	f04958e569cebabc47bd4e8098dc0e32 Trace-Composite-Hash
+0ee24db3c9c9c3c6627193c3578895a9
+	Request Method:PUT XPath:/books Length:3445
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:1 Space:7419
+	2e1e88d021bf92050c4c5f8a339cffa4 Trace-Request-Header-Hash
+	{"Method":"PUT","URI":"/xmex!/books","Storage":"UnitTest_Storage_DP books","Content-Length":"3445","Content-Type":"APPLICATION/XSLT+XML"}
+	112e7e57b6a8ce8c28019c78c12f68d3 Trace-Request-Body-Hash
+	57ae374a3e45f28bac0b1c6511bd7813 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 108xA/1xM/0xD/0xN #0 #0:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66:67:68:69:70:71:72:73:74:75:76:77:78:79:80:81:82:83:84:85:86:87:88:89:90:91:92:93:94:95:96:97:98:99:100:101:102:103:104:105:106:107","Storage-Revision: 1","Storage-Space: 262144/7419 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	e348590595e1ee2c67983136e15c466a Trace-Storage-Hash
+	a0721c16c96f044d5d405fef10a701de Trace-XPath-Hash
+	/books
+	0ee24db3c9c9c3c6627193c3578895a9 Trace-Composite-Hash
+550cb3b790409315499c9014fe81ddba
+	Request Method:DELETE XPath:(/books/book)/chapter::first Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:2 Space:7343
+	b32c22c48bd3d23ac4d93f14595c34b9 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!(/books/book)/chapter::first","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	435d556307f7f1e029d1adef95346b06 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/12xM/0xD/0xN #1:5:19:23:37:41:55:59:73:77:91:95","Storage-Revision: 2","Storage-Space: 262144/7343 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	097ccd9b73070ca0c62bb36cfb0d3355 Trace-Storage-Hash
+	e5921f3dd559c0a42257a2c23dff7b96 Trace-XPath-Hash
+	(/books/book)/chapter::first
+	550cb3b790409315499c9014fe81ddba Trace-Composite-Hash
+6ffd9a4e0893c93751838e34677061fe
+	Request Method:DELETE XPath:(/books/book)/chapter::firsT Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:3 Space:6637
+	05f87c045f8647a9fb0851bcc6e24a03 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!(/books/book)/chapter::firsT","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	2ccf8f7dc21403e4f7d7dbbe02d81d92 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/12xM/12xD/0xN #1:2:5:6:19:20:23:24:37:38:41:42:55:56:59:60:73:74:77:78:91:92:95:96","Storage-Revision: 3","Storage-Space: 262144/6637 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	351f1a883d136bc98d1b87dd41b2fa68 Trace-Storage-Hash
+	13671d0641a482d5ac10244597b46565 Trace-XPath-Hash
+	(/books/book)/chapter::firsT
+	6ffd9a4e0893c93751838e34677061fe Trace-Composite-Hash
+b85968e705718c88904e582fa81abd87
+	Request Method:DELETE XPath:(/books/book)/chapter::last Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:4 Space:6585
+	63a54dbd1eec5778d09e5ba8e5a80361 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!(/books/book)/chapter::last","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	96602888558c6311b2d5fc0c49b0dcb1 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/12xM/0xD/0xN #1:5:19:23:37:41:55:59:73:77:91:95","Storage-Revision: 4","Storage-Space: 262144/6585 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	7941d9e92a19ae97059053664264e2f4 Trace-Storage-Hash
+	d17e1c265f9fdb431acfadd024d7416a Trace-XPath-Hash
+	(/books/book)/chapter::last
+	b85968e705718c88904e582fa81abd87 Trace-Composite-Hash
+b9b66bcec9e1716a2e5add4c53a200a1
+	Request Method:DELETE XPath:(/books/book)/chapter::lasT Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:5 Space:5877
+	e93b90012e7555f86c62e9559354adbb Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!(/books/book)/chapter::lasT","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	cfc2c36a19cf6973f2195bea0a43d593 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/12xM/12xD/0xN #1:4:5:17:19:22:23:35:37:40:41:53:55:58:59:71:73:76:77:89:91:94:95:107","Storage-Revision: 5","Storage-Space: 262144/5877 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c8feb9b5b68b7f1c2216009a75b2c30a Trace-Storage-Hash
+	809833d6fad9a56c1ad3a980e1256857 Trace-XPath-Hash
+	(/books/book)/chapter::lasT
+	b9b66bcec9e1716a2e5add4c53a200a1 Trace-Composite-Hash
+179c5a374d0daa4a2807f3f697950044
+	Request Method:DELETE XPath:(/books/book)/chapter::wrong Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:5 Space:5877
+	689083f58ac60a4329a1c049eabf4119 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!(/books/book)/chapter::wrong","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c8feb9b5b68b7f1c2216009a75b2c30a Trace-Storage-Hash
+	a196974e2a25cdc07001b39892db4304 Trace-XPath-Hash
+	(/books/book)/chapter::wrong
+	179c5a374d0daa4a2807f3f697950044 Trace-Composite-Hash
+2fa5c97369b49ffd8987b4589bc773db
+	Request Method:PUT XPath:/books Length:1361
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:6 Space:2735
+	e1b78620d8e563fe8c6ba467f6b4ad85 Trace-Request-Header-Hash
+	{"Method":"PUT","URI":"/xmex!/books","Storage":"UnitTest_Storage_DP books","Content-Length":"1361","Content-Type":"APPLICATION/XSLT+XML"}
+	685b1c4e8a9b586199bd40993bcb3345 Trace-Request-Body-Hash
+	7e3e49e713ca57a239b2dc158cd82771 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 36xA/1xM/0xD/0xN #0 #0:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35","Storage-Revision: 6","Storage-Space: 262144/2735 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	a7569226f5261a09bf91a0dab33d5e82 Trace-Storage-Hash
+	a0721c16c96f044d5d405fef10a701de Trace-XPath-Hash
+	/books
+	2fa5c97369b49ffd8987b4589bc773db Trace-Composite-Hash
+428e4d0dff70d6cab95cb9e598b0d2d8
+	Request Method:DELETE XPath://text[@title='Text EA']::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:7 Space:2287
+	df4b864ebf1b82a103d77abe12b2b6e6 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204541275d3a3a6265666f7265","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	39b9bd54025571d28a398e3362256188 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/1xM/6xD/0xN #5:6:7:8:9:10:11","Storage-Revision: 7","Storage-Space: 262144/2287 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	0a3c4703a52ac4816b8b141fecca3b87 Trace-Storage-Hash
+	a750ff04bdc626544ebb0ff8f794643b Trace-XPath-Hash
+	//text[@title='Text EA']::before
+	428e4d0dff70d6cab95cb9e598b0d2d8 Trace-Composite-Hash
+4e230c7e6894bdb0b7ebe9b7a28f7322
+	Request Method:DELETE XPath://text[@title='Text FA']::after Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:8 Space:1910
+	0208d93f6590637dd260835577f5a88f Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204641275d3a3a6166746572","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	2a44fe12a220aeb5d2376bf6c3ca7bf9 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/1xM/5xD/0xN #23:31:32:33:34:35","Storage-Revision: 8","Storage-Space: 262144/1910 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	8e446fa3621c5370c58fa7f48fc8edc5 Trace-Storage-Hash
+	15207ad777ee00383b06155f410e6f44 Trace-XPath-Hash
+	//text[@title='Text FA']::after
+	4e230c7e6894bdb0b7ebe9b7a28f7322 Trace-Composite-Hash
+346c2373cc0ad2930949cb8916c41d08
+	Request Method:DELETE XPath:name(.) Length:0
+	Response Status:400 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:8 Space:1910
+	922c040123a92c2f5de5119b55324908 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!name(.)","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	7edf5b060b6b88021d0828593faa9979 Trace-Response-Header-Hash
+	[400,"Message: Invalid XPath (Functions are not supported)"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	8e446fa3621c5370c58fa7f48fc8edc5 Trace-Storage-Hash
+	3e97c642af0d59074a0df636167a815e Trace-XPath-Hash
+	name(.)
+	346c2373cc0ad2930949cb8916c41d08 Trace-Composite-Hash
+ed153b52ebb1a25f0db69d625f100b14
+	Request Method:DELETE XPath://text[@title='Text F1']::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:9 Space:1905
+	2380161c358cf1166474421044f8fb0b Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204631275d3a3a6265666f7265","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	8d86a885189a5a512e60a09553cf8ecb Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/1xM/0xD/0xN #19","Storage-Revision: 9","Storage-Space: 262144/1905 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c44107d1e1fe44a9cf159f6b9e6ab524 Trace-Storage-Hash
+	20eb8ae6b6c4b5424b86991c764d31fb Trace-XPath-Hash
+	//text[@title='Text F1']::before
+	ed153b52ebb1a25f0db69d625f100b14 Trace-Composite-Hash
+c8e82205ebc4733ef50088b08a0478e9
+	Request Method:DELETE XPath://text[@title='Text F1']::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:9 Space:1905
+	2380161c358cf1166474421044f8fb0b Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204631275d3a3a6265666f7265","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	060b85b12f64a9d6ebc59e479c6fbedd Trace-Response-Header-Hash
+	[204,"Storage-Revision: 9","Storage-Space: 262144/1905 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	c44107d1e1fe44a9cf159f6b9e6ab524 Trace-Storage-Hash
+	20eb8ae6b6c4b5424b86991c764d31fb Trace-XPath-Hash
+	//text[@title='Text F1']::before
+	c8e82205ebc4733ef50088b08a0478e9 Trace-Composite-Hash
+bec2210cbcddf4e62cd2e0d7a28d178a
+	Request Method:DELETE XPath://text[@title='Text F3']::after Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:10 Space:1905
+	8b5e017ebf570f4822332a9d6bb4b49c Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204633275d3a3a6166746572","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	870f1987208a2a1d05b0f9d7b70ca17f Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/1xM/0xD/0xN #19","Storage-Revision: 10","Storage-Space: 262144/1905 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	fb84fa86a76d1b72f2eaaa6b70410e03 Trace-Storage-Hash
+	584ffff1dbb76cdbb98f74f95ab09b7b Trace-XPath-Hash
+	//text[@title='Text F3']::after
+	bec2210cbcddf4e62cd2e0d7a28d178a Trace-Composite-Hash
+214a173986545950db1259b776b235ee
+	Request Method:DELETE XPath://text[@title='Text F3']::after Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:10 Space:1905
+	8b5e017ebf570f4822332a9d6bb4b49c Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204633275d3a3a6166746572","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f753eded71f2874e7aad3e944b4ac86f Trace-Response-Header-Hash
+	[204,"Storage-Revision: 10","Storage-Space: 262144/1905 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	fb84fa86a76d1b72f2eaaa6b70410e03 Trace-Storage-Hash
+	584ffff1dbb76cdbb98f74f95ab09b7b Trace-XPath-Hash
+	//text[@title='Text F3']::after
+	214a173986545950db1259b776b235ee Trace-Composite-Hash
+71c6519db8288cfed2d58e9535f88792
+	Request Method:DELETE XPath://text[@title='Text F9']::first Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:10 Space:1905
+	a7f9b24f484fd13014e894d18ffa3ea1 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204639275d3a3a6669727374","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f753eded71f2874e7aad3e944b4ac86f Trace-Response-Header-Hash
+	[204,"Storage-Revision: 10","Storage-Space: 262144/1905 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	fb84fa86a76d1b72f2eaaa6b70410e03 Trace-Storage-Hash
+	fb18fdfb2fbb8331b03861b8c620a2aa Trace-XPath-Hash
+	//text[@title='Text F9']::first
+	71c6519db8288cfed2d58e9535f88792 Trace-Composite-Hash
+e96787bc0d83c58fa0ce180e44f004b5
+	Request Method:DELETE XPath://text[@title='Text F9']::last Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:10 Space:1905
+	54e8070b72c04ffe4915783ae8f527a6 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2f746578745b407469746c653d2754657874204639275d3a3a6c617374","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f753eded71f2874e7aad3e944b4ac86f Trace-Response-Header-Hash
+	[204,"Storage-Revision: 10","Storage-Space: 262144/1905 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	fb84fa86a76d1b72f2eaaa6b70410e03 Trace-Storage-Hash
+	4b0f7552def291a9b99cb20a7dd21fb7 Trace-XPath-Hash
+	//text[@title='Text F9']::last
+	e96787bc0d83c58fa0ce180e44f004b5 Trace-Composite-Hash
+4719a38af1fc5625cf1f0ee41b672611
+	Request Method:DELETE XPath:/books/book[last()]/chapter[last()]::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1636
+	7fb2ab8655497571d1c2ac629bfdd040 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books/book[last()]/chapter[last()]::before","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	a41fc59c2feba472009f805734606f57 Trace-Response-Header-Hash
+	[204,"Storage-Effects: 0xA/1xM/4xD/0xN #18:19:20:21:22","Storage-Revision: 11","Storage-Space: 262144/1636 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b3206ca0b1d5ca9688049596033b73cb Trace-Storage-Hash
+	034d6a940ad970ffb8119074c5bded14 Trace-XPath-Hash
+	/books/book[last()]/chapter[last()]::before
+	4719a38af1fc5625cf1f0ee41b672611 Trace-Composite-Hash
+b80b2272976d8a65e083ad2de70944da
+	Request Method:DELETE XPath:/books::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1642
+	77b64ca05cb23ad5bcbffc6d9877c24c Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books::before","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4861b7dd958eb29223eecff20e50533b Trace-Response-Header-Hash
+	[204,"Storage-Revision: 11","Storage-Space: 262144/1642 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	f26aefcb2c0f8d3b8e8b7bcd16030fd6 Trace-Storage-Hash
+	1d69a4e4beb98df0693a96c0ac7a0ba1 Trace-XPath-Hash
+	/books::before
+	b80b2272976d8a65e083ad2de70944da Trace-Composite-Hash
+212217d57c5e9560cb63a8a14f1eb591
+	Request Method:DELETE XPath:/books::after Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1636
+	fe5ff909d08e31682ca386ae8db2b51b Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/books::after","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f523940d32c4c34c513a871796b97791 Trace-Response-Header-Hash
+	[204,"Storage-Revision: 11","Storage-Space: 262144/1636 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b3206ca0b1d5ca9688049596033b73cb Trace-Storage-Hash
+	d56246a34355f74c8b93d5687553d27f Trace-XPath-Hash
+	/books::after
+	212217d57c5e9560cb63a8a14f1eb591 Trace-Composite-Hash
+9e49f8c6a36eed26e7d377d4632695c6
+	Request Method:DELETE XPath:/*/..::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1636
+	9e9d52b5e0d96b31cee0e810bd857a2c Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f2a2f2e2e3a3a6265666f7265","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f523940d32c4c34c513a871796b97791 Trace-Response-Header-Hash
+	[204,"Storage-Revision: 11","Storage-Space: 262144/1636 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b3206ca0b1d5ca9688049596033b73cb Trace-Storage-Hash
+	364dad37d939351ac42170959b1caea4 Trace-XPath-Hash
+	/*/..::before
+	9e49f8c6a36eed26e7d377d4632695c6 Trace-Composite-Hash
+8be38c928dce985b26163211b0caf5fa
+	Request Method:DELETE XPath:/books/..::before Length:0
+	Response Status:204 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1636
+	35b6eb4df461d5402364133205fd233d Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!0x2f626f6f6b732f2e2e3a3a6265666f7265","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	f523940d32c4c34c513a871796b97791 Trace-Response-Header-Hash
+	[204,"Storage-Revision: 11","Storage-Space: 262144/1636 bytes","Storage: UnitTest_Storage_DP"]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b3206ca0b1d5ca9688049596033b73cb Trace-Storage-Hash
+	4ea7203fe860a2aff35ee9ff1f414aee Trace-XPath-Hash
+	/books/..::before
+	8be38c928dce985b26163211b0caf5fa Trace-Composite-Hash
+a6f2ce61cf7701dd0e3284b398d14859
+	Request Method:DELETE XPath:/wrong::before Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1636
+	93f41f5a22e90a7b9f8bca366bfda3cb Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/wrong::before","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b3206ca0b1d5ca9688049596033b73cb Trace-Storage-Hash
+	6290f252d85eeab7e41715f7b297670b Trace-XPath-Hash
+	/wrong::before
+	a6f2ce61cf7701dd0e3284b398d14859 Trace-Composite-Hash
+f7b05d7b95ba87c416580ae6c3af103a
+	Request Method:DELETE XPath:/wrong/wrong::before Length:0
+	Response Status:404 Length:0
+	Storage Identifier: UnitTest_Storage_DP Revision:11 Space:1636
+	352125d8a2fb9806b0f51ad1155e7140 Trace-Request-Header-Hash
+	{"Method":"DELETE","URI":"/xmex!/wrong/wrong::before","Storage":"UnitTest_Storage_DP books","Content-Length":"","Content-Type":""}
+	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
+	4f4adcbf8c6f66dcfc8a3282ac2bf10a Trace-Response-Header-Hash
+	[404]
+	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
+	b3206ca0b1d5ca9688049596033b73cb Trace-Storage-Hash
+	4101dfe7d72ae7daa8565bc6e92a5c2c Trace-XPath-Hash
+	/wrong/wrong::before
+	f7b05d7b95ba87c416580ae6c3af103a Trace-Composite-Hash
 d8b1b20da76b6aa159e7c1908298c560
 	Request Method:GET XPath:/ Length:0
 	Response Status:404 Length:0

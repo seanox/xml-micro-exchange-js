@@ -16,7 +16,7 @@ const fs = require("fs");
         console.log("\ttrace is not a file")
         return
     }
-    trace = fs.readFileSync(trace, "utf-8")
+    trace = fs.readFileSync(trace, "utf-8").trim()
 
     var testFiles
     if (arguments.length > 3) {
