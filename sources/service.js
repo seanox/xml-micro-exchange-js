@@ -179,12 +179,12 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210110
+ *  Service 1.1.0 20210117
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210110
+ *  @version 1.1.0 20210117
  */
 const http = require("http")
 const fs = require("fs")
@@ -195,6 +195,8 @@ const DOMParser = require("xmldom").DOMParser
 const DOMImplementation = require("xmldom").DOMImplementation
 const XPath = require("xpath")
 const XMLSerializer = require("common-xml-features").XMLSerializer
+const XSLT = require("xslt4node")
+const Codec = require("he")
 
 // A different XMLSerializer is used because the &gt; is not encoded correctly
 // in the XMLSerializer of xmldom.
@@ -867,9 +869,141 @@ class Storage {
         this.quit(200, "Success", null, result);
     }
 
+    /**
+     * POST queries data about XPath axes and functions via transformation.
+     * For this, an XSLT stylesheet is sent with the request-body, which is
+     * then applied by the XSLT processor to the data in storage.
+     * Thus the content type application/xslt+xml is always required.
+     * The client defines the content type for the output with the output-tag
+     * and the method-attribute.
+     * The XPath is optional for this method and is used to limit and preselect
+     * the data. The processing is strict and does not accept unnecessary
+     * spaces.
+     *
+     *     Request:
+     * POST /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: application/xslt+xml
+     *     Request-Body:
+     * XSLT stylesheet
+     *
+     *     Response:
+     * HTTP/1.0 200 Success
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Timeout (milliseconds)
+     * Content-Length: (bytes)
+     *     Response-Body:
+     * The result of the transformation
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 200 Success
+     * - Request was successfully executed
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
+     * - XPath is missing or malformed
+     * - XSLT Stylesheet is erroneous
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage does not exist
+     * - XPath axis finds no target
+     *         HTTP/1.0 415 Unsupported Media Type
+     * - Attribute request without Content-Type text/plain
+     *         HTTP/1.0 422 Unprocessable Entity
+     * - Data in the request body cannot be processed
+     */
     doPost() {
-        // TODO:
-        this.quit(501, "Not Implemented")
+
+        // Without existing storage the request is not valid.
+        if (!this.exists())
+            this.quit(404, "Resource Not Found")
+
+        // POST always expects an valid XSLT template for transformation.
+        let media = (this.request.headers["content-type"] || "").toLowerCase()
+        if (media !== Storage.CONTENT_TYPE_XML)
+            this.quit(415, "Unsupported Media Type")
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            let message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {"Message": message})
+        }
+
+        // POST always expects an valid XSLT template for transformation.
+        if (!Object.exists(this.request.data)
+                || this.request.data.trim().length <= 0)
+            this.quit(422, "Unprocessable Entity", {"Message": "Unprocessable Entity"})
+
+        let xml = this.xml
+        if (this.xpath !== "") {
+            xml = new DOMImplementation().createDocument();
+            let targets = XPath.select(this.xpath, this.xml)
+            if (targets instanceof Error) {
+                let message = "Invalid XPath axis (" + targets.message + ")"
+                this.quit(400, "Bad Request", {"Message": message})
+            }
+            if (!Object.exists(targets) || targets.length <= 0)
+                this.quit(404, "Resource Not Found")
+            if (targets.length === 1) {
+                let target = targets[0]
+                if (target.nodeType === XML_ATTRIBUTE_NODE)
+                    target = xml.createElement(target.name, target.value)
+                xml.appendChild(target.cloneNode(true))
+            } else {
+                let collection = xml.createElement("collection")
+                targets.forEach((target) => {
+                    if (target.nodeType === XML_ATTRIBUTE_NODE)
+                        target = xml.createElement(target.name, target.value)
+                    collection.appendChild(target.cloneNode(true))
+                })
+                xml.appendChild(collection)
+            }
+        }
+
+        let style = new DOMParser().parseFromString(this.request.data);
+        if (!Object.exists(style)
+                || style instanceof Error) {
+            let message = "Invalid XSLT stylesheet"
+            if (xml instanceof Error)
+                message += " (" + xml.message + ")"
+            this.quit(422, "Unprocessable Entity", {"Message": message})
+        }
+
+        // XML/XSLT support in node-js is not the best.
+        // Incompletely implemented, difficult to integrate, on Windows libxml2
+        // integration is easy but node.js integration is a disaster.
+        // Therefore the indirection via Java :-|
+        let output
+        try {output = XSLT.transformSync({xslt: this.request.data, source: this.serialize(xml), result: Buffer})
+        } catch (exception) {
+            let message = "Transformation failed"
+            if (Object.exists(exception.cause)) {
+                let details = exception.message.split(/[\r\n]/g)[1];
+                message += " (" + details.replace(/(^.*?(Exception|Error):(.*?:){0,1}\s*)|(\.+$)/g, "") + ")"
+            } else message += "(" + exception.message + ")";
+            this.quit(422, "Unprocessable Entity", {"Message": message})
+        }
+        output = output.toString(Storage.XML.ENCODING.toLowerCase())
+
+        let header = {};
+        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", style);
+        if (Object.exists(output)
+                && output.trim() !== "") {
+            method = method.toLowerCase();
+            if (method !== "text")
+                output = Codec.encode(output, {allowUnsafeSymbols: true})
+            if (method === "xml"
+                    || method === "")
+                if (this.options.includes("json"))
+                    output = new DOMParser().parseFromString(output)
+                else header["Content-Type"] = Storage.CONTENT_TYPE_XML
+            else if (method === "html")
+                header["Content-Type"] = Storage.CONTENT_TYPE_HTML
+        }
+
+        this.quit(200, "Success", header, output);
     }
 
     /**
@@ -1661,7 +1795,7 @@ class Storage {
      * @param {object} headers
      * @param {string} data
      */
-    quit(status, message, headers, data) {
+    quit(status, message, headers = undefined, data = undefined) {
 
         if (this.response.headersSent) {
             // The response are already complete.
@@ -1707,12 +1841,12 @@ class Storage {
                 && this.storage
                 && this.xml)
             headers = {...headers, ...{
-                    "Storage": this.storage,
-                    "Storage-Revision": this.xml.documentElement.getAttribute("___rev"),
-                    "Storage-Space": Storage.SPACE + "/" + this.getSize() + " bytes",
-                    "Storage-Last-Modified": new Date().toUTCString(),
-                    "Storage-Expiration": new Date(new Date().getTime() +Storage.TIMEOUT).toUTCString(),
-                    "Storage-Expiration-Time": (Storage.TIMEOUT *1000) + " ms"
+                "Storage": this.storage,
+                "Storage-Revision": this.xml.documentElement.getAttribute("___rev"),
+                "Storage-Space": Storage.SPACE + "/" + this.getSize() + " bytes",
+                "Storage-Last-Modified": new Date().toUTCString(),
+                "Storage-Expiration": new Date(new Date().getTime() +(Storage.TIMEOUT *1000)).toUTCString(),
+                "Storage-Expiration-Time": (Storage.TIMEOUT *1000) + " ms"
             }}
 
         // The response from the Storage-Effects header can be very extensive.
@@ -1807,7 +1941,7 @@ class Storage {
                         data = this.serialize(data)
                     } else media = Storage.CONTENT_TYPE_TEXT
                 }
-            } else media = media.value
+            }
             headers["Content-Type"] = media
         }
 
@@ -1815,7 +1949,7 @@ class Storage {
 
         if (status >= 200 && status < 300)
             if (data !== "" || status === 200)
-                headers["Content-Length"] = data.length
+                headers["Content-Length"] = new Buffer(data).length
 
         // When responding to an error, the default Allow header is added.
         // But only if no Allow header was passed.
@@ -1836,7 +1970,7 @@ class Storage {
             // not be perfect.
 
             let cryptoMD5 = (text) => {
-                return crypto.createHash("MD5").update(text).digest("HEX")
+                return crypto.createHash("MD5").update(text).digest("hex")
             }
 
             let trace = []
@@ -1930,7 +2064,7 @@ class Storage {
             // compared later. Therefore the uniques of the UIDs are collected in
             // an array. The index in the array is then the new unique.
             let uniques = []
-            hash = hash.replace(/\b(___uid(?:(?:=)|(?:\"\s*:\s*))\")([A-Z\d]+)(:[A-Z\d]+\")/ig, (matched, prefix, unique, serial) => {
+            hash = hash.replace(/\b(___uid(?:(?:=)|(?:"\s*:\s*))")([A-Z\d]+)(:[A-Z\d]+")/ig, (matched, prefix, unique, serial) => {
                 if (!uniques.includes(unique))
                     uniques.push(unique)
                 unique = uniques.indexOf(unique);
@@ -1989,6 +2123,7 @@ class Storage {
             trace = cryptoMD5(hash.join(" ")) + EOL + trace
 
             if (fs.existsSync("trace.log")
+                    && fs.statSync("trace.log").size > 0
                     && (new Date().getTime() -fs.lstatSync("trace.log").mtimeMs  > 1000))
                 fs.appendFileSync("trace.log", EOL)
             fs.appendFileSync("trace.log", trace)
@@ -2213,8 +2348,8 @@ http.createServer((request, response) => {
                 xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
                     return String.fromCharCode(parseInt(matched, 16))
                 })
-            else if (xpath.match(/^Base64:[A-Za-z0-9\+\/]+=*$/))
-                xpath = new Buffer(xpath.substring(8), "Base64").toString("ASCII")
+            else if (xpath.match(/^Base64:[A-Za-z0-9+\/]+=*$/))
+                xpath = new Buffer(xpath.substring(8), "base64").toString("ascii")
             else xpath = decodeURIComponent(xpath);
 
             // With the exception of CONNECT, OPTIONS and POST, all requests expect an
@@ -2226,7 +2361,7 @@ http.createServer((request, response) => {
             if (!xpath && !["CONNECT", "OPTIONS", "POST"].includes(method))
                 xpath = "/"
 
-            storage = Storage.share({request:request, response:response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT", "POST"].includes(method)})
+            storage = Storage.share({request:request, response:response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
 
             try {
                 switch (method) {
