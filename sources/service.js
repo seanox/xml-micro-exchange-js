@@ -1949,7 +1949,7 @@ class Storage {
 
         if (status >= 200 && status < 300)
             if (data !== "" || status === 200)
-                headers["Content-Length"] = new Buffer(data).length
+                headers["Content-Length"] = Buffer.from(data).length
 
         // When responding to an error, the default Allow header is added.
         // But only if no Allow header was passed.
@@ -2349,7 +2349,7 @@ http.createServer((request, response) => {
                     return String.fromCharCode(parseInt(matched, 16))
                 })
             else if (xpath.match(/^Base64:[A-Za-z0-9+\/]+=*$/))
-                xpath = new Buffer(xpath.substring(8), "base64").toString("ascii")
+                xpath = Buffer.from(xpath.substring(8), "base64").toString("ascii")
             else xpath = decodeURIComponent(xpath);
 
             // With the exception of CONNECT, OPTIONS and POST, all requests expect an
@@ -2397,7 +2397,9 @@ http.createServer((request, response) => {
                 }
             }
         } finally {
-            // TODO: access-log
+            (async () => {
+                // TODO: access-log
+            })();
         }
     })
 }).listen(Storage.PORT, () => {
