@@ -179,12 +179,12 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210117
+ *  Service 1.1.0 20210119
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210117
+ *  @version 1.1.0 20210119
  */
 const http = require("http")
 const fs = require("fs")
@@ -365,26 +365,41 @@ class Storage {
         this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ASCII").toString("Base64")
         this.xpath    = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$1")
         this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2").toLowerCase().split(/!+/)
-        this.unique   = this.uniqueId()
+        this.unique   = meta.request.unique
         this.serial   = 0
         this.revision = 0
     }
 
-    /** Cleans up all files that have exceeded the maximum idle time. */
-    static cleanUp() {
+    /**
+     * Cleans up all files that have exceeded the maximum idle time.
+     * A optional storage identifier can be used to reduce the processing speed
+     * for many storage files, which is advantageous for a request.
+     * The final cleanup can be done in post-processing, after the request end.
+     * @param {string} optional storage identifier
+     */
+    static cleanUp(storage = undefined) {
 
         if (!fs.existsSync(Storage.DIRECTORY)
                 || !fs.lstatSync(Storage.DIRECTORY).isDirectory())
             return
+
+        if (storage)
+            if (!fs.existsSync(Storage.DIRECTORY + "/" + storage)
+                    || !fs.lstatSync(Storage.DIRECTORY + "/" + storage).isFile())
+                return
+
         let timeout = new Date().getTime() -(Storage.TIMEOUT *1000)
-        let files = fs.readdirSync(Storage.DIRECTORY)
+        let files = storage ? [storage] : fs.readdirSync(Storage.DIRECTORY)
         files.forEach((file) => {
-            file = Storage.DIRECTORY + "/" + file
-            let state = fs.lstatSync(file)
-            if (state.isFile()
-                    && state.mtimeMs < timeout)
-                if (fs.existsSync(file))
+            try {
+                file = Storage.DIRECTORY + "/" + file
+                let state = fs.lstatSync(file)
+                if (state.isFile()
+                        && state.mtimeMs < timeout
+                        && fs.existsSync(file))
                     fs.unlinkSync(file)
+            } catch (exception) {
+            }
         })
     }
 
@@ -404,7 +419,7 @@ class Storage {
         meta.root = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
         meta.storage = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
 
-        Storage.cleanUp()
+        Storage.cleanUp(meta.storage)
         if (!fs.existsSync(Storage.DIRECTORY))
             fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
         let storage = new Storage(meta)
@@ -418,26 +433,6 @@ class Storage {
                 storage.quit(404, "Resource Not Found")
         }
         return storage
-    }
-
-    /**
-     * Return a unique ID related to the request.
-     * @return {string} unique ID related to the request
-     */
-    uniqueId() {
-
-        // The method is based on time, network port and the assumption that a
-        // port is not used more than once at the same time. On fast platforms,
-        // however, the time factor is uncertain because the time from calling
-        // the method is less than one millisecond. This is ignored here,
-        // assuming that the port reassignment is greater than one millisecond.
-
-        // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
-        let unique = this.request.connection.remotePort.toString(36)
-        unique = "0000" + unique
-        unique = unique.substring(unique.length -4)
-        unique = new Date().getTime().toString(36) + unique
-        return unique.toUpperCase()
     }
 
     /**
@@ -2306,6 +2301,22 @@ try {
 
 http.createServer((request, response) => {
 
+    if (!Object.exists(request.unique)) {
+
+        // The method is based on time, network port and the assumption that a
+        // port is not used more than once at the same time. On fast platforms,
+        // however, the time factor is uncertain because the time from calling
+        // the method is less than one millisecond. This is ignored here,
+        // assuming that the port reassignment is greater than one millisecond.
+
+        // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
+        request.unique = request.connection.remotePort.toString(36)
+        request.unique = "0000" + request.unique
+        request.unique = request.unique.substring(request.unique.length -4)
+        request.unique = new Date().getTime().toString(36) + request.unique
+        request.unique = request.unique.toUpperCase()
+    }
+
     request.on("data", (data) => {
         if (!Object.exists(request.data))
             request.data = ""
@@ -2388,15 +2399,17 @@ http.createServer((request, response) => {
         } catch (exception1) {
             if (exception1 !== Storage.prototype.quit) {
                 let storage = (new Storage({request:request, response:response}))
-                let unique = storage.uniqueId()
-                console.error("Service", "#" + unique, exception1)
-                try {storage.quit(500, "Internal Server Error", {"Error": "#" + unique})
+                console.error("Service", "#" + request.unique, exception1)
+                try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
                 } catch (exception2) {
                     if (exception2 !== Storage.prototype.quit)
-                        console.error("Service", "#" + unique, exception2)
+                        console.error("Service", "#" + request.unique, exception2)
                 }
             }
         } finally {
+            (async () => {
+                Storage.cleanUp()
+            })();
             (async () => {
                 // TODO: access-log
             })();
