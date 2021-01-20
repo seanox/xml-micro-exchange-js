@@ -179,23 +179,24 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210119
+ *  Service 1.1.0 20210120
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210119
+ *  @version 1.1.0 20210120
  */
 const http = require("http")
 const fs = require("fs")
 const crypto = require("crypto")
+const process = require("child_process")
 
 const EOL = require("os").EOL
+const DOM = require("xmldom")
 const DOMParser = require("xmldom").DOMParser
 const DOMImplementation = require("xmldom").DOMImplementation
 const XPath = require("xpath")
 const XMLSerializer = require("common-xml-features").XMLSerializer
-const XSLT = require("xslt4node")
 const Codec = require("he")
 
 // A different XMLSerializer is used because the &gt; is not encoded correctly
@@ -362,7 +363,7 @@ class Storage {
 
         this.storage  = meta.storage || ""
         this.root     = meta.root || "data"
-        this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ASCII").toString("Base64")
+        this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ascii").toString("base64")
         this.xpath    = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$1")
         this.options  = (meta.xpath || "").replace(Storage.PATTERN_XPATH_OPTIONS, "$2").toLowerCase().split(/!+/)
         this.unique   = meta.request.unique
@@ -510,6 +511,15 @@ class Storage {
 
         delete this.share
         delete this.xml
+    }
+
+    createTempFile() {
+
+        if (!Object.exists(this.request.temp))
+            this.request.temp = []
+        let unique = "___temp_" + this.unique + "_" + (++this.serial)
+        this.request.temp.push(unique)
+        return unique
     }
 
     /**
@@ -966,21 +976,33 @@ class Storage {
             this.quit(422, "Unprocessable Entity", {"Message": message})
         }
 
+        let tempStyle = this.createTempFile();
+        fs.writeFileSync(tempStyle, this.request.data)
+
+        let tempXml = this.createTempFile();
+        fs.writeFileSync(tempXml, new DOM.XMLSerializer().serializeToString(xml))
+
+        let spawnSync = function(...variable) {
+            try {return process.spawnSync(...variable)
+            } catch (exception) {
+                return exception;
+            }
+        }
+
         // XML/XSLT support in node-js is not the best.
-        // Incompletely implemented, difficult to integrate, on Windows libxml2
-        // integration is easy but node.js integration is a disaster.
-        // Therefore the indirection via Java :-|
-        let output
-        try {output = XSLT.transformSync({xslt: this.request.data, source: this.serialize(xml), result: Buffer})
-        } catch (exception) {
-            let message = "Transformation failed"
-            if (Object.exists(exception.cause)) {
-                let details = exception.message.split(/[\r\n]/g)[1];
-                message += " (" + details.replace(/(^.*?(Exception|Error):(.*?:){0,1}\s*)|(\.+$)/g, "") + ")"
-            } else message += "(" + exception.message + ")";
+        // Therefore the indirection via libxml2 :-|
+        let output = spawnSync("xsltproc", [tempStyle, tempXml])
+        if (Object.exists(output.stderr)
+                && output.stderr.length > 0)
+            output = new Error(output.stderr.toString(Storage.XML.ENCODING));
+        else if (Object.exists(output.stdout))
+            output = output.stdout.toString(Storage.XML.ENCODING);
+        if (output instanceof Error) {
+            let message = output.message.split(/\r\n/)[0]
+            message = message.replace(/^.*?error\s*:\s*/, "")
+            message = "Transformation failed (" + message.trim() + ")"
             this.quit(422, "Unprocessable Entity", {"Message": message})
         }
-        output = output.toString(Storage.XML.ENCODING.toLowerCase())
 
         let header = {};
         let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", style);
@@ -1563,13 +1585,13 @@ class Storage {
 
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath)
-            || this.xpath === "")
+                || this.xpath === "")
             this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
 
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
         if (Object.exists(this.request.data)
-            && this.request.data.length > Storage.SPACE)
+                && this.request.data.length > Storage.SPACE)
             this.quit(413, "Payload Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
@@ -2408,10 +2430,19 @@ http.createServer((request, response) => {
             }
         } finally {
             (async () => {
-                Storage.cleanUp()
+                // TODO: access-log
             })();
             (async () => {
-                // TODO: access-log
+                if (!Object.exists(request.temp))
+                    return;
+                request.temp.forEach((file) => {
+                    try {fs.unlinkSync(file)
+                    } catch (exception) {
+                    }
+                })
+            })();
+            (async () => {
+                Storage.cleanUp()
             })();
         }
     })
