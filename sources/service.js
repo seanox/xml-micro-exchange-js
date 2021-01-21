@@ -179,12 +179,12 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210120
+ *  Service 1.1.0 20210121
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210120
+ *  @version 1.1.0 20210121
  */
 const http = require("http")
 const fs = require("fs")
@@ -384,10 +384,12 @@ class Storage {
                 || !fs.lstatSync(Storage.DIRECTORY).isDirectory())
             return
 
-        if (storage)
+        if (storage) {
+            storage = Buffer.from(storage, "ascii").toString("base64")
             if (!fs.existsSync(Storage.DIRECTORY + "/" + storage)
                     || !fs.lstatSync(Storage.DIRECTORY + "/" + storage).isFile())
                 return
+        }
 
         let timeout = new Date().getTime() -(Storage.TIMEOUT *1000)
         let files = storage ? [storage] : fs.readdirSync(Storage.DIRECTORY)
@@ -513,6 +515,11 @@ class Storage {
         delete this.xml
     }
 
+    /**
+     * Creates names for temporary files in the working directory.
+     * These files are automatically cleaned up at the end of the request.
+     * @return {string} name of the temporary file
+     */
     createTempFile() {
 
         if (!Object.exists(this.request.temp))
@@ -999,7 +1006,8 @@ class Storage {
             output = output.stdout.toString(Storage.XML.ENCODING);
         if (output instanceof Error) {
             let message = output.message.split(/\r\n/)[0]
-            message = message.replace(/^.*?error\s*:\s*/, "")
+            message = message.replace(/\s*(file\s+){0,1}___temp_[\w\:]+\s*/ig, " ").trim()
+            message = message.replace(/\s+(?=:)/g, "")
             message = "Transformation failed (" + message.trim() + ")"
             this.quit(422, "Unprocessable Entity", {"Message": message})
         }
@@ -2148,6 +2156,7 @@ class Storage {
 
         if (!this.response.headersSent) {
             this.response.writeHead(status, message, headers)
+            this.response.contentLength = data.length
             this.response.end(data)
         }
 
@@ -2175,9 +2184,27 @@ try {
     }
 
     // Logging: Output with timestamp
+    // Filter XMLDOM errors/warnings, they are not helpful for the service,
+    // because only the client needs them.
     console.error$ = console.error
     console.error = function(...variable) {
+        if (Object.exists(variable)
+                && variable.length > 0
+                && variable[0].match(/^\s*\[\s*xmldom\s/i))
+            return;
         console.error$(new Date().toTimestampString(), ...variable)
+    }
+
+    // Logging: Output with timestamp
+    // Filter XMLDOM errors/warnings, they are not helpful for the service,
+    // because only the client needs them.
+    console.warn$ = console.warn
+    console.warn = function(...variable) {
+        if (Object.exists(variable)
+                && variable.length > 0
+                && variable[0].match(/^\s*\[\s*xmldom\s/i))
+            return;
+        console.warn$(new Date().toTimestampString(), ...variable)
     }
 
     // Date formatting to timestamp string
@@ -2320,6 +2347,8 @@ try {
 // TODO: certificate files as CLI application parameter (otherwise HTTP instead of HTTPS)
 // TODO: node.js service.js [address]:port [certificate files]
 // TODO: PUT/PATCH autoescape to HTML entities, so that the storage contains only ASCII
+// TODO: BasicAuth/DigistAuth
+// TODO: XPath as query string (similar to PHP)
 
 http.createServer((request, response) => {
 
@@ -2430,6 +2459,85 @@ http.createServer((request, response) => {
             }
         } finally {
             (async () => {
+                let format = "%h %l %u [%t] \"%r\" %s %b \"%{User-Agent}\""
+                let localhost = (request.headers.host || "").trim();
+                if (localhost.length <= 0) {
+                    localhost = request.connection.localAddress
+                    if (localhost.includes("."))
+                        localhost = localhost.replace(/(^.*:)/, "")
+                } else if (localhost.match(/^[^:]+:\d+$/))
+                    localhost = localhost.replace(/\s*:\d+$/, "")
+                let now = new Date();
+                format = format.replace(/%r/g, "%m %U%q %H")
+                format = format.replace(/%t/g, "%d!D/%d!m/%d!Y:%t!H:%t!M:%t!S %t!Z")
+                format = format.replace(/(%\{[\w-]*\})|(%[dt]\![a-z])|(%[a-z])/ig, (matches) => {
+                    if (matches.match(/%\{[\w-]*\}/i)) {
+                        return request.headers[matches.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
+                    } else if (matches.match(/%[dt]\![a-z]/i)) {
+                        switch (matches) {
+                            case "%d!y":
+                                return now.getYear()
+                            case "%d!Y":
+                                return now.getFullYear()
+                            case "%d!d":
+                                return now.getDay() +1
+                            case "%d!D":
+                                return now.getDay() < 9 ? "0" + (now.getDay() +1) : now.getDay() +1
+                            case "%d!m":
+                                return ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][now.getMonth()];
+                            case "%d!M":
+                                return ["January", "February", "March", "April", "May", "June",
+                                    "July", "August", "September", "October", "November", "December"][now.getMonth()];
+                            case "%t!h":
+                                return now.getHours()
+                            case "%t!H":
+                                return now.getHours() < 10 ? "0" + now.getHours() : now.getHours()
+                            case "%t!m":
+                                return now.getMinutes()
+                            case "%t!M":
+                                return now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes()
+                            case "%t!s":
+                                return now.getSeconds()
+                            case "%t!S":
+                                return now.getSeconds() < 10 ? "0" + now.getSeconds() : now.getSeconds()
+                            case "%t!z":
+                            case "%t!Z":
+                                let zone = Math.abs(now.getTimezoneOffset() /60)
+                                zone = (zone < 10 ? "0" + zone : zone) + "00"
+                                return (now.getTimezoneOffset() < 0 ? "+" : "-") + zone
+                            default:
+                                return ""
+                        }
+                    } else if (matches.match(/%[a-z]/i)) {
+                        switch (matches) {
+                            case "%h":
+                                return localhost || "-"
+                            case "%l":
+                                return "-"
+                            case "%u":
+                                return "-"
+                            case "%s":
+                                return response.statusCode || "-"
+                            case "%b":
+                                return response.contentLength || "-"
+                            case "%B":
+                                return response.contentLength || "0"
+                            case "%m":
+                                return request.method || "-"
+                            case "%U":
+                                return (request.url || "").replace(/\?.*$/, "")
+                            case "%q":
+                                return (request.url || "").replace(/^.*\?/, "")
+                                return url
+                            case "%H":
+                                return request.httpVersion ? "HTTP/" + request.httpVersion : ""
+                            default:
+                                return ""
+                        }
+                    }
+                    return ""
+                })
                 // TODO: access-log
             })();
             (async () => {
