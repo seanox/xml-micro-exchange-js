@@ -1,0 +1,1261 @@
+# Test sequence for POST requests.
+
+# POST queries data about XPath axes and functions via transformation.
+# For this, an XSLT stylesheet is sent with the request-body, which is
+# then applied by the XSLT processor to the data in storage.
+# Thus the content type application/xslt+xml is always required.
+# The client defines the content type for the output with the output-tag
+# and the method-attribute.
+# The XPath is optional for this method and is used to limit and preselect
+# the data. The processing is strict and does not accept unnecessary
+# spaces.
+
+###
+# Storage is not establish 
+# Expectations:
+# - Status code 404 Resource Not Found
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/"/>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "291c59a807c0cd3d4e70429f0ff3401a");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 201 Resource Created
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_post}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b3ce94d406d86347754c132fc9f1c970");
+});
+%}
+
+###
+# Initial request to establish the storage
+# Expectations:
+# - Status code 204 No Content
+# - Storage-Effects: with a lot of UIDs 
+PUT {{service}}/statistic HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<cities>
+  <city name="Berlin">
+    <districts>
+      <district name="Charlottenburg-Wilmersdorf">
+        <quarters>
+          <quarter name="Charlottenburg" area="10.6" inhabitants="130663" population="12327"/>
+          <quarter name="Charlottenburg-Nord" area="6.2" inhabitants="19597" population="3161"/>
+          <quarter name="Grunewald" area="22.3" inhabitants="10999" population="493.2"/>
+          <quarter name="Halensee" area="1.27" inhabitants="15627" population="12305"/>
+          <quarter name="Schmargendorf" area="3.59" inhabitants="22205" population="6185"/>
+          <quarter name="Westend" area="13.5" inhabitants="41882" population="3102"/>
+          <quarter name="Wilmersdorf" area="7.16" inhabitants="102619" population="14332"/>
+        </quarters>
+      </district>
+      <district name="Friedrichshain-Kreuzberg">
+        <quarters>
+          <quarter name="Friedrichshain" area="9.78" inhabitants="136035" population="13910"/>
+          <quarter name="Kreuzberg" area="10.4" inhabitants="154351" population="14841"/>
+        </quarters>
+      </district>
+      <district name="Lichtenberg">
+        <quarters>
+          <quarter name="Alt-Hohenschönhausen" area="9.33" inhabitants="48979" population="5250"/>
+          <quarter name="Falkenberg" area="3.06" inhabitants="1870" population="611.1"/>
+          <quarter name="Fennpfuhl" area="2.12" inhabitants="34074" population="16073"/>
+          <quarter name="Friedrichsfelde" area="5.55" inhabitants="53813" population="9696"/>
+          <quarter name="Karlshorst" area="6.6" inhabitants="27956" population="4236"/>
+          <quarter name="Lichtenberg" area="7.22" inhabitants="41758" population="5784"/>
+          <quarter name="Malchow" area="1.54" inhabitants="635" population="412.3"/>
+          <quarter name="Neu-Hohenschönhausen" area="5.16" inhabitants="56918" population="11031"/>
+          <quarter name="Rummelsburg" area="4.52" inhabitants="25650" population="5675"/>
+          <quarter name="Wartenberg" area="6.92" inhabitants="2548" population="368.2"/>
+        </quarters>
+      </district>
+      <district name="Marzahn-Hellersdorf">
+        <quarters>
+          <quarter name="Biesdorf" area="12.4" inhabitants="28069" population="2264"/>
+          <quarter name="Hellersdorf" area="8.1" inhabitants="82109" population="10137"/>
+          <quarter name="Kaulsdorf" area="8.81" inhabitants="19408" population="2203"/>
+          <quarter name="Mahlsdorf" area="12.9" inhabitants="29360" population="2276"/>
+          <quarter name="Marzahn" area="19.5" inhabitants="111021" population="5693"/>
+        </quarters>
+      </district>
+      <district name="Mitte">
+        <quarters>
+          <quarter name="Gesundbrunnen" area="6.13" inhabitants="95175" population="15526"/>
+          <quarter name="Hansaviertel" area="0.53" inhabitants="5926" population="11181"/>
+          <quarter name="Mitte" area="10.7" inhabitants="102465" population="9576"/>
+          <quarter name="Moabit" area="7.72" inhabitants="80495" population="10427"/>
+          <quarter name="Tiergarten" area="5.17" inhabitants="14881" population="2878"/>
+          <quarter name="Wedding" area="9.23" inhabitants="86806" population="9405"/>
+        </quarters>
+      </district>
+      <district name="Neukölln">
+        <quarters>
+          <quarter name="Britz" area="12.4" inhabitants="42796" population="3451"/>
+          <quarter name="Buckow" area="6.35" inhabitants="40703" population="6410"/>
+          <quarter name="Gropiusstadt" area="2.66" inhabitants="37630" population="14147"/>
+          <quarter name="Neukölln" area="11.7" inhabitants="166157" population="14201"/>
+          <quarter name="Rudow" area="11.8" inhabitants="42631" population="3613"/>
+        </quarters>
+      </district>
+      <district name="Pankow">
+        <quarters>
+          <quarter name="Blankenburg" area="6.03" inhabitants="6875" population="1140"/>
+          <quarter name="Blankenfelde" area="13.4" inhabitants="2064" population="154"/>
+          <quarter name="Buch" area="18.2" inhabitants="16868" population="926.8"/>
+          <quarter name="Französisch Buchholz" area="12" inhabitants="21281" population="1773"/>
+          <quarter name="Heinersdorf" area="3.95" inhabitants="7869" population="1992"/>
+          <quarter name="Karow" area="6.65" inhabitants="19679" population="2959"/>
+          <quarter name="Niederschönhausen" area="6.49" inhabitants="31996" population="4930"/>
+          <quarter name="Pankow" area="5.66" inhabitants="64945" population="11474"/>
+          <quarter name="Prenzlauer Berg" area="11" inhabitants="165003" population="15000"/>
+          <quarter name="Rosenthal" area="4.9" inhabitants="9596" population="1958"/>
+          <quarter name="Stadtrandsiedlung Malchow" area="5.68" inhabitants="1120" population="197.2"/>
+          <quarter name="Weißensee" area="7.93" inhabitants="54032" population="6814"/>
+          <quarter name="Wilhelmsruh" area="1.37" inhabitants="8007" population="5845"/>
+        </quarters>
+      </district>
+      <district name="Reinickendorf">
+        <quarters>
+          <quarter name="Borsigwalde" area="2" inhabitants="6777" population="3389"/>
+          <quarter name="Frohnau" area="7.8" inhabitants="16814" population="2156"/>
+          <quarter name="Heiligensee" area="10.7" inhabitants="18100" population="1692"/>
+          <quarter name="Hermsdorf" area="6.1" inhabitants="16607" population="2722"/>
+          <quarter name="Konradshöhe" area="2.2" inhabitants="6004" population="2729"/>
+          <quarter name="Lübars" area="5" inhabitants="5203" population="1041"/>
+          <quarter name="Märkisches Viertel" area="3.2" inhabitants="40379" population="12618"/>
+          <quarter name="Reinickendorf" area="10.5" inhabitants="83909" population="7991"/>
+          <quarter name="Tegel" area="33.7" inhabitants="36986" population="1098"/>
+          <quarter name="Waidmannslust" area="2.3" inhabitants="10973" population="4771"/>
+          <quarter name="Wittenau" area="5.9" inhabitants="24656" population="4179"/>
+        </quarters>
+      </district>
+      <district name="Spandau">
+        <quarters>
+          <quarter name="Falkenhagener Feld" area="6.88" inhabitants="38759" population="5634"/>
+          <quarter name="Gatow" area="10.1" inhabitants="3733" population="369.6"/>
+          <quarter name="Hakenfelde" area="20.4" inhabitants="31296" population="1534"/>
+          <quarter name="Haselhorst" area="4.73" inhabitants="15663" population="3311"/>
+          <quarter name="Kladow" area="14.8" inhabitants="16212" population="1095"/>
+          <quarter name="Siemensstadt" area="5.66" inhabitants="12831" population="2267"/>
+          <quarter name="Spandau" area="8.03" inhabitants="39560" population="4927"/>
+          <quarter name="Staaken" area="10.9" inhabitants="46607" population="4276"/>
+          <quarter name="Wilhelmstadt" area="10.4" inhabitants="40536" population="3898"/>
+        </quarters>
+      </district>
+      <district name="Steglitz-Zehlendorf">
+        <quarters>
+          <quarter name="Dahlem" area="8.39" inhabitants="16929" population="2018"/>
+          <quarter name="Lankwitz" area="6.99" inhabitants="43566" population="6233"/>
+          <quarter name="Lichterfelde" area="18.2" inhabitants="86206" population="4737"/>
+          <quarter name="Nikolassee" area="19.6" inhabitants="16695" population="851.8"/>
+          <quarter name="Steglitz" area="6.79" inhabitants="75803" population="11164"/>
+          <quarter name="Wannsee" area="23.7" inhabitants="10334" population="436"/>
+          <quarter name="Zehlendorf" area="18.8" inhabitants="60538" population="3220"/>
+        </quarters>
+      </district>
+      <district name="Tempelhof-Schöneberg">
+        <quarters>
+          <quarter name="Friedenau" area="1.65" inhabitants="28263" population="17129"/>
+          <quarter name="Lichtenrade" area="10.1" inhabitants="51955" population="5144"/>
+          <quarter name="Mariendorf" area="9.38" inhabitants="53094" population="5660"/>
+          <quarter name="Marienfelde" area="9.15" inhabitants="32349" population="3535"/>
+          <quarter name="Schöneberg" area="10.6" inhabitants="123075" population="11611"/>
+          <quarter name="Tempelhof" area="12.2" inhabitants="62248" population="5102"/>
+        </quarters>
+      </district>
+      <district name="Treptow-Köpenick">
+        <quarters>
+          <quarter name="Adlershof" area="6.11" inhabitants="19934" population="3263"/>
+          <quarter name="Altglienicke" area="7.89" inhabitants="29357" population="3721"/>
+          <quarter name="Alt-Treptow" area="2.31" inhabitants="12878" population="5575"/>
+          <quarter name="Baumschulenweg" area="4.82" inhabitants="18842" population="3909"/>
+          <quarter name="Bohnsdorf" area="6.52" inhabitants="11671" population="1790"/>
+          <quarter name="Friedrichshagen" area="14" inhabitants="19145" population="1368"/>
+          <quarter name="Grünau" area="9.13" inhabitants="6784" population="743"/>
+          <quarter name="Johannisthal" area="6.54" inhabitants="19853" population="3036"/>
+          <quarter name="Köpenick" area="34.9" inhabitants="66765" population="1913"/>
+          <quarter name="Müggelheim" area="22.2" inhabitants="6798" population="306.2"/>
+          <quarter name="Niederschöneweide" area="3.49" inhabitants="12850" population="3682"/>
+          <quarter name="Oberschöneweide" area="6.18" inhabitants="23500" population="3803"/>
+          <quarter name="Plänterwald" area="3.01" inhabitants="11365" population="3776"/>
+          <quarter name="Rahnsdorf" area="21.5" inhabitants="9523" population="442.9"/>
+          <quarter name="Schmöckwitz" area="17.1" inhabitants="4424" population="258.7"/>
+        </quarters>
+      </district>
+    </districts>
+  </city>
+</cities>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "19706fa4129ddea994bcd2172f6328a0");
+});
+%}
+
+###
+# Valid XSLT without XPath and with output
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 642
+# - Content-Type: application/xslt+xml
+# - Content: UTF-8/HEX encodes
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city>	
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "66689db2a489bd62ba1ccc019a4f0f67");
+});
+%}
+
+###
+# Valid XSLT without XPath and with output
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 399
+# - Content-Type: application/xslt+xml
+# - Only an extract of the data selected by XPath.
+# - URI: //district[@name='Lichtenberg']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:variable name="district" select="/district/@name"/>  
+    <district name="{$district}">
+	  <quarters>
+	  <xsl:for-each select="//quarter">
+	  <xsl:variable name="quarter" select="@name"/>
+	    <quarter name="{$quarter}"/>
+	  </xsl:for-each>
+      </quarters>
+	</district>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5041f76ba0e097419c50ab448f3d47a9");
+});
+%}
+
+###
+# Valid XSLT without XPath and with output
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 290
+# - Content-Type: text/plain
+# - Only an extract of the data selected by XPath.
+# - URI: //district[@name='Lichtenberg']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+Quarters of district: <xsl:value-of select="/district/@name"/>  
+----
+<xsl:for-each select="//quarter">
+<xsl:value-of select="concat(format-number(@area, '0.00'), ' km²')"/>
+<xsl:text> </xsl:text>
+<xsl:value-of select="@name"/><xsl:text>&#10;</xsl:text>
+</xsl:for-each>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "bc15f0c3237ba9ace530a272b6730712");
+});
+%}
+
+###
+# Wrong Content-Type
+# Expectations:
+# - Status code 415 Unsupported Media Type
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml-x
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city>	
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "cde85942574199bab51e2a9a69932cd6");
+});
+%}
+
+###
+# Wrong XSLT markup, xsl:templatex is used instead of xsl:template
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (compilation error: line 5 element templatex)
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:templatex match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city>	
+  </xsl:templatex>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1679ce5c7816f5fab69951f6438c1545");
+});
+%}
+
+###
+# Wrong XSLT markup, xsl:templatex is used and is closed by xsl:template
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (parser error: Opening and ending tag mismatch: templatex line 5 and template)
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:templatex match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city>	
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7ef66eeefe4a0340a1da1b43514aa653");
+});
+%}
+
+###
+# Wrong XSLT markup, city tag is not closed
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (parser error: expected '>')
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:templatex match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4f2442f11424e3a765406e81f18337d9");
+});
+%}
+
+###
+# Wrong XSLT markup, city tag is not closed
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (parser error: Opening and ending tag mismatch: city line 8 and xsl:template)
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:templatex match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "dc35b4572067f93d720c20b5a4703466");
+});
+%}
+
+###
+# Wrong XSLT EL function sumx (does not exists)
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (xmlXPathCompOpEval: function sumx not found)
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin']/@name"/> 
+    <xsl:variable name="area" select="sumx(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sumx(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city>	
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "510f28e103535174964fc876e5946f05");
+});
+%}
+
+###
+# Wrong XSLT EL in variable: city attribute: select ] is missing
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (XPath error: Invalid predicate)
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:variable name="city" select="//city[@name='Berlin'/@name"/> 
+    <xsl:variable name="area" select="sum(//city[@name='Berlin']//quarter/@area)"/> 	
+    <city name="{$city}" area="{$area}">
+      <areas>
+      <xsl:for-each select="//city[@name='Berlin']//district">
+	    <xsl:sort select="concat(string-length(round(sum(.//quarter/@area))), round(sum(.//quarter/@area)))" order="descending"/>
+        <xsl:variable name="district" select="@name"/>
+        <xsl:variable name="sum" select="sum(.//quarter/@area)"/>
+        <area district="{$district}" sum="{$sum}"/>
+      </xsl:for-each>
+	  </areas>
+    </city>	
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1c47341bc2ef5809832d692928faa9df");
+});
+%}
+
+###
+# Valid XSLT but without output
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 0
+# - Without Content-Type
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/"/>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "02ca51f54e49932d32c9f2e000ea32f6");
+});
+%}
+
+###
+# Valid XSLT but without output
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 0
+# - Without Content-Type
+POST {{service}}/statistic/cities/city HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/"/>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "43525bb3e92d2f1905e77b442c7518c9");
+});
+%}
+
+###
+# XPath without target
+# Expectations:
+# - Status code 404 Resource Not Found
+POST {{service}}/statistic/cities/unknow HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/"/>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c8b70700ead7a1e22ae62890691c90f4");
+});
+%}
+
+###
+# XPath functions are not supported
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath (Functions are not supported)
+POST {{service}}name(/statistic) HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/"/>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b5fbb82bc53de7cf432503a8c7d26268");
+});
+%}
+
+###
+# Invalid XPath /books/book[1]x
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid XPath axis (XPath parse error)
+POST {{service}}/books/book%5B1%5Dx HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/"/>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "42455b736118aa39fbb4eac5e2248eba");
+});
+%}
+
+###
+# POST without Content-Type should be responded with status 415
+# Expectations:
+# - Status code 415 Unsupported Media Type
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b5595878b1f1cc256521c1e583076f9f");
+});
+%}
+
+###
+# POST without response body should be responded with status 422
+# Expectations:
+# - Status code 422 Unprocessable Entity
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ffb6e212f9280866ac495dc2349d19c5");
+});
+%}
+
+###
+# XPath with serveral elements as target should work
+# Expectations:
+# - Content-Length: 57
+# - Content: Count: 2x
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    Count: <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a8a3c9a4dea3aeab3f6b3c936fe6c735");
+});
+%}
+
+###
+# XPath with serveral attributes as target should work
+# Expectations:
+# - Content-Length: 74
+# - Content: Names: 12x Areas: 96x
+# - URI: //district/@name|//quarter/@area
+POST {{service}}0x2f2f64697374726963742f406e616d657c2f2f717561727465722f4061726561 HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    Names: <xsl:value-of select="count(//name)"/>x
+    Areas: <xsl:value-of select="count(//area)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e0defd73b1e8e652b4eb4d48754d23ef");
+});
+%}
+
+###
+# Valid XSLT without XPath and with output
+# Text/JSON output, the JSON directive in the URI has an effect.
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 476
+# - Content-Type: application/json
+# - Only an extract of the data selected by XPath.
+# - URI: //district[@name='Lichtenberg']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:variable name="district" select="/district/@name"/>
+    <district name="{$district}">
+	  <quarters>
+	  <xsl:for-each select="//quarter">
+	    <xsl:variable name="quarter" select="@name"/>
+	    <quarter name="{$quarter}"/>
+	  </xsl:for-each>
+      </quarters>
+	</district>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0ba668cd476622c52307bc3ecde90f13");
+});
+%}
+
+###
+# Valid XSLT without XPath and with output
+# Text/JSON output, the JSON directive in the URI has an effect.
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 316
+# - Content-Type: application/json
+# - Only an extract of the data selected by XPath.
+# - URI: //district[@name='Lichtenberg']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+Quarters of district: <xsl:value-of select="/district/@name"/>
+----
+<xsl:for-each select="//quarter">
+<xsl:value-of select="concat(format-number(@area, '0.00'), ' km²')"/>
+<xsl:text> </xsl:text>
+<xsl:value-of select="@name"/><xsl:text>&#10;</xsl:text>
+</xsl:for-each>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e24e1ce7870663ecd3c497900ce97952");
+});
+%}
+
+###
+# Valid XSLT without XPath and with output
+# Text output, mix of plain an tags with attributes
+# Tags and attributes are not included in the output
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 398
+# - Content-Type: text/plain
+# - Only an extract of the data selected by XPath.
+# - URI: //district[@name='Lichtenberg']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+Quarters of district: <xsl:value-of select="/district/@name"/>
+----
+<xsl:for-each select="//quarter">
+<xsl:variable name="area" select="concat(format-number(@area, '0.00'), ' km²')"/>
+<xsl:variable name="name" select="@name"/>
+<quarter area="1-{$area}-1" name="2-{$name}-2">
+3-<xsl:value-of select="$area"/>-3 4-<xsl:value-of select="$name"/>-4
+</quarter>
+</xsl:for-each>
+----
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ef399f1a52a1437ba60a2c5f4985d036");
+});
+%}
+
+###
+# Output of a node
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 125
+# - Content-Type: application/xslt+xml
+# - Only xml declaration and few empty lines
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    <xsl:value-of select="//district[@name='Mitte']"/>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7068775d0ec1a544f6205f4950697c61");
+});
+%}
+
+###
+# Output of a node
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 100
+# - Content-Type: text/plain
+# - Only few empty lines
+POST {{service}} HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+    <xsl:value-of select="//district[@name='Mitte']"/>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "96fa4814d7d21be9d914fd80d25f0077");
+});
+%}
+
+###
+# Template without output method used the default xml
+# The result is not a valid XML-file
+# Expectations:
+# - Content-Length: 44
+# - Content: Count: 2x
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="/">
+    Count: <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f5d96a5d8ce549469b4fa8071b1161ec");
+});
+%}
+
+###
+# Template with xml output method
+# The result is not a valid XML-file
+# Expectations:
+# - Content-Length: 44
+# - Content: Count: 2x
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    Count: <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a8a3c9a4dea3aeab3f6b3c936fe6c735");
+});
+%}
+
+###
+# Template with text output method
+# Expectations:
+# - Content-Length: 6
+# - Content-type: text/plain
+# - Content: 2x
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "81a929a1129910f94d51a67bdf1103c3");
+});
+%}
+
+###
+# Template with html output method
+# Expectations:
+# - Content-Length: 20
+# - Content-type: text/html;
+# - Content: <img src="">2x
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="html"/>
+  <xsl:template match="/">
+    <img src=""/>
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "044ca67b54240da1f431185908433d29");
+});
+%}
+
+###
+# Template with invalid output method
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (compilation error: line 4 element output)
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xhtml"/>
+  <xsl:template match="/">
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "099f07553e509fa77574f44793ae356f");
+});
+%}
+
+###
+# Template with invalid output method
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (compilation error: line 4 element output)
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="unknown"/>
+  <xsl:template match="/">
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1092efaadcdd1f4d1d62b254eae511f9");
+});
+%}
+
+###
+# Template without output method used the default xml
+# Text/JSON output, the JSON directive in the URI has an effect.
+# The result is not a valid XML-file
+# The intermediate transformation to XML, as a precursor to the transformation
+# to JSON, will create an empty document, and JSON will also create null
+# Different from PHP, there it is false
+# Expectations:
+# - Content-Length: 4
+# - Content-Type: application/json
+# - Content: null
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="/">
+    Count: <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8f53cd6b2816b15ddd7bac19ab214ad0");
+});
+%}
+
+###
+# Template with xml output method
+# Text/JSON output, the JSON directive in the URI has an effect.
+# The result is not a valid XML-file
+# The intermediate transformation to XML, as a precursor to the transformation
+# to JSON, will create an empty document, and JSON will also create null
+# Different from PHP, there it is false
+# Expectations:
+# - Content-Length: 4
+# - Content-Type: application/json
+# - Content: null
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml"/>
+  <xsl:template match="/">
+    Count: <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c37f8163a14fe6c56586198ac75a924d");
+});
+%}
+
+###
+# Template with text output method
+# Text/JSON output, the JSON directive in the URI has an effect.
+# The output of the transformation is a text enclosed in a JSON structure
+# Expectations:
+# - Content-Length: 10
+# - Content-Type: application/json
+# - Content: "2x\r\n  "
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7a189ce7c239d0b192d02589146ee053");
+});
+%}
+
+###
+# Template with html output method
+# Text/HTML output, the JSON directive in the URI has no effect.
+# The explicit output of HTML cannot be transformed into JSON.
+# Expectations:
+# - Content-Length: 20
+# - Content-type: text/html;
+# - Content: <img src="">2x
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="html"/>
+  <xsl:template match="/">
+    <img src=""/>
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6392441aefaec3f03066c1db064e8391");
+});
+%}
+
+###
+# Template with invalid output method
+# the JSON directive in the URI has no effect.
+# Expectations:
+# - Status code 422 Unprocessable Entityt
+# - Message: Transformation failed (compilation error: line 4 element output)
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xhtml"/>
+  <xsl:template match="/">
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "10323caa4275c88f4e780eff5a2e26d7");
+});
+%}
+
+###
+# Template with invalid output method
+# the JSON directive in the URI has no effect.
+# Expectations:
+# - Status code 422 Unprocessable Entity
+# - Message: Transformation failed (compilation error: line 4 element output)
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
+POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="unknown"/>
+  <xsl:template match="/">
+    <xsl:value-of select="count(//district)"/>x
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "650dd2afbcf7611fb987c0b93ae2719d");
+});
+%}
+
+###
+# Test of correct Content-Lengt for unicode
+# Expectations:
+# - Status code 200 Success
+# - Content-Length: 63
+# - Content-Type: text/plain
+# - Only an extract of the data selected by XPath.
+# - URI: //quarter[@area=9.33]
+POST {{service}}0x2f2f717561727465725b40617265613d392e33335d HTTP/1.0
+Storage: {{storage_post}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"><xsl:output
+    method="text"/><xsl:template
+    match="/"><xsl:value-of
+    select="*/@name"/><xsl:value-of
+    select="*/@name"/><xsl:value-of
+    select="*/@name"/></xsl:template></xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e078ed2b3022e21fe42f0fb45046ed09");
+});
+%}
+
+###
