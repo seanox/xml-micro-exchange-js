@@ -179,12 +179,12 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210121
+ *  Service 1.1.0 20210123
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210121
+ *  @version 1.1.0 20210123
  */
 const http = require("http")
 const fs = require("fs")
@@ -944,8 +944,7 @@ class Storage {
         }
 
         // POST always expects an valid XSLT template for transformation.
-        if (!Object.exists(this.request.data)
-                || this.request.data.trim().length <= 0)
+        if (this.request.data.trim().length <= 0)
             this.quit(422, "Unprocessable Entity", {"Message": "Unprocessable Entity"})
 
         let xml = this.xml
@@ -1143,8 +1142,7 @@ class Storage {
 
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
-        if (Object.exists(this.request.data)
-                && this.request.data.length > Storage.SPACE)
+        if (this.request.data.length > Storage.SPACE)
             this.quit(413, "Payload Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
@@ -1217,8 +1215,8 @@ class Storage {
             let attribute = matches[2]
 
             let targets = XPath.select(xpath, this.xml)
-            if (input instanceof Error) {
-                let message = "Invalid XPath axis (" + input.message + ")"
+            if (targets instanceof Error) {
+                let message = "Invalid XPath axis (" + targets.message + ")"
                 this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
@@ -1352,7 +1350,7 @@ class Storage {
 
         // The request body must also be a valid XML structure in data
         // container, otherwise the request is quit with an error.
-        let input = "<data>" + (this.request.data || "") + "</data>"
+        let input = "<data>" + this.request.data + "</data>"
 
         // The XML is loaded, but what happens if an error occurs during
         // parsing? Status 400 or 422 - The decision for 422, because 400 means
@@ -1598,8 +1596,7 @@ class Storage {
 
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
-        if (Object.exists(this.request.data)
-                && this.request.data.length > Storage.SPACE)
+        if (this.request.data.length > Storage.SPACE)
             this.quit(413, "Payload Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
@@ -2012,7 +2009,7 @@ class Storage {
             trace.push(cryptoMD5(hash) + " Trace-Request-Header-Hash", hash)
 
             // Request-Body-Hash
-            hash = Object.exists(this.request.data) ? this.request.data : ""
+            hash = this.request.data
             hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
             hash = hash.replace(/\t/g, " ")
             headers["Trace-Request-Body-Hash"] = cryptoMD5(hash)
@@ -2144,7 +2141,7 @@ class Storage {
             if (this.xml && this.xml.documentElement)
                 trace = "\tStorage Identifier: " + this.storage + " Revision:" + this.xml.documentElement.getAttribute("___rev") + " Space:" + this.getSize() + EOL + trace
             trace = "\tResponse Status:" + status + " Length:" + (data || "").length + EOL + trace
-            trace = "\tRequest Method:" + this.request.method.toUpperCase() + " XPath:" + this.xpath + " Length:" + (this.request.data || "").length + EOL + trace
+            trace = "\tRequest Method:" + this.request.method.toUpperCase() + " XPath:" + this.xpath + " Length:" + this.request.data.length + EOL + trace
             trace = cryptoMD5(hash.join(" ")) + EOL + trace
 
             if (fs.existsSync("trace.log")
@@ -2381,6 +2378,8 @@ http.createServer((request, response) => {
             // Marking the start time for request processing
             request.timing = new Date().getTime()
 
+            request.data = Object.exists(request.data) ? request.data : ""
+
             // The API should always use a context path so that the separation
             // between URI and XPath is also visually recognizable.
             // Other requests will be answered with status 404.
@@ -2459,60 +2458,33 @@ http.createServer((request, response) => {
             }
         } finally {
             (async () => {
-                let format = "%h %l %u [%t] \"%r\" %s %b \"%{User-Agent}\""
-                let localhost = (request.headers.host || "").trim();
-                if (localhost.length <= 0) {
-                    localhost = request.connection.localAddress
-                    if (localhost.includes("."))
-                        localhost = localhost.replace(/(^.*:)/, "")
-                } else if (localhost.match(/^[^:]+:\d+$/))
-                    localhost = localhost.replace(/\s*:\d+$/, "")
-                let now = new Date();
-                format = format.replace(/%r/g, "%m %U%q %H")
-                format = format.replace(/%t/g, "%d!D/%d!m/%d!Y:%t!H:%t!M:%t!S %t!Z")
-                format = format.replace(/(%\{[\w-]*\})|(%[dt]\![a-z])|(%[a-z])/ig, (matches) => {
-                    if (matches.match(/%\{[\w-]*\}/i)) {
-                        return request.headers[matches.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
-                    } else if (matches.match(/%[dt]\![a-z]/i)) {
+                let formatter = (format, date) => {
+
+                    date = date || new Date()
+
+                    let localhost = (request.headers.host || "").trim();
+                    if (localhost.length <= 0) {
+                        localhost = request.connection.localAddress
+                        if (localhost.includes("."))
+                            localhost = localhost.replace(/(^.*:)/, "")
+                    } else if (localhost.match(/^[^:]+:\d+$/))
+                        localhost = localhost.replace(/\s*:\d+$/, "")
+
+                    let remotehost = (request.connection.remoteAddress || "").trim();
+                    if (remotehost.includes("."))
+                        remotehost = remotehost.replace(/(^.*:)/, "")
+                    else if (remotehost.match(/^[^:]+:\d+$/))
+                        remotehost = remotehost.replace(/\s*:\d+$/, "")
+
+                    format = format.replace(/%r/g, "%m %U%q %H")
+                    format = format.replace(/(%\{[\w-]*\})|(%[a-z])/ig, (matches) => {
+                        if (matches.match(/%\{[\w-]*\}/i))
+                            return request.headers[matches.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
                         switch (matches) {
-                            case "%d!y":
-                                return now.getYear()
-                            case "%d!Y":
-                                return now.getFullYear()
-                            case "%d!d":
-                                return now.getDay() +1
-                            case "%d!D":
-                                return now.getDay() < 9 ? "0" + (now.getDay() +1) : now.getDay() +1
-                            case "%d!m":
-                                return ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][now.getMonth()];
-                            case "%d!M":
-                                return ["January", "February", "March", "April", "May", "June",
-                                    "July", "August", "September", "October", "November", "December"][now.getMonth()];
-                            case "%t!h":
-                                return now.getHours()
-                            case "%t!H":
-                                return now.getHours() < 10 ? "0" + now.getHours() : now.getHours()
-                            case "%t!m":
-                                return now.getMinutes()
-                            case "%t!M":
-                                return now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes()
-                            case "%t!s":
-                                return now.getSeconds()
-                            case "%t!S":
-                                return now.getSeconds() < 10 ? "0" + now.getSeconds() : now.getSeconds()
-                            case "%t!z":
-                            case "%t!Z":
-                                let zone = Math.abs(now.getTimezoneOffset() /60)
-                                zone = (zone < 10 ? "0" + zone : zone) + "00"
-                                return (now.getTimezoneOffset() < 0 ? "+" : "-") + zone
-                            default:
-                                return ""
-                        }
-                    } else if (matches.match(/%[a-z]/i)) {
-                        switch (matches) {
-                            case "%h":
+                            case "%a":
                                 return localhost || "-"
+                            case "%h":
+                                return remotehost || "-"
                             case "%l":
                                 return "-"
                             case "%u":
@@ -2529,16 +2501,27 @@ http.createServer((request, response) => {
                                 return (request.url || "").replace(/\?.*$/, "")
                             case "%q":
                                 return (request.url || "").replace(/^.*\?/, "")
-                                return url
                             case "%H":
                                 return request.httpVersion ? "HTTP/" + request.httpVersion : ""
+                            case "%t":
+                                var set = date.toString().split(/\s+|(?=[\+\-])/)
+                                return `${set[2]}/${set[1]}/${set[3]}:${set[4]} ${set[6]}`
                             default:
-                                return ""
+                                return matches.substr(1)
                         }
-                    }
-                    return ""
-                })
-                // TODO: access-log
+                    })
+                    return format
+                }
+
+                let now = new Date()
+                let logging = formatter("%h %l %u [%t] \"%r\" %s %b \"%{User-Agent}\"", now)
+                let set = now.toLocaleDateString('en-US', {year: "numeric", day: "2-digit", month: "2-digit", }).split(/\//)
+                let filename = `${formatter("%a", now)}_${set[2]}${set[0]}${set[1]}-access.log`
+                let file = fs.openSync(filename, "as")
+                try {fs.writeSync(file, logging + EOL)
+                } finally {
+                    fs.closeSync(file)
+                }
             })();
             (async () => {
                 if (!Object.exists(request.temp))
