@@ -1,0 +1,296 @@
+# The following test sequence tests the sequence of examples in
+# getting-started.md.
+
+###
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "503eafdfd8f416874aa0aad7d8310ded");
+});
+%}
+
+###
+PUT {{service}}/table%5Bnot(guests)%5D::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<guests>
+  <persons/>
+  <conversation/>
+</guests>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4a0f6d2eb3ae6e9cda9810092ad147d3");
+});
+%}
+
+###
+PUT {{service}}/table/guests/persons::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<person name="John Doe" mail="john.doe@example.local"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "19dad6736f3592a1767557762eb81961");
+});
+%}
+
+###
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "32ebfdf98d5489efa39121bd6d4bd6d7");
+});
+%}
+
+###
+PUT {{service}}/table%5Bnot(guests)%5D::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<guests>
+  <persons/>
+  <conversation/>
+</guests>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6d0b7d748f7f84d186aa9b786a0f93ec");
+});
+%}
+
+###
+PUT {{service}}/table/guests/persons::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<person name="Jane Doe" mail="jane.doe@example.local"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d27714034fd77f00cacb7a8c187dfff3");
+});
+%}
+
+###
+PUT {{service}}/table/guests/persons::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<person name="Mike Ross" mail="mike.ross@example.local"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9b45f4d1ce63cb978e17aff34e0d8ba0");
+});
+%}
+
+###
+PUT {{service}}/table/guests/persons::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<person name="Dan Star" mail="dan.star@example.local"/>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "56622b8a3b1ed4b2d444ed8a16c7e2d1");
+});
+%}
+
+###
+OPTIONS {{service}} HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "90c263d9a53d5f4ea2b911f12127d9f8");
+});
+%}
+
+###
+GET  {{service}}count(/table/guests/persons/person)%3E1 HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "055cf6a1c13a9eae06b4aab1ca167f92");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="dan.star@example.local">
+    Where do you come from?</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1468b8fb6f2c2be656e66744b4ebdf48");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="john.doe@example.local">
+    I'm from Hempstead and have a small bookstore.</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c7641bee40d67177dfeb6bab49248de1");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="jane.doe@example.local">
+    I live in Long Island and have an antique store.</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9c11e27395c21406aa02fec24c540061");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="mike.ross@example.local">
+    I live in Queens, work for a shipping company on a cargo ship.</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "775c63da4dcce13b36e77a9050d16eb5");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="dan.star@example.local">
+    I work and live in Yonkers as a gardener.</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "48614aa79065f5b6612453fbe5481b55");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="dan.star@example.local">
+    In this beautiful weather I arrived with my scooter.</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "980491d72c5b79d4ab4204eb61cbca75");
+});
+%}
+
+###
+PUT {{service}}/table/guests/conversation::last HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<message from="dan.star@example.local">
+    I like to look at the city.</message>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9984e87db3123efc420e5604bb7e15c6");
+});
+%}
+
+###
+# - URI: //conversation/message[position()<=count(//conversation/message)-5]
+DELETE {{service}}0x2f2f636f6e766572736174696f6e2f6d6573736167655b706f736974696f6e28293c3d636f756e74282f2f636f6e766572736174696f6e2f6d657373616765292d355d HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "010605cd237af9d5afd3e7fc644a20d1");
+});
+%}
+
+###
+# - URI: //message[@from='dan.star@example.local']
+GET {{service}}0x2f2f6d6573736167655b4066726f6d3d2764616e2e73746172406578616d706c652e6c6f63616c275d HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4c7e2b29d3f7f3fbd977fc85867e9284");
+});
+%}
+
+###
+# - URI: //*/@mail|//*/@from
+GET {{service}}0x2f2f2a2f406d61696c7c2f2f2a2f4066726f6d HTTP/1.0
+Storage: {{storage_getting_started}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "df09ffaa5bdb966b9990be4b736195e1");
+});
+%}
+
+###
+POST {{service}} HTTP/1.0
+Storage: {{storage_getting_started}}
+Content-Type: application/xslt+xml
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="text"/>
+  <xsl:template match="/">
+    <xsl:for-each select="//persons/person">
+Mame: <xsl:value-of select="@name"/>
+Mail: <xsl:value-of select="@mail"/>
+Messages:
+      <xsl:variable name="mail" select="@mail"/>
+      <xsl:choose>
+        <xsl:when test="count(//message[@from=$mail]) &gt; 0">
+          <xsl:for-each select="//message[@from=$mail]">
+            <xsl:value-of select="."/>
+          </xsl:for-each>
+    ----
+        </xsl:when>
+        <xsl:otherwise>
+    No messages
+    ----
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:for-each>
+  </xsl:template>
+</xsl:stylesheet>
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e8f0c38ab78dfe17482b2cb611fad923");
+});
+%}
+
+###
