@@ -1,4 +1,4 @@
-[Installation](installation.md) | [TOC](README.md) | [Getting Started](getting-started.md)
+[Configuration](configuration.md) | [TOC](README.md) | [Getting Started](getting-started.md)
 - - -
 
 # Terms
@@ -121,4 +121,4 @@ Write accesses creates a lock and avoids dirty reading.
 
 - - -
 
-[Installation](installation.md) | [TOC](README.md) | [Getting Started](getting-started.md)
+[Configuration](configuration.md) | [TOC](README.md) | [Getting Started](getting-started.md)
