@@ -654,8 +654,7 @@ class Storage {
      * axis and XPath function and uses different Allow headers. Also the
      * existence of the target on an XPath axis has an influence on the
      * response. The method will not use status 404 in relation to non-existing
-     * targets, but will offer the methods CONNECT, OPTIONS, PUT via
-     * Allow-Header.
+     * targets, but will offer the methods OPTIONS, PUT via Allow-Header.
      * In the case of an XPath axis, the UIDs of the targets are returned in
      * the Storage-Effects header. Unlike modifier methods like PUT, PATCH and
      * DELETE, the effect suffix (:A/:M/:D) is omitted here.
@@ -749,7 +748,7 @@ class Storage {
         if (!Object.exists(this.xpath))
             this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
 
-        let headers = {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"}
+        let headers = {"Allow": "OPTIONS, GET, POST, PUT, PATCH, DELETE"}
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
             let result = XPath.select(this.xpath, this.xml)
@@ -757,7 +756,7 @@ class Storage {
                 let message = "Invalid XPath function (" + result.message + ")"
                 this.quit(400, "Bad Request", {"Message": message})
             }
-            headers["Allow"] = "CONNECT, OPTIONS, GET, POST"
+            headers["Allow"] = "OPTIONS, GET, POST"
         } else {
             let targets = XPath.select(this.xpath, this.xml)
             if (targets instanceof Error) {
@@ -774,9 +773,9 @@ class Storage {
                 });
                 if (serials.length > 0)
                     headers["Storage-Effects"] = serials.join(" ")
-                headers["Allow"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
+                headers["Allow"] = "OPTIONS, GET, POST, PUT, PATCH, DELETE"
 
-            } else headers["Allow"] = "CONNECT, OPTIONS, PUT"
+            } else headers["Allow"] = "OPTIONS, PUT"
         }
 
         this.quit(204, "No Content", headers);
@@ -1852,7 +1851,7 @@ class Storage {
         // Access-Control headers are received during preflight OPTIONS request
         if (this.request.method.toUpperCase() === "OPTIONS") {
             if (this.request.headers["access-control-request-method"])
-                headers["Access-Control-Allow-Methods"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
+                headers["Access-Control-Allow-Methods"] = "OPTIONS, GET, POST, PUT, PATCH, DELETE"
             if (this.request.headers["access-control-request-headers"])
                 headers["Access-Control-Allow-Headers"] = this.request.headers["access-control-request-headers"]
         }
@@ -1978,7 +1977,7 @@ class Storage {
         // So the header does not always have to be added manually.
         if ([201, 202, 405].includes(status)
                 && Object.keys(headers).filter(header => header.toLowerCase() === "allow").length <= 0)
-            headers["Allow"] = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
+            headers["Allow"] = "OPTIONS, GET, POST, PUT, PATCH, DELETE"
 
         headers["Execution-Time"] = (new Date().getTime() -this.request.timing) + " ms"
 
@@ -2413,21 +2412,24 @@ http.createServer((request, response) => {
                 xpath = Buffer.from(xpath.substring(8), "base64").toString("ascii")
             else xpath = decodeURIComponent(xpath);
 
-            // With the exception of CONNECT, OPTIONS and POST, all requests expect an
+            // With the exception of OPTIONS and POST, all requests expect an
             // XPath or XPath function.
-            // CONNECT and OPTIONS do not use an (X)Path to establish a storage.
+            // OPTIONS do not use an (X)Path to establish a storage.
             // POST uses the XPath for transformation only optionally to delimit the XML
             // data for the transformation and works also without.
             // In the other cases an empty XPath is replaced by the root slash.
-            if (!xpath && !["CONNECT", "OPTIONS", "POST"].includes(method))
+            if (!xpath && !["OPTIONS", "POST"].includes(method))
                 xpath = "/"
 
             storage = Storage.share({request:request, response:response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
 
+            // The HTTP method CONNECT is not supported in node.js, but the
+            // implementation from PHP is used again. The method was simply
+            // removed from the Allow headers, and the entry point for the HTTP
+            // method is removed.
+
             try {
                 switch (method) {
-                    case "CONNECT":
-                        storage.doConnect()
                     case "OPTIONS":
                         storage.doOptions()
                     case "GET":
