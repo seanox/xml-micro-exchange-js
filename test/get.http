@@ -27,7 +27,7 @@ Storage: {{storage_get}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "87ec24126c9290cb6f4db3b3c3a79fba");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3827d658dc156bfb82144c30ccccc517");
 });
 %}
 

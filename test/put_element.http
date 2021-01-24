@@ -30,7 +30,7 @@ Storage: {{storage_put_element}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "494399804308d4c59e056ec8cd71748d");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9f9efe79cb53e7e4af901dd405a15b48");
 });
 %}
 
