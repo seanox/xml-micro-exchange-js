@@ -179,12 +179,12 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210123
+ *  Service 1.1.0 20210201
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210123
+ *  @version 1.1.0 20210201
  */
 const http = require("http")
 const fs = require("fs")
@@ -376,7 +376,7 @@ class Storage {
      * A optional storage identifier can be used to reduce the processing speed
      * for many storage files, which is advantageous for a request.
      * The final cleanup can be done in post-processing, after the request end.
-     * @param {string} optional storage identifier
+     * @param {string} storage optional storage identifier
      */
     static cleanUp(storage = undefined) {
 
@@ -2357,7 +2357,7 @@ http.createServer((request, response) => {
         // assuming that the port reassignment is greater than one millisecond.
 
         // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
-        request.unique = request.connection.remotePort.toString(36)
+        request.unique = request.socket.remotePort.toString(36)
         request.unique = "0000" + request.unique
         request.unique = request.unique.substring(request.unique.length -4)
         request.unique = new Date().getTime().toString(36) + request.unique
@@ -2466,13 +2466,13 @@ http.createServer((request, response) => {
 
                     let localhost = (request.headers.host || "").trim();
                     if (localhost.length <= 0) {
-                        localhost = request.connection.localAddress
+                        localhost = request.socket.localAddress
                         if (localhost.includes("."))
                             localhost = localhost.replace(/(^.*:)/, "")
                     } else if (localhost.match(/^[^:]+:\d+$/))
                         localhost = localhost.replace(/\s*:\d+$/, "")
 
-                    let remotehost = (request.connection.remoteAddress || "").trim();
+                    let remotehost = (request.socket.remoteAddress || "").trim();
                     if (remotehost.includes("."))
                         remotehost = remotehost.replace(/(^.*:)/, "")
                     else if (remotehost.match(/^[^:]+:\d+$/))
