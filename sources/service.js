@@ -189,6 +189,7 @@
 const http = require("http")
 const fs = require("fs")
 const crypto = require("crypto")
+const path = require("path")
 const process = require("child_process")
 
 const EOL = require("os").EOL
@@ -216,16 +217,6 @@ const XML_DOCUMENT_FRAGMENT_NODE      = 11
 const XML_NOTATION_NODE               = 12
 
 class Storage {
-
-    // TODO:
-    static get PORT() {
-        return 8000
-    }
-
-    // TODO:
-    static get CONTEXT_PATH() {
-        return "/xmex!"
-    }
 
     /** Directory of the data storage */
     static get DIRECTORY() {
@@ -360,6 +351,8 @@ class Storage {
 
         this.request  = meta.request
         this.response = meta.response
+
+        this.configuration = meta.configuration
 
         this.storage  = meta.storage || ""
         this.root     = meta.root || "data"
@@ -2173,6 +2166,25 @@ console.log()
 
 try {
 
+    // Query if something exists, it minimizes the check of undefined and null
+    Object.exists = function(object) {
+        return object !== undefined && object !== null
+    }
+
+    Object.getClassName = function(object) {
+        if (typeof object === "object"
+                && Object.getPrototypeOf(object)
+                && Object.getPrototypeOf(object).constructor)
+            return Object.getPrototypeOf(object).constructor.name;
+        return null;
+    }
+
+
+    // Date formatting to timestamp string
+    Date.prototype.toTimestampString = function() {
+        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
+    }
+
     // Logging: Output with timestamp
     console.log$ = console.log
     console.log = function(...variable) {
@@ -2186,7 +2198,7 @@ try {
     console.error = function(...variable) {
         if (Object.exists(variable)
                 && variable.length > 0
-                && variable[0].match(/^\s*\[\s*xmldom\s/i))
+                && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
             return;
         console.error$(new Date().toTimestampString(), ...variable)
     }
@@ -2198,27 +2210,9 @@ try {
     console.warn = function(...variable) {
         if (Object.exists(variable)
                 && variable.length > 0
-                && variable[0].match(/^\s*\[\s*xmldom\s/i))
+                && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
             return;
         console.warn$(new Date().toTimestampString(), ...variable)
-    }
-
-    // Date formatting to timestamp string
-    Date.prototype.toTimestampString = function() {
-        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
-    }
-
-    // Query if something exists, it minimizes the check of undefined and null
-    Object.exists = function(object) {
-        return object !== undefined && object !== null
-    }
-
-    Object.getClassName = function(object) {
-        if (typeof object === "object"
-                && Object.getPrototypeOf(object)
-                && Object.getPrototypeOf(object).constructor)
-            return Object.getPrototypeOf(object).constructor.name;
-        return null;
     }
 
     let element = new DOMImplementation().createDocument().createElement()
@@ -2339,7 +2333,36 @@ try {
     console.error(exception)
 }
 
-// TODO: [address]:port as CLI application parameter (address optional, otherwise 0.0.0.0)
+const configuration = (() => {
+
+    // The INI format is case-insensitive for sections and keys.
+    // That is why they are normalized in lowercase.
+
+    let file = path.basename(__filename);
+    file = file.replace(/\.[^\.]*$/, "") + ".ini"
+    if (!fs.existsSync(file)
+            || !fs.lstatSync(file).isFile())
+        throw "Configuration file " + file + " not found"
+
+    let configuration = {connection:{}, storage:{}, cors:{}, logging:{}}
+    let sections = require("ini").parse(fs.readFileSync(file, "ascii"))
+    Object.keys(sections).forEach((section) => {
+        let entries = sections[section]
+        section = section.toLowerCase()
+        configuration[section] = {}
+        Object.keys(entries).forEach((key) => {
+            let value = entries[key]
+            if (section !== "cors")
+                key = key.toLowerCase()
+            if (Array.isArray(value))
+                value = value.length > 0 ? value[0] : ""
+            configuration[section][key] = value
+        })
+    })
+
+    return configuration
+})()
+
 // TODO: certificate files as CLI application parameter (otherwise HTTP instead of HTTPS)
 // TODO: node.js service.js [address]:port [certificate files]
 // TODO: PUT/PATCH autoescape to HTML entities, so that the storage contains only ASCII
@@ -2376,14 +2399,15 @@ http.createServer((request, response) => {
 
             // Marking the start time for request processing
             request.timing = new Date().getTime()
-
             request.data = Object.exists(request.data) ? request.data : ""
+
+            let contextPath =  Object.exists(configuration.connection.context) ? configuration.connection.context : ""
 
             // The API should always use a context path so that the separation
             // between URI and XPath is also visually recognizable.
             // Other requests will be answered with status 404.
-            if (!decodeURI(request.url).startsWith(Storage.CONTEXT_PATH))
-                (new Storage({request:request, response:response})).quit(404, "Resource Not Found")
+            if (!decodeURI(request.url).startsWith(contextPath))
+                (new Storage({request:request, response:response, configuration:configuration})).quit(404, "Resource Not Found")
 
             // Request method is determined
             let method = request.method.toUpperCase()
@@ -2392,18 +2416,18 @@ http.createServer((request, response) => {
             if (method.toUpperCase() === "OPTIONS"
                     && request.headers.origin
                     && !request.headers.storage)
-                (new Storage({request:request, response:response})).quit(200, "Success")
+                (new Storage({request:request, response:response, configuration:configuration})).quit(200, "Success")
 
             let storage
             if (request.headers.storage)
                 storage = request.headers.storage
             if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                (new Storage({request:request, response:response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
+                (new Storage({request:request, response:response, configuration:configuration})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
 
             // The XPath is determined from REQUEST_URI.
             // The XPath starts directly after the context path. To improve visual
             // recognition, the context path should always end with a symbol.
-            let xpath = decodeURI(request.url).substr(Storage.CONTEXT_PATH.length)
+            let xpath = decodeURI(request.url).substr(contextPath.length)
             if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
                 xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
                     return String.fromCharCode(parseInt(matched, 16))
@@ -2450,7 +2474,7 @@ http.createServer((request, response) => {
             }
         } catch (exception1) {
             if (exception1 !== Storage.prototype.quit) {
-                let storage = (new Storage({request:request, response:response}))
+                let storage = (new Storage({request:request, response:response, configuration:configuration}))
                 console.error("Service", "#" + request.unique, exception1)
                 try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
                 } catch (exception2) {
@@ -2539,6 +2563,6 @@ http.createServer((request, response) => {
             })();
         }
     })
-}).listen(Storage.PORT, () => {
-    console.log("Service", `Listening at port ${Storage.PORT}`)
+}).listen(configuration.connection.port, configuration.connection.address, function() {
+    console.log("Service", `Listening at ${this.address().address}:${this.address().port}`)
 })
