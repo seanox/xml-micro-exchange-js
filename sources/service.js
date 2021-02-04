@@ -418,7 +418,7 @@ class Storage {
         Storage.cleanUp(meta.storage)
         if (!fs.existsSync(Storage.DIRECTORY))
             fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
-        let storage = new Storage(meta)
+        let storage = new Storage(...meta)
 
         if (storage.exists()) {
             storage.open(meta.exclusive)
@@ -2371,6 +2371,8 @@ const configuration = (() => {
 
 http.createServer((request, response) => {
 
+    let meta = {request:request, response:response, data:configuration.storage, cors:configuration.cors, logging:configuration.logging}
+
     if (!Object.exists(request.unique)) {
 
         // The method is based on time, network port and the assumption that a
@@ -2407,7 +2409,7 @@ http.createServer((request, response) => {
             // between URI and XPath is also visually recognizable.
             // Other requests will be answered with status 404.
             if (!decodeURI(request.url).startsWith(contextPath))
-                (new Storage({request:request, response:response, configuration:configuration})).quit(404, "Resource Not Found")
+                (new Storage({...meta})).quit(404, "Resource Not Found")
 
             // Request method is determined
             let method = request.method.toUpperCase()
@@ -2416,13 +2418,13 @@ http.createServer((request, response) => {
             if (method.toUpperCase() === "OPTIONS"
                     && request.headers.origin
                     && !request.headers.storage)
-                (new Storage({request:request, response:response, configuration:configuration})).quit(200, "Success")
+                (new Storage({...meta})).quit(200, "Success")
 
             let storage
             if (request.headers.storage)
                 storage = request.headers.storage
             if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                (new Storage({request:request, response:response, configuration:configuration})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
+                (new Storage({...meta})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
 
             // The XPath is determined from REQUEST_URI.
             // The XPath starts directly after the context path. To improve visual
@@ -2445,7 +2447,7 @@ http.createServer((request, response) => {
             if (!xpath && !["OPTIONS", "POST"].includes(method))
                 xpath = "/"
 
-            storage = Storage.share({request:request, response:response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
+            storage = Storage.share({...meta, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
 
             // The HTTP method CONNECT is not supported in node.js, but the
             // implementation from PHP is used again. The method was simply
@@ -2474,7 +2476,7 @@ http.createServer((request, response) => {
             }
         } catch (exception1) {
             if (exception1 !== Storage.prototype.quit) {
-                let storage = (new Storage({request:request, response:response, configuration:configuration}))
+                let storage = (new Storage({...meta}))
                 console.error("Service", "#" + request.unique, exception1)
                 try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
                 } catch (exception2) {
