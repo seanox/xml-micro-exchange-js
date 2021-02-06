@@ -1,8 +1,5 @@
 # The following sequence checks the request processing.
-# There are three approaches to send the XPath:
-# - Standard: Combination of PATH_INFO + QUERY_STRING
-# - Alternative 1st: QUERY_STRING
-# - Alternative 1st: CGI Environment Variable REQUEST
+# There are three approaches to send the XPath
 
 ###
 # Initial request to establish the storage
@@ -566,29 +563,6 @@ client.test("unittest", function() {
 #> {%
 #client.test("unittest", function() {
 #    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "");
-#});
-#%}
-
-###
-# TODO: not supported test case
-# The REST HTTP client expects a query string with parameters and complements
-# the query string with = characters.
-# Expectations:
-# - Status code 204 No Content
-# - Storage-Effects: 5x UID
-# - In the storage the attribute is added
-# - Storage-Revision is increased
-# - Title of all books change (Test_2)
-# URI: //*/@title
-#PUT {{service}}?0x2f2f2a2f407469746c65 HTTP/1.0
-#Storage: {{storage_request}}
-#Content-Type: text/plain
-#
-#Test_2
-#
-#> {%
-#client.test("unittest", function() {
-#    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "XXXX");
 #});
 #%}
 
