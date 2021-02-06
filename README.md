@@ -19,10 +19,10 @@ XPath and XSLT was born.
 The focus should be on a public, volatile and short-term data exchange for
 (static) web-applications and IoT.
 
-__Just exchange data without a own server landscape.__  
+__Just exchange data without an own server landscape.__  
 __Just exchange data without knowing and managing all clients.__
 
-XML-Micro-Exchange is an volatile NoSQL stateless micro datasource for the
+XML-Micro-Exchange is a volatile NoSQL stateless micro datasource for the
 Internet. It is designed for easy communication and data exchange of
 web-applications and for IoT or for other Internet-based modules and
 components.  
@@ -43,7 +43,7 @@ data and also exchange data with each other.
 Clients can establish dynamically volatile networks.
 
 __In this communication are all participants.__  
-__No one is server or master, all are equal and no one has to know the other.__  
+__No one is a server or master, all are equal and no one has to know the other.__  
 __All meet without obligation.__
 
 
