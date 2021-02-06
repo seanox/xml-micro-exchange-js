@@ -179,18 +179,18 @@
  * Authentication and/or Server/Client certificates is followed, which is
  * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
  *
- *  Service 1.1.0 20210201
+ *  Service 1.1.0 20210206
  *  Copyright (C) 2021 Seanox Software Solutions
  *  All rights reserved.
  *
  *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210201
+ *  @version 1.1.0 20210206
  */
 const http = require("http")
 const fs = require("fs")
 const crypto = require("crypto")
 const path = require("path")
-const process = require("child_process")
+const child = require("child_process")
 
 const EOL = require("os").EOL
 const DOM = require("xmldom")
@@ -216,16 +216,238 @@ const XML_DOCUMENT_TYPE_NODE          = 10
 const XML_DOCUMENT_FRAGMENT_NODE      = 11
 const XML_NOTATION_NODE               = 12
 
+console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
+console.log("Copyright (C) 0000 Seanox Software Solutions")
+console.log()
+
+process.on("uncaughtException", function (error) {
+    console.error(error.stack);
+})
+
+process.on("exit", function (error) {
+    console.log("Service", "Stopped")
+})
+
+// Some things of the API are adjusted.
+// These are only small changes, but they greatly simplify the use.
+// Curse and blessing of JavaScript :-)
+
+// Query if something exists, it minimizes the check of undefined and null
+Object.exists = function(object) {
+    return object !== undefined && object !== null
+}
+
+Object.getClassName = function(object) {
+    if (typeof object === "object"
+            && Object.getPrototypeOf(object)
+            && Object.getPrototypeOf(object).constructor)
+        return Object.getPrototypeOf(object).constructor.name;
+    return null;
+}
+
+// Date formatting to timestamp string
+Date.prototype.toTimestampString = function() {
+    return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
+}
+
+// Logging: Output with timestamp
+console.log$ = console.log
+console.log = function(...variable) {
+    console.log$(new Date().toTimestampString(), ...variable)
+}
+
+// Logging: Output with timestamp
+// Filter XMLDOM errors/warnings, they are not helpful for the service,
+// because only the client needs them.
+console.error$ = console.error
+console.error = function(...variable) {
+    if (Object.exists(variable)
+            && variable.length > 0
+            && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
+        return;
+    console.error$(new Date().toTimestampString(), ...variable)
+}
+
+// Logging: Output with timestamp
+// Filter XMLDOM errors/warnings, they are not helpful for the service,
+// because only the client needs them.
+console.warn$ = console.warn
+console.warn = function(...variable) {
+    if (Object.exists(variable)
+            && variable.length > 0
+            && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
+        return;
+    console.warn$(new Date().toTimestampString(), ...variable)
+}
+
+let element = new DOMImplementation().createDocument().createElement()
+prototype = Object.getPrototypeOf(element)
+prototype.getAttributeNumber = function(attribute) {
+    let value = this.getAttribute(attribute)
+    if ((value || "").includes("."))
+        return parseFloat(value)
+    return parseInt(value)
+}
+
+// The evaluate method of the Document differs from PHP in behavior.
+// The following things have been changed to simplify migration:
+// - Additional third parameter
+//   true catches errors as return value without throwing an exception
+DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString
+DOMParser.prototype.parseFromString = function(...variable) {
+    if (variable.length < 3)
+        return this.parseFromString$(...variable)
+    else if (!variable[2])
+        return this.parseFromString$(...variable.slice(0, 2))
+    try {return this.parseFromString$(...variable.slice(0, 2))
+    } catch (exception) {
+        return exception
+    }
+}
+
+// The evaluate method of the Document differs from PHP in behavior.
+// The following things have been changed to simplify migration:
+// - If an error/exception occurs, the return value is the error/exception
+XPath.evaluate$ = XPath.evaluate
+XPath.evaluate = function (...variable) {
+    try {return XPath.evaluate$(...variable)
+    } catch (exception) {
+        return exception
+    }
+}
+
+XPath.select$ = XPath.select
+XPath.select = function (...variable) {
+    try {return XPath.select$(...variable)
+    } catch (exception) {
+        return exception
+    }
+}
+
+// DOM serialization is implemented very differently.
+// So that the result is the same and all rules are known, the
+// serialization itself was implemented.
+// - Considered are: DOCUMENT_NODE, ELEMENT_NODE, ATTRIBUTE_NODE, CDATA_SECTION_NODE
+// - Non-existing values (undefined / null) are used as null
+// - DOCUMENT_NODE uses as starting point document element
+// - Attributes are hold only for elements in the sub-object @attributes
+// - CDATA_SECTION_NODE are used as text elements
+// - Empty text elements (no printable characters) are ignored
+// - If an element contains only text elements as children,
+//   these are combined as one value, separated by a simple line break \n,
+//   also here empty text elements (no printable characters) will be ignored
+// - if an element contains text elements mixed with other elements,
+//   the contents of the text elements are combined in the sub-object #text,
+//   separated by a simple line break \n,
+//   also here empty text elements (no printable characters) will be ignored
+JSON.stringify$ = JSON.stringify
+JSON.stringify = function(...variable) {
+    if (variable.length > 0
+            && Object.getClassName(variable[0]) === "Document")
+        return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
+    return JSON.stringify$(...variable)
+}
+JSON.stringify$xml = function(xml) {
+    let result = {};
+    if (!Object.exists(xml))
+        return null
+    if (xml.nodeType === XML_TEXT_NODE
+            || xml.nodeType === XML_CDATA_SECTION_NODE)
+        return xml.nodeValue.trim()
+    if (xml.nodeType === XML_DOCUMENT_NODE)
+        xml = xml.documentElement
+    if (xml.nodeType !== XML_ELEMENT_NODE)
+        return null
+    if (xml.attributes.length > 0) {
+        result["@attributes"] = {}
+        Array.from(xml.attributes).forEach((attribute) => {
+            result["@attributes"][attribute.nodeName] = attribute.nodeValue
+        })
+    }
+    let buffer = {text:"", mixed:Object.exists(result["@attributes"])}
+    Array.from(xml.childNodes).forEach((item) => {
+        if (item.nodeType === XML_TEXT_NODE
+                || item.nodeType === XML_CDATA_SECTION_NODE) {
+            let text = item.nodeValue.trim();
+            if (text.length <= 0)
+                return
+            if (buffer.text.length > 0)
+                buffer.text += "\n"
+            buffer.text += text
+            return;
+        }
+        if (item.nodeType !== XML_ELEMENT_NODE)
+            return
+        buffer.mixed = true;
+        let nodeName = item.nodeName
+        if (result[nodeName] === undefined) {
+            result[nodeName] = JSON.stringify$xml(item)
+            return
+        }
+        if (!Array.isArray(result[nodeName]))
+            result[nodeName] = [result[nodeName]]
+        result[nodeName].push(JSON.stringify$xml(item))
+    })
+    if (!buffer.mixed)
+        return buffer.text
+    if (buffer.text.length > 0)
+        result["#text"] = buffer.text
+    return result
+}
+
+Number.parseBytes = function(text) {
+    // TODO:
+}
+
+Date.parseDuration = function(text) {
+    // TODO:
+}
+
+module.init = function() {
+
+    // The INI format is case-insensitive for sections and keys.
+    // That is why they are normalized in lowercase.
+
+    let file = path.basename(__filename);
+    file = file.replace(/\.[^\.]*$/, "") + ".ini"
+    if (!fs.existsSync(file)
+            || !fs.lstatSync(file).isFile())
+        throw "Configuration file " + file + " not found"
+
+    let meta = {connection: {}, cors: {}, storage: {}, logging: {}}
+    let sections = require("ini").parse(fs.readFileSync(file, "ascii"))
+    Object.keys(sections).forEach((section) => {
+        let entries = sections[section]
+        section = section.toLowerCase()
+        meta[section] = {}
+        Object.keys(entries).forEach((key) => {
+            let value = entries[key]
+            if (section !== "cors")
+                key = key.toLowerCase()
+            if (Array.isArray(value))
+                value = value.length > 0 ? value[0] : ""
+            meta[section][key] = value
+        })
+    })
+
+    module["connection"] = meta.connection
+    module["cors"] = meta.cors
+    module["storage"] = meta.storage
+    module["logging"] = meta.logging
+}
+
+module.init()
+
 class Storage {
 
     /** Directory of the data storage */
     static get DIRECTORY() {
-        return "./data"
+        return module.storage.directory
     }
 
     /** Maximum number of files in data storage */
     static get QUANTITY() {
-        return 65535
+        return module.storage.quantity
     }
 
     /**
@@ -233,12 +455,12 @@ class Storage {
      * The value also limits the size of the requests(-body).
      */
     static get SPACE() {
-        return 256 *1024
+        return Number.parseBytes(module.storage.space)
     }
 
-    /** Maximum idle time of the files in seconds */
+    /** Maximum idle time of the files in milliseconds */
     static get TIMEOUT() {
-        return 15 *60
+        return Date.parseDuration(module.storage.idle)
     }
 
     /**
@@ -247,12 +469,7 @@ class Storage {
      *     Access-Control-Allow-Methods, Access-Control-Allow-Headers
      */
     static get CORS() {
-        return {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Max-Age": "86400",
-            "Access-Control-Expose-Headers": "*"
-        }
+        return module.cors || {}
     }
 
     /**
@@ -352,8 +569,6 @@ class Storage {
         this.request  = meta.request
         this.response = meta.response
 
-        this.configuration = meta.configuration
-
         this.storage  = meta.storage || ""
         this.root     = meta.root || "data"
         this.store    = Storage.DIRECTORY + "/" + Buffer.from(this.storage, "ascii").toString("base64")
@@ -384,7 +599,7 @@ class Storage {
                 return
         }
 
-        let timeout = new Date().getTime() -(Storage.TIMEOUT *1000)
+        let timeout = new Date().getTime() -Storage.TIMEOUT
         let files = storage ? [storage] : fs.readdirSync(Storage.DIRECTORY)
         files.forEach((file) => {
             try {
@@ -981,7 +1196,7 @@ class Storage {
         fs.writeFileSync(tempXml, new DOM.XMLSerializer().serializeToString(xml))
 
         let spawnSync = function(...variable) {
-            try {return process.spawnSync(...variable)
+            try {return child.spawnSync(...variable)
             } catch (exception) {
                 return exception;
             }
@@ -1859,8 +2074,8 @@ class Storage {
                 "Storage-Revision": this.xml.documentElement.getAttribute("___rev"),
                 "Storage-Space": Storage.SPACE + "/" + this.getSize() + " bytes",
                 "Storage-Last-Modified": new Date().toUTCString(),
-                "Storage-Expiration": new Date(new Date().getTime() +(Storage.TIMEOUT *1000)).toUTCString(),
-                "Storage-Expiration-Time": (Storage.TIMEOUT *1000) + " ms"
+                "Storage-Expiration": new Date(new Date().getTime() +Storage.TIMEOUT).toUTCString(),
+                "Storage-Expiration-Time": Storage.TIMEOUT + " ms"
             }}
 
         // The response from the Storage-Effects header can be very extensive.
@@ -2156,222 +2371,14 @@ class Storage {
     }
 }
 
-console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
-console.log("Copyright (C) 0000 Seanox Software Solutions")
-console.log()
-
-// Some things of the API are adjusted.
-// These are only small changes, but they greatly simplify the use.
-// Curse and blessing of JavaScript :-)
-
-try {
-
-    // Query if something exists, it minimizes the check of undefined and null
-    Object.exists = function(object) {
-        return object !== undefined && object !== null
-    }
-
-    Object.getClassName = function(object) {
-        if (typeof object === "object"
-                && Object.getPrototypeOf(object)
-                && Object.getPrototypeOf(object).constructor)
-            return Object.getPrototypeOf(object).constructor.name;
-        return null;
-    }
-
-
-    // Date formatting to timestamp string
-    Date.prototype.toTimestampString = function() {
-        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
-    }
-
-    // Logging: Output with timestamp
-    console.log$ = console.log
-    console.log = function(...variable) {
-        console.log$(new Date().toTimestampString(), ...variable)
-    }
-
-    // Logging: Output with timestamp
-    // Filter XMLDOM errors/warnings, they are not helpful for the service,
-    // because only the client needs them.
-    console.error$ = console.error
-    console.error = function(...variable) {
-        if (Object.exists(variable)
-                && variable.length > 0
-                && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
-            return;
-        console.error$(new Date().toTimestampString(), ...variable)
-    }
-
-    // Logging: Output with timestamp
-    // Filter XMLDOM errors/warnings, they are not helpful for the service,
-    // because only the client needs them.
-    console.warn$ = console.warn
-    console.warn = function(...variable) {
-        if (Object.exists(variable)
-                && variable.length > 0
-                && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
-            return;
-        console.warn$(new Date().toTimestampString(), ...variable)
-    }
-
-    let element = new DOMImplementation().createDocument().createElement()
-    prototype = Object.getPrototypeOf(element)
-    prototype.getAttributeNumber = function(attribute) {
-        let value = this.getAttribute(attribute)
-        if ((value || "").includes("."))
-            return parseFloat(value)
-        return parseInt(value)
-    }
-
-    // The evaluate method of the Document differs from PHP in behavior.
-    // The following things have been changed to simplify migration:
-    // - Additional third parameter
-    //   true catches errors as return value without throwing an exception
-    DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString
-    DOMParser.prototype.parseFromString = function(...variable) {
-        if (variable.length < 3)
-            return this.parseFromString$(...variable)
-        else if (!variable[2])
-            return this.parseFromString$(...variable.slice(0, 2))
-        try {return this.parseFromString$(...variable.slice(0, 2))
-        } catch (exception) {
-            return exception
-        }
-    }
-
-    // The evaluate method of the Document differs from PHP in behavior.
-    // The following things have been changed to simplify migration:
-    // - If an error/exception occurs, the return value is the error/exception
-    XPath.evaluate$ = XPath.evaluate
-    XPath.evaluate = function (...variable) {
-        try {return XPath.evaluate$(...variable)
-        } catch (exception) {
-            return exception
-        }
-    }
-
-    XPath.select$ = XPath.select
-    XPath.select = function (...variable) {
-        try {return XPath.select$(...variable)
-        } catch (exception) {
-            return exception
-        }
-    }
-
-    // DOM serialization is implemented very differently.
-    // So that the result is the same and all rules are known, the
-    // serialization itself was implemented.
-    // - Considered are: DOCUMENT_NODE, ELEMENT_NODE, ATTRIBUTE_NODE, CDATA_SECTION_NODE
-    // - Non-existing values (undefined / null) are used as null
-    // - DOCUMENT_NODE uses as starting point document element
-    // - Attributes are hold only for elements in the sub-object @attributes
-    // - CDATA_SECTION_NODE are used as text elements
-    // - Empty text elements (no printable characters) are ignored
-    // - If an element contains only text elements as children,
-    //   these are combined as one value, separated by a simple line break \n,
-    //   also here empty text elements (no printable characters) will be ignored
-    // - if an element contains text elements mixed with other elements,
-    //   the contents of the text elements are combined in the sub-object #text,
-    //   separated by a simple line break \n,
-    //   also here empty text elements (no printable characters) will be ignored
-    JSON.stringify$ = JSON.stringify
-    JSON.stringify = function(...variable) {
-        if (variable.length > 0
-                && Object.getClassName(variable[0]) === "Document")
-            return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
-        return JSON.stringify$(...variable)
-    }
-    JSON.stringify$xml = function(xml) {
-        let result = {};
-        if (!Object.exists(xml))
-            return null
-        if (xml.nodeType === XML_TEXT_NODE
-                || xml.nodeType === XML_CDATA_SECTION_NODE)
-            return xml.nodeValue.trim()
-        if (xml.nodeType === XML_DOCUMENT_NODE)
-            xml = xml.documentElement
-        if (xml.nodeType !== XML_ELEMENT_NODE)
-            return null
-        if (xml.attributes.length > 0) {
-            result["@attributes"] = {}
-            Array.from(xml.attributes).forEach((attribute) => {
-                result["@attributes"][attribute.nodeName] = attribute.nodeValue
-            })
-        }
-        let buffer = {text:"", mixed:Object.exists(result["@attributes"])}
-        Array.from(xml.childNodes).forEach((item) => {
-            if (item.nodeType === XML_TEXT_NODE
-                    || item.nodeType === XML_CDATA_SECTION_NODE) {
-                let text = item.nodeValue.trim();
-                if (text.length <= 0)
-                    return
-                if (buffer.text.length > 0)
-                    buffer.text += "\n"
-                buffer.text += text
-                return;
-            }
-            if (item.nodeType !== XML_ELEMENT_NODE)
-                return
-            buffer.mixed = true;
-            let nodeName = item.nodeName
-            if (result[nodeName] === undefined) {
-                result[nodeName] = JSON.stringify$xml(item)
-                return
-            }
-            if (!Array.isArray(result[nodeName]))
-                result[nodeName] = [result[nodeName]]
-            result[nodeName].push(JSON.stringify$xml(item))
-        })
-        if (!buffer.mixed)
-            return buffer.text
-        if (buffer.text.length > 0)
-            result["#text"] = buffer.text
-        return result
-    }
-} catch (exception) {
-    console.error(exception)
-}
-
-const configuration = (() => {
-
-    // The INI format is case-insensitive for sections and keys.
-    // That is why they are normalized in lowercase.
-
-    let file = path.basename(__filename);
-    file = file.replace(/\.[^\.]*$/, "") + ".ini"
-    if (!fs.existsSync(file)
-            || !fs.lstatSync(file).isFile())
-        throw "Configuration file " + file + " not found"
-
-    let configuration = {connection:{}, storage:{}, cors:{}, logging:{}}
-    let sections = require("ini").parse(fs.readFileSync(file, "ascii"))
-    Object.keys(sections).forEach((section) => {
-        let entries = sections[section]
-        section = section.toLowerCase()
-        configuration[section] = {}
-        Object.keys(entries).forEach((key) => {
-            let value = entries[key]
-            if (section !== "cors")
-                key = key.toLowerCase()
-            if (Array.isArray(value))
-                value = value.length > 0 ? value[0] : ""
-            configuration[section][key] = value
-        })
-    })
-
-    return configuration
-})()
-
 // TODO: certificate files as CLI application parameter (otherwise HTTP instead of HTTPS)
-// TODO: node.js service.js [address]:port [certificate files]
 // TODO: PUT/PATCH autoescape to HTML entities, so that the storage contains only ASCII
 // TODO: BasicAuth/DigistAuth
 // TODO: XPath as query string (similar to PHP)
 
 http.createServer((request, response) => {
 
-    let meta = {request:request, response:response, data:configuration.storage, cors:configuration.cors, logging:configuration.logging}
+    let meta = {request:request, response:response}
 
     if (!Object.exists(request.unique)) {
 
@@ -2403,12 +2410,12 @@ http.createServer((request, response) => {
             request.timing = new Date().getTime()
             request.data = Object.exists(request.data) ? request.data : ""
 
-            let contextPath =  Object.exists(configuration.connection.context) ? configuration.connection.context : ""
+            let context =  Object.exists(module.connection.context) ? module.connection.context : ""
 
             // The API should always use a context path so that the separation
             // between URI and XPath is also visually recognizable.
             // Other requests will be answered with status 404.
-            if (!decodeURI(request.url).startsWith(contextPath))
+            if (!decodeURI(request.url).startsWith(context))
                 (new Storage({...meta})).quit(404, "Resource Not Found")
 
             // Request method is determined
@@ -2429,7 +2436,7 @@ http.createServer((request, response) => {
             // The XPath is determined from REQUEST_URI.
             // The XPath starts directly after the context path. To improve visual
             // recognition, the context path should always end with a symbol.
-            let xpath = decodeURI(request.url).substr(contextPath.length)
+            let xpath = decodeURI(request.url).substr(context.length)
             if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
                 xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
                     return String.fromCharCode(parseInt(matched, 16))
@@ -2565,6 +2572,6 @@ http.createServer((request, response) => {
             })();
         }
     })
-}).listen(configuration.connection.port, configuration.connection.address, function() {
+}).listen(module.connection.port, module.connection.address, function() {
     console.log("Service", `Listening at ${this.address().address}:${this.address().port}`)
 })
