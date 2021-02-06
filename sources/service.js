@@ -136,14 +136,6 @@
  * e.g. /xmex!//book%5Blast()%5D/chapter%5Blast()%5D
  * is equivalent to: /xmex!//book[last()]/chapter[last()]
  *
- *        XPath as query string and URL encoding
- * The XPath is transmitted as a query string.
- * e.g. /xmex!?//book[last()]/chapter[last()]
- *      /xmex!?//book%5Blast()%5D/chapter%5Blast()%5D
- *      /xmex?//book[last()]/chapter[last()]
- *      /xmex?//book%5Blast()%5D/chapter%5Blast()%5D
- * is equivalent to: /xmex!//book[last()]/chapter[last()]
- *
  *        XPath as hexadecimal string
  * The URI starts with 0x after the XPath separator:
  * e.g. /xmex!0x2f2f626f6f6b5b6c61737428295d2f636861707465725b6c61737428295d
@@ -173,18 +165,16 @@
  *
  *     SECURITY
  * This aspect was deliberately considered and implemented here only in a very
- * rudimentary form. Only the storage(-key) with a length of 1 - 64 characters
- * can be regarded as secret.
- * For further security the approach of Basic Authentication, Digest Access
- * Authentication and/or Server/Client certificates is followed, which is
- * configured outside of the XMDS (XML-Micro-Datasource) at the web server.
+ * rudimentary form. The storage(-key) with a length of 1 - 64 characters and
+ * the individual root element can be regarded as secret.
+ * In addition, HTTPS is supported but without client certificate authorization.
  *
- *  Service 1.1.0 20210206
- *  Copyright (C) 2021 Seanox Software Solutions
- *  All rights reserved.
+ * Service 1.1.0 20210206
+ * Copyright (C) 2021 Seanox Software Solutions
+ * All rights reserved.
  *
- *  @author  Seanox Software Solutions
- *  @version 1.1.0 20210206
+ * @author  Seanox Software Solutions
+ * @version 1.1.0 20210206
  */
 const http = require("http")
 const fs = require("fs")
@@ -224,7 +214,7 @@ process.on("uncaughtException", function (error) {
     console.error(error.stack);
 })
 
-process.on("exit", function (error) {
+process.on("exit", function () {
     console.log("Service", "Stopped")
 })
 
@@ -396,11 +386,35 @@ JSON.stringify$xml = function(xml) {
 }
 
 Number.parseBytes = function(text) {
-    // TODO:
+    if (!Object.exists(text)
+            || String(text).trim().length <= 0)
+        throw "Number parser error: Invalid value"
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]{0,1})\s*$/i);
+    if (!match || match.length < 3 || Number.isNaN(match[1]))
+        throw "Number parser error: Invalid value " + String(text).trim()
+    let number = Number.parseFloat(match[1])
+    let factor = ("kmg").indexOf(match[2]) +1
+    return number *Math.pow(1024, factor)
 }
 
 Date.parseDuration = function(text) {
-    // TODO:
+    if (!Object.exists(text)
+            || String(text).trim().length <= 0)
+        throw "Date parser error: Invalid value"
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h{0,1})\s*$/i);
+    if (!match || match.length < 3 || Number.isNaN(match[1]))
+        throw "Date parser error: Invalid value " + String(text).trim()
+    let number = Number.parseFloat(match[1])
+    let factor = 1;
+    if (match[2] === "s")
+        factor = 1000
+    else if (match[2] === "m")
+        factor = 1000 *60
+    else if (match[2] === "h")
+        factor = 1000 *60 *60
+    else if (match[2] === "s")
+        factor = 1
+    return number *factor
 }
 
 module.init = function() {
@@ -633,7 +647,7 @@ class Storage {
         Storage.cleanUp(meta.storage)
         if (!fs.existsSync(Storage.DIRECTORY))
             fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
-        let storage = new Storage(...meta)
+        let storage = new Storage(meta)
 
         if (storage.exists()) {
             storage.open(meta.exclusive)
@@ -834,7 +848,6 @@ class Storage {
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
      * - XPath is missing or malformed
-     * - XPath is used from PATH_INFO + QUERY_STRING, not the request URI
      *         HTTP/1.0 507 Insufficient Storage
      * - Response can be status 507 if the storage is full
      */
@@ -1367,7 +1380,7 @@ class Storage {
         // PUT requests can address attributes and elements via XPath.
         // Multi-axis XPaths allow multiple targets.
         // The method only supports these two possibilities, other requests are
-        // responsed with an error, because this situation cannot occur because
+        // responded with an error, because this situation cannot occur because
         // the XPath is recognized as XPath for an attribute and otherwise an
         // element is assumed.
         // In this case it can only happen that the XPath does not address a
@@ -2234,7 +2247,7 @@ class Storage {
             // Storage-Effects are never the same with UIDs.
             // Therefore, the UIDs are normalized and the header is simplified to
             // make it comparable. To do this, it is only determined how many
-            // unique's there are, in which order they are arranged and which
+            // uniques there are, in which order they are arranged and which
             // serials each unique has.
             let serials = fetchHeader(headers, "Storage-Effects", false)
             serials = serials ? serials.value : ""
@@ -2371,14 +2384,11 @@ class Storage {
     }
 }
 
-// TODO: certificate files as CLI application parameter (otherwise HTTP instead of HTTPS)
-// TODO: PUT/PATCH autoescape to HTML entities, so that the storage contains only ASCII
-// TODO: BasicAuth/DigistAuth
-// TODO: XPath as query string (similar to PHP)
+// TODO: TLS connection
+// TODO: TLS connection / certificate test (incl. creation of the certificate)
+// TODO: PUT/PATCH auto escape to HTML entities, so that the storage contains only ASCII
 
 http.createServer((request, response) => {
-
-    let meta = {request:request, response:response}
 
     if (!Object.exists(request.unique)) {
 
@@ -2410,13 +2420,13 @@ http.createServer((request, response) => {
             request.timing = new Date().getTime()
             request.data = Object.exists(request.data) ? request.data : ""
 
-            let context =  Object.exists(module.connection.context) ? module.connection.context : ""
+            let context = Object.exists(module.connection.context) ? module.connection.context : ""
 
             // The API should always use a context path so that the separation
             // between URI and XPath is also visually recognizable.
             // Other requests will be answered with status 404.
             if (!decodeURI(request.url).startsWith(context))
-                (new Storage({...meta})).quit(404, "Resource Not Found")
+                (new Storage({request, response})).quit(404, "Resource Not Found")
 
             // Request method is determined
             let method = request.method.toUpperCase()
@@ -2425,13 +2435,13 @@ http.createServer((request, response) => {
             if (method.toUpperCase() === "OPTIONS"
                     && request.headers.origin
                     && !request.headers.storage)
-                (new Storage({...meta})).quit(200, "Success")
+                (new Storage({request, response})).quit(200, "Success")
 
             let storage
             if (request.headers.storage)
                 storage = request.headers.storage
             if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                (new Storage({...meta})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
+                (new Storage({request, response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
 
             // The XPath is determined from REQUEST_URI.
             // The XPath starts directly after the context path. To improve visual
@@ -2454,7 +2464,7 @@ http.createServer((request, response) => {
             if (!xpath && !["OPTIONS", "POST"].includes(method))
                 xpath = "/"
 
-            storage = Storage.share({...meta, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
+            storage = Storage.share({request, response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
 
             // The HTTP method CONNECT is not supported in node.js, but the
             // implementation from PHP is used again. The method was simply
@@ -2483,7 +2493,7 @@ http.createServer((request, response) => {
             }
         } catch (exception1) {
             if (exception1 !== Storage.prototype.quit) {
-                let storage = (new Storage({...meta}))
+                let storage = (new Storage({request, response}))
                 console.error("Service", "#" + request.unique, exception1)
                 try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
                 } catch (exception2) {
@@ -2539,7 +2549,7 @@ http.createServer((request, response) => {
                             case "%H":
                                 return request.httpVersion ? "HTTP/" + request.httpVersion : ""
                             case "%t":
-                                var set = date.toString().split(/\s+|(?=[\+\-])/)
+                                let set = date.toString().split(/\s+|(?=[\+\-])/)
                                 return `${set[2]}/${set[1]}/${set[3]}:${set[4]} ${set[6]}`
                             default:
                                 return matches.substr(1)
