@@ -81,11 +81,15 @@ transmitted via POST.
 
 ## Security
 This aspect was deliberately considered and implemented here only in a very
-rudimentary form. Only the storage(-key) with a length of 1 - 64 characters can
-be regarded as secret.  
-For further security the approach of Basic Authentication, Digest Access
-Authentication and/or Server/Client certificates is followed, which is
-configured outside of the XMEX (XML-Micro-Exchange) at the web server.
+rudimentary form. The storage(-key) with a length of 1 - 64 characters and the
+individual root element can be regarded as secret.  
+In addition, HTTPS is supported but without client certificate authorization.   
+
+## Differences to the PHP version
+- XPath as query string is not supported
+- HTTP method CONNECT is not supported
+- Processing of XPath may differ in detail due to the use of different libraries
+- Transformation (XSLT) may differ in detail due to the use of different libraries
 
 
 # Licence Agreement
@@ -94,7 +98,7 @@ Folgenden Seanox Software Solutions oder kurz Seanox genannt.
  
 Diese Software unterliegt der Version 2 der Apache License.
 
-Copyright (C) 2020 Seanox Software Solutions
+Copyright (C) 2021 Seanox Software Solutions
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
