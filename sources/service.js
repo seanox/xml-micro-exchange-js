@@ -177,6 +177,7 @@
  * @version 1.1.0 20210206
  */
 const http = require("http")
+const https = require("https")
 const fs = require("fs")
 const crypto = require("crypto")
 const path = require("path")
@@ -448,6 +449,25 @@ module.init = function() {
     module["cors"] = meta.cors
     module["storage"] = meta.storage
     module["logging"] = meta.logging
+
+    module.connection.options = undefined;
+    if (Object.exists(meta.connection.secure)) {
+        let secure = meta.connection.secure.trim()
+        secure = secure.split(/\s+/)
+        if (secure.length > 1) {
+            if (secure[0].match(/\.pfx$/)) {
+                module.connection.options = {
+                    pfx: fs.readFileSync(secure[0]),
+                    passphrase: secure[1]
+                }
+            } else {
+                module.connection.options = {
+                    cert: fs.readFileSync(secure[0]),
+                    key: fs.readFileSync(secure[1])
+                }
+            }
+        }
+    }
 }
 
 module.init()
@@ -2384,11 +2404,10 @@ class Storage {
     }
 }
 
-// TODO: TLS connection
-// TODO: TLS connection / certificate test (incl. creation of the certificate)
 // TODO: PUT/PATCH auto escape to HTML entities, so that the storage contains only ASCII
 
-http.createServer((request, response) => {
+let context = Object.exists(module.connection.options) ? https : http
+context.createServer(module.connection.options, (request, response) => {
 
     if (!Object.exists(request.unique)) {
 
@@ -2583,5 +2602,5 @@ http.createServer((request, response) => {
         }
     })
 }).listen(module.connection.port, module.connection.address, function() {
-    console.log("Service", `Listening at ${this.address().address}:${this.address().port}`)
+    console.log("Service", `Listening at ${this.address().address}:${this.address().port}${module.connection.options ? ' (secure)' : ''}`)
 })
