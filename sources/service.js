@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.1.0 20210206
+ * Service 1.1.0 20210210
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.1.0 20210206
+ * @version 1.1.0 20210210
  */
 const http = require("http")
 const https = require("https")
@@ -207,21 +207,31 @@ const XML_DOCUMENT_TYPE_NODE          = 10
 const XML_DOCUMENT_FRAGMENT_NODE      = 11
 const XML_NOTATION_NODE               = 12
 
-console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
-console.log("Copyright (C) 0000 Seanox Software Solutions")
-console.log()
-
-process.on("uncaughtException", function (error) {
-    console.error(error.stack);
+process.on("uncaughtException", function(error) {
+    console.error(error.stack)
 })
 
-process.on("exit", function () {
+process.on("exit", function() {
     console.log("Service", "Stopped")
 })
 
 // Some things of the API are adjusted.
 // These are only small changes, but they greatly simplify the use.
 // Curse and blessing of JavaScript :-)
+
+// Date formatting to timestamp string
+Date.prototype.toTimestampString = function(format = undefined) {
+    if (format === undefined)
+        return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
+    let now = this.toTimestampString().match(/^(((\d\d(\d\d))-(\d\d)-(\d\d)) ((\d\d):(\d\d):(\d\d)))$/)
+    return format.replace(/(%[a-z%])/ig, (symbol) => {
+        symbol = symbol.substr(1)
+        let index = ("XxYyMDthms").indexOf(symbol)
+        if (index >= 0)
+            return now[index]
+        return symbol
+    })
+}
 
 // Query if something exists, it minimizes the check of undefined and null
 Object.exists = function(object) {
@@ -232,19 +242,14 @@ Object.getClassName = function(object) {
     if (typeof object === "object"
             && Object.getPrototypeOf(object)
             && Object.getPrototypeOf(object).constructor)
-        return Object.getPrototypeOf(object).constructor.name;
-    return null;
-}
-
-// Date formatting to timestamp string
-Date.prototype.toTimestampString = function() {
-    return this.toISOString().replace(/^(.*?)T+(.*)\.\w+$/i, "$1 $2")
+        return Object.getPrototypeOf(object).constructor.name
+    return null
 }
 
 // Logging: Output with timestamp
 console.log$ = console.log
 console.log = function(...variable) {
-    console.log$(new Date().toTimestampString(), ...variable)
+    console.log$(new Date().toTimestampString(console.log$format), ...variable)
 }
 
 // Logging: Output with timestamp
@@ -255,8 +260,8 @@ console.error = function(...variable) {
     if (Object.exists(variable)
             && variable.length > 0
             && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
-        return;
-    console.error$(new Date().toTimestampString(), ...variable)
+        return
+    console.error$(new Date().toTimestampString(console.error$format), ...variable)
 }
 
 // Logging: Output with timestamp
@@ -267,8 +272,8 @@ console.warn = function(...variable) {
     if (Object.exists(variable)
             && variable.length > 0
             && String(variable[0]).match(/^\s*\[\s*xmldom\s/i))
-        return;
-    console.warn$(new Date().toTimestampString(), ...variable)
+        return
+    console.warn$(new Date().toTimestampString(console.warn$format), ...variable)
 }
 
 let element = new DOMImplementation().createDocument().createElement()
@@ -300,7 +305,7 @@ DOMParser.prototype.parseFromString = function(...variable) {
 // The following things have been changed to simplify migration:
 // - If an error/exception occurs, the return value is the error/exception
 XPath.evaluate$ = XPath.evaluate
-XPath.evaluate = function (...variable) {
+XPath.evaluate = function(...variable) {
     try {return XPath.evaluate$(...variable)
     } catch (exception) {
         return exception
@@ -308,7 +313,7 @@ XPath.evaluate = function (...variable) {
 }
 
 XPath.select$ = XPath.select
-XPath.select = function (...variable) {
+XPath.select = function(...variable) {
     try {return XPath.select$(...variable)
     } catch (exception) {
         return exception
@@ -339,7 +344,7 @@ JSON.stringify = function(...variable) {
     return JSON.stringify$(...variable)
 }
 JSON.stringify$xml = function(xml) {
-    let result = {};
+    let result = {}
     if (!Object.exists(xml))
         return null
     if (xml.nodeType === XML_TEXT_NODE
@@ -359,17 +364,17 @@ JSON.stringify$xml = function(xml) {
     Array.from(xml.childNodes).forEach((item) => {
         if (item.nodeType === XML_TEXT_NODE
                 || item.nodeType === XML_CDATA_SECTION_NODE) {
-            let text = item.nodeValue.trim();
+            let text = item.nodeValue.trim()
             if (text.length <= 0)
                 return
             if (buffer.text.length > 0)
                 buffer.text += "\n"
             buffer.text += text
-            return;
+            return
         }
         if (item.nodeType !== XML_ELEMENT_NODE)
             return
-        buffer.mixed = true;
+        buffer.mixed = true
         let nodeName = item.nodeName
         if (result[nodeName] === undefined) {
             result[nodeName] = JSON.stringify$xml(item)
@@ -390,7 +395,7 @@ Number.parseBytes = function(text) {
     if (!Object.exists(text)
             || String(text).trim().length <= 0)
         throw "Number parser error: Invalid value"
-    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]{0,1})\s*$/i);
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]{0,1})\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
         throw "Number parser error: Invalid value " + String(text).trim()
     let number = Number.parseFloat(match[1])
@@ -402,11 +407,11 @@ Date.parseDuration = function(text) {
     if (!Object.exists(text)
             || String(text).trim().length <= 0)
         throw "Date parser error: Invalid value"
-    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h{0,1})\s*$/i);
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h{0,1})\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
         throw "Date parser error: Invalid value " + String(text).trim()
     let number = Number.parseFloat(match[1])
-    let factor = 1;
+    let factor = 1
     if (match[2] === "s")
         factor = 1000
     else if (match[2] === "m")
@@ -423,8 +428,10 @@ module.init = function() {
     // The INI format is case-insensitive for sections and keys.
     // That is why they are normalized in lowercase.
 
-    let file = path.basename(__filename);
+    let file = path.basename(__filename)
     file = file.replace(/\.[^\.]*$/, "") + ".ini"
+    if (process.argv.length > 2)
+        file = process.argv[2].trim()
     if (!fs.existsSync(file)
             || !fs.lstatSync(file).isFile())
         throw "Configuration file " + file + " not found"
@@ -450,7 +457,7 @@ module.init = function() {
     module["storage"] = meta.storage
     module["logging"] = meta.logging
 
-    module.connection.options = undefined;
+    module.connection.options = undefined
     if (Object.exists(meta.connection.secure)) {
         let secure = meta.connection.secure.trim()
         secure = secure.split(/\s+/)
@@ -468,9 +475,66 @@ module.init = function() {
             }
         }
     }
+
+    let parseOutputPhrase = (phrase) => {
+        let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*){0,1}$/)
+        if (!output || output.length < 2)
+            return undefined
+        return {format: output[1], file: output.length > 2 ? output[2] : undefined}
+    }
+    if (Object.exists(meta.logging.output))
+        meta.logging.output = parseOutputPhrase(meta.logging.output)
+    if (Object.exists(meta.logging.error))
+        meta.logging.error = parseOutputPhrase(meta.logging.error)
+    if (Object.exists(meta.logging.access))
+        meta.logging.access = parseOutputPhrase(meta.logging.access)
 }
 
 module.init()
+
+class Streams {
+
+    static redirect(stream, target) {
+        if (!Object.exists(stream.write$))
+            stream.write$ = stream.write
+        if (Object.exists(stream.write$target)
+            && stream.write$target === target)
+            return
+        stream.write$target = target
+        if (Object.exists(stream.write$stream))
+            stream.write$stream.close()
+        stream.write$stream = undefined
+        if (String(target).toLowerCase() !== "off") {
+            fs.mkdirSync(path.dirname(target), {recursive:true, mode:0o755})
+            stream.write$stream = fs.createWriteStream(target, {flags: "a+"})
+            stream.write = function (message, encoding, fd) {
+                stream.write$stream.write(message, encoding || "utf8")
+            }
+        } else if (String(target).toLowerCase() === "off") {
+            stream.write = function (message, encoding, fd) {
+            }
+        }
+    }
+
+    static rotate(stream, target) {
+        if (!Object.exists(target)
+                || String(target).length <= 0)
+            return
+        if (Object.exists(stream.write$rotate))
+            global.clearInterval(stream.write$rotate)
+        let callback = (stream, target) => {
+            target = new Date().toTimestampString(target)
+            if (!Object.exists(stream.write$rotate$target)
+                    || stream.write$rotate$target !== target) {
+                stream.write$rotate$target = target
+                Streams.redirect(stream, target)
+            }
+        }
+        stream.write$rotate = global.setInterval(callback, 250, stream, target)
+        if (!Object.exists(stream.write$rotate$target))
+            callback(stream, target)
+    }
+}
 
 class Storage {
 
@@ -586,7 +650,7 @@ class Storage {
                 return `<?xml version=\"${Storage.XML.VERSION}\" encoding=\"${Storage.XML.ENCODING}\"?>`
             }
             static createDocument() {
-                return new DOMParser().parseFromString(Storage.XML.createDeclaration());
+                return new DOMParser().parseFromString(Storage.XML.createDeclaration())
             }
         }
     }
@@ -701,7 +765,7 @@ class Storage {
         if (Object.exists(this.share))
             return
 
-        let now = new Date();
+        let now = new Date()
         if (this.exists())
             fs.utimesSync(this.store, now, now)
         else fs.closeSync(fs.openSync(this.store, "as+"))
@@ -1011,7 +1075,7 @@ class Storage {
                         target = target.ownerElement
                     if (target.nodeType === XML_ELEMENT_NODE)
                         serials.push(target.getAttribute("___uid"))
-                });
+                })
                 if (serials.length > 0)
                     headers["Storage-Effects"] = serials.join(" ")
                 headers["Allow"] = "OPTIONS, GET, POST, PUT, PATCH, DELETE"
@@ -1019,7 +1083,7 @@ class Storage {
             } else headers["Allow"] = "OPTIONS, PUT"
         }
 
-        this.quit(204, "No Content", headers);
+        this.quit(204, "No Content", headers)
     }
 
     /**
@@ -1082,13 +1146,13 @@ class Storage {
         if (result instanceof Error) {
             let message = "Invalid XPath"
             if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION))
-                message = "Invalid XPath function";
+                message = "Invalid XPath function"
             message += " (" + result.message + ")"
             this.quit(400, "Bad Request", {"Message": message})
         }
         if (!this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)
                 && (!Object.exists(result) || result.length <= 0))
-            this.quit(404, "Resource Not Found");
+            this.quit(404, "Resource Not Found")
 
         if (Array.isArray(result)) {
             if (result.length === 1) {
@@ -1106,19 +1170,19 @@ class Storage {
                 let collection = xml.createElement("collection")
                 result.forEach((entry) => {
                     if (entry.nodeType === XML_ATTRIBUTE_NODE) {
-                        let text = xml.createTextNode(entry.nodeValue);
-                        entry = xml.createElement(entry.nodeName);
-                        entry.appendChild(text);
+                        let text = xml.createTextNode(entry.nodeValue)
+                        entry = xml.createElement(entry.nodeName)
+                        entry.appendChild(text)
                     }
-                    collection.appendChild(entry.cloneNode(true));
+                    collection.appendChild(entry.cloneNode(true))
                 })
-                xml.appendChild(collection);
-                result = xml;
+                xml.appendChild(collection)
+                result = xml
             } else result = ""
         } else if (typeof result === "boolean")
             result = result ? "true" : "false"
 
-        this.quit(200, "Success", null, result);
+        this.quit(200, "Success", null, result)
     }
 
     /**
@@ -1189,7 +1253,7 @@ class Storage {
 
         let xml = this.xml
         if (this.xpath !== "") {
-            xml = new DOMImplementation().createDocument();
+            xml = new DOMImplementation().createDocument()
             let targets = XPath.select(this.xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + targets.message + ")"
@@ -1213,7 +1277,7 @@ class Storage {
             }
         }
 
-        let style = new DOMParser().parseFromString(this.request.data);
+        let style = new DOMParser().parseFromString(this.request.data)
         if (!Object.exists(style)
                 || style instanceof Error) {
             let message = "Invalid XSLT stylesheet"
@@ -1222,16 +1286,16 @@ class Storage {
             this.quit(422, "Unprocessable Entity", {"Message": message})
         }
 
-        let tempStyle = this.createTempFile();
+        let tempStyle = this.createTempFile()
         fs.writeFileSync(tempStyle, this.request.data)
 
-        let tempXml = this.createTempFile();
+        let tempXml = this.createTempFile()
         fs.writeFileSync(tempXml, new DOM.XMLSerializer().serializeToString(xml))
 
         let spawnSync = function(...variable) {
             try {return child.spawnSync(...variable)
             } catch (exception) {
-                return exception;
+                return exception
             }
         }
 
@@ -1240,22 +1304,22 @@ class Storage {
         let output = spawnSync("xsltproc", [tempStyle, tempXml])
         if (Object.exists(output.stderr)
                 && output.stderr.length > 0)
-            output = new Error(output.stderr.toString(Storage.XML.ENCODING));
+            output = new Error(output.stderr.toString(Storage.XML.ENCODING))
         else if (Object.exists(output.stdout))
-            output = output.stdout.toString(Storage.XML.ENCODING);
+            output = output.stdout.toString(Storage.XML.ENCODING)
         if (output instanceof Error) {
-            let message = output.message.split(/\r\n/)[0]
+            let message = output.message.split(/[\r\n]+/)[0]
             message = message.replace(/\s*(file\s+){0,1}___temp_[\w\:]+\s*/ig, " ").trim()
             message = message.replace(/\s+(?=:)/g, "")
             message = "Transformation failed (" + message.trim() + ")"
             this.quit(422, "Unprocessable Entity", {"Message": message})
         }
 
-        let header = {};
-        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", style);
+        let header = {}
+        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", style)
         if (Object.exists(output)
                 && output.trim() !== "") {
-            method = method.toLowerCase();
+            method = method.toLowerCase()
             if (method !== "text")
                 output = Codec.encode(output, {allowUnsafeSymbols: true})
             if (method === "xml"
@@ -1267,7 +1331,7 @@ class Storage {
                 header["Content-Type"] = Storage.CONTENT_TYPE_HTML
         }
 
-        this.quit(200, "Success", header, output);
+        this.quit(200, "Success", header, output)
     }
 
     /**
@@ -1866,7 +1930,7 @@ class Storage {
 
         // The response to the request is delegated to PUT.
         // The function call is executed and the request is terminated.
-        this.doPut();
+        this.doPut()
     }
 
     /**
@@ -1950,7 +2014,7 @@ class Storage {
             let matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
             if (!matches)
                 this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"})
-            xpath = matches[1];
+            xpath = matches[1]
             pseudo = (matches[2] || "").toLowerCase()
         }
 
@@ -1961,13 +2025,13 @@ class Storage {
         }
 
         if (!Object.exists(targets) || targets.length <= 0)
-            this.quit(404, "Resource Not Found");
+            this.quit(404, "Resource Not Found")
 
         // Pseudo elements can be used to delete in an XML substructure
         // relative to the selected element.
         if (pseudo !== "") {
             if (pseudo === "before") {
-                let childs = [];
+                let childs = []
                 targets.forEach((target) => {
                     if (!target.previousSibling)
                         return
@@ -1976,12 +2040,12 @@ class Storage {
                 })
                 targets = childs
             } else if (pseudo === "after") {
-                let childs = [];
+                let childs = []
                 targets.forEach((target) => {
                     if (!target.nextSibling)
                         return
                     for (let next = target.nextSibling; next; next = next.nextSibling)
-                        childs.push(next);
+                        childs.push(next)
                 })
                 targets = childs
             } else if (pseudo === "first") {
@@ -1990,22 +2054,22 @@ class Storage {
             } else if (pseudo === "last") {
                 targets = targets.map(target => target.lastChild)
                 targets = targets.filter(Object.exists)
-            } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"});
+            } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"})
         }
 
-        let serials = [];
+        let serials = []
         targets.forEach((target) => {
             if (target.nodeType === XML_ATTRIBUTE_NODE) {
                 if (!target.ownerElement
                         || target.ownerElement.nodeType !== XML_ELEMENT_NODE
                         || ["___rev", "___uid"].includes(target.name))
                     return
-                let parent = target.ownerElement;
-                parent.removeAttribute(target.name);
+                let parent = target.ownerElement
+                parent.removeAttribute(target.name)
                 serials.push(parent.getAttribute("___uid") + ":M")
                 Storage.updateNodeRevision(parent, this.revision +1)
             } else if (target.nodeType !== XML_DOCUMENT_NODE) {
-                let parent = target.parentNode;
+                let parent = target.parentNode
                 if (!Object.exists(parent)
                         || ![XML_ELEMENT_NODE, XML_DOCUMENT_NODE].includes(parent.nodeType))
                     return
@@ -2039,8 +2103,8 @@ class Storage {
         if (serials)
             headers["Storage-Effects"] = serials.join(" ")
 
-        this.materialize();
-        this.quit(204, "No Content", headers);
+        this.materialize()
+        this.quit(204, "No Content", headers)
     }
 
     /**
@@ -2144,7 +2208,7 @@ class Storage {
                 var search = serial.slice(0, -2) + ":A"
                 search = serials.indexOf(search)
                 if (search >= 0)
-                    delete serials[search];
+                    delete serials[search]
             })
             serials = serials.join(" ")
         }
@@ -2329,8 +2393,8 @@ class Storage {
             hash = hash.replace(/\b(___uid(?:(?:=)|(?:"\s*:\s*))")([A-Z\d]+)(:[A-Z\d]+")/ig, (matched, prefix, unique, serial) => {
                 if (!uniques.includes(unique))
                     uniques.push(unique)
-                unique = uniques.indexOf(unique);
-                return prefix + unique + serial;
+                unique = uniques.indexOf(unique)
+                return prefix + unique + serial
             })
             headers["Trace-Response-Body-Hash"] = cryptoMD5(hash)
             trace.push(cryptoMD5(hash) + " Trace-Response-Body-Hash")
@@ -2404,7 +2468,28 @@ class Storage {
     }
 }
 
-// TODO: PUT/PATCH auto escape to HTML entities, so that the storage contains only ASCII
+// Logging is optionally redirected
+// Sometimes it's just better if the output is written to files and doesn't
+// have to be handled with stdout/strerr when calling the program. But this
+// option is still available as well.
+if (module.logging.output) {
+    console.warn$format = module.logging.output.format.replace(/\x20{0,1}\.{3,}/g, "")
+    console.log$format = module.logging.output.format.replace(/\x20{0,1}\.{3,}/g, "")
+    if (module.logging.output.file)
+        Streams.rotate(process.stdout, module.logging.output.file)
+}
+if (module.logging.error) {
+    console.error$format = module.logging.error.format.replace(/\x20{0,1}\.{3,}/g, "")
+    if (module.logging.error.file)
+        Streams.rotate(process.stderr, module.logging.error.file)
+}
+
+// Version number and year are set later in the build process.
+// Source of knowledge is CHANGES, where else can you find such info ;-)
+// CHANGES is the basis for builds, releases and README.md
+console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
+console.log("Copyright (C) 0000 Seanox Software Solutions")
+console.log()
 
 let context = Object.exists(module.connection.options) ? https : http
 context.createServer(module.connection.options, (request, response) => {
@@ -2472,7 +2557,7 @@ context.createServer(module.connection.options, (request, response) => {
                 })
             else if (xpath.match(/^Base64:[A-Za-z0-9+\/]+=*$/))
                 xpath = Buffer.from(xpath.substring(8), "base64").toString("ascii")
-            else xpath = decodeURIComponent(xpath);
+            else xpath = decodeURIComponent(xpath)
 
             // With the exception of OPTIONS and POST, all requests expect an
             // XPath or XPath function.
@@ -2526,7 +2611,7 @@ context.createServer(module.connection.options, (request, response) => {
 
                     date = date || new Date()
 
-                    let localhost = (request.headers.host || "").trim();
+                    let localhost = (request.headers.host || "").trim()
                     if (localhost.length <= 0) {
                         localhost = request.socket.localAddress
                         if (localhost.includes("."))
@@ -2534,14 +2619,14 @@ context.createServer(module.connection.options, (request, response) => {
                     } else if (localhost.match(/^[^:]+:\d+$/))
                         localhost = localhost.replace(/\s*:\d+$/, "")
 
-                    let remotehost = (request.socket.remoteAddress || "").trim();
+                    let remotehost = (request.socket.remoteAddress || "").trim()
                     if (remotehost.includes("."))
                         remotehost = remotehost.replace(/(^.*:)/, "")
                     else if (remotehost.match(/^[^:]+:\d+$/))
                         remotehost = remotehost.replace(/\s*:\d+$/, "")
 
                     format = format.replace(/%r/g, "%m %U%q %H")
-                    format = format.replace(/(%\{[\w-]*\})|(%[a-z])/ig, (matches) => {
+                    format = format.replace(/(%\{[\w-]*\})|(%[a-z%])/ig, (matches) => {
                         if (matches.match(/%\{[\w-]*\}/i))
                             return request.headers[matches.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
                         switch (matches) {
@@ -2586,19 +2671,19 @@ context.createServer(module.connection.options, (request, response) => {
                 } finally {
                     fs.closeSync(file)
                 }
-            })();
+            })()
             (async () => {
                 if (!Object.exists(request.temp))
-                    return;
+                    return
                 request.temp.forEach((file) => {
                     try {fs.unlinkSync(file)
                     } catch (exception) {
                     }
                 })
-            })();
+            })()
             (async () => {
                 Storage.cleanUp()
-            })();
+            })()
         }
     })
 }).listen(module.connection.port, module.connection.address, function() {
