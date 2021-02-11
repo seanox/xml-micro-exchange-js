@@ -228,7 +228,7 @@ Date.prototype.toTimestampString = function(format = undefined) {
         symbol = symbol.substr(1)
         let index = ("XxYyMDthms").indexOf(symbol)
         if (index >= 0)
-            return now[index]
+            return now[index +1]
         return symbol
     })
 }
@@ -2606,6 +2606,7 @@ context.createServer(module.connection.options, (request, response) => {
                 }
             }
         } finally {
+
             (async () => {
                 let formatter = (format, date) => {
 
@@ -2625,11 +2626,14 @@ context.createServer(module.connection.options, (request, response) => {
                     else if (remotehost.match(/^[^:]+:\d+$/))
                         remotehost = remotehost.replace(/\s*:\d+$/, "")
 
+                    let dates = date.toString().split(/\s+|(?=[\+\-])/)
+                    let times = date.toTimestampString().match(/^(((\d\d(\d\d))-(\d\d)-(\d\d)) ((\d\d):(\d\d):(\d\d)))$/)
+
                     format = format.replace(/%r/g, "%m %U%q %H")
-                    format = format.replace(/(%\{[\w-]*\})|(%[a-z%])/ig, (matches) => {
-                        if (matches.match(/%\{[\w-]*\}/i))
-                            return request.headers[matches.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
-                        switch (matches) {
+                    format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z]){0,1})/ig, (symbol) => {
+                        if (symbol.match(/%\{[\w-]*\}/i))
+                            return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
+                        switch (symbol) {
                             case "%a":
                                 return localhost || "-"
                             case "%h":
@@ -2653,25 +2657,42 @@ context.createServer(module.connection.options, (request, response) => {
                             case "%H":
                                 return request.httpVersion ? "HTTP/" + request.httpVersion : ""
                             case "%t":
-                                let set = date.toString().split(/\s+|(?=[\+\-])/)
-                                return `${set[2]}/${set[1]}/${set[3]}:${set[4]} ${set[6]}`
+                                return `${dates[2]}/${dates[1]}/${dates[3]}:${dates[4]} ${dates[6]}`
+                            case "%t:X":
+                            case "%t:x":
+                            case "%t:Y":
+                            case "%t:y":
+                            case "%t:M":
+                            case "%t:D":
+                            case "%t:t":
+                            case "%t:h":
+                            case "%t:m":
+                            case "%t:s":
+                                symbol = symbol.substr(3)
+                                let index = ("XxYyMDthms").indexOf(symbol)
+                                if (index >= 0)
+                                    return times[index +1]
+                                return symbol
                             default:
-                                return matches.substr(1)
+                                return symbol.substr(1)
                         }
                     })
                     return format
                 }
 
-                let now = new Date()
-                let logging = formatter("%h %l %u [%t] \"%r\" %s %b \"%{User-Agent}\"", now)
-                let set = now.toLocaleDateString('en-US', {year: "numeric", day: "2-digit", month: "2-digit", }).split(/\//)
-                let filename = `${formatter("%a", now)}_${set[2]}${set[0]}${set[1]}-access.log`
-                let file = fs.openSync(filename, "as")
-                try {fs.writeSync(file, logging + EOL)
-                } finally {
-                    fs.closeSync(file)
-                }
-            })()
+                let date = new Date()
+                let logging = formatter(module.logging.access.format || "", date)
+                if (module.logging.access.file) {
+                    let filename = formatter(module.logging.access.file, date)
+                    fs.mkdirSync(path.dirname(filename), {recursive:true, mode:0o755})
+                    let file = fs.openSync(filename, "as")
+                    try {fs.writeSync(file, logging + EOL)
+                    } finally {
+                        fs.closeSync(file)
+                    }
+                } else console.log(logging)
+            })();
+
             (async () => {
                 if (!Object.exists(request.temp))
                     return
@@ -2680,10 +2701,11 @@ context.createServer(module.connection.options, (request, response) => {
                     } catch (exception) {
                     }
                 })
-            })()
+            })();
+
             (async () => {
                 Storage.cleanUp()
-            })()
+            })();
         }
     })
 }).listen(module.connection.port, module.connection.address, function() {
