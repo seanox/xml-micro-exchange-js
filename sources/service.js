@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.1.0 20210210
+ * Service 1.1.0 20210212
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.1.0 20210210
+ * @version 1.1.0 20210212
  */
 const http = require("http")
 const https = require("https")
@@ -2633,6 +2633,13 @@ context.createServer(module.connection.options, (request, response) => {
                     format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z]){0,1})/ig, (symbol) => {
                         if (symbol.match(/%\{[\w-]*\}/i))
                             return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
+                        if (symbol.match(/%[a-z%]:[a-z]/i)) {
+                            symbol = symbol.substr(3)
+                            let index = ("XxYyMDthms").indexOf(symbol)
+                            if (index >= 0)
+                                return times[index +1]
+                            return symbol
+                        }
                         switch (symbol) {
                             case "%a":
                                 return localhost || "-"
@@ -2658,21 +2665,6 @@ context.createServer(module.connection.options, (request, response) => {
                                 return request.httpVersion ? "HTTP/" + request.httpVersion : ""
                             case "%t":
                                 return `${dates[2]}/${dates[1]}/${dates[3]}:${dates[4]} ${dates[6]}`
-                            case "%t:X":
-                            case "%t:x":
-                            case "%t:Y":
-                            case "%t:y":
-                            case "%t:M":
-                            case "%t:D":
-                            case "%t:t":
-                            case "%t:h":
-                            case "%t:m":
-                            case "%t:s":
-                                symbol = symbol.substr(3)
-                                let index = ("XxYyMDthms").indexOf(symbol)
-                                if (index >= 0)
-                                    return times[index +1]
-                                return symbol
                             default:
                                 return symbol.substr(1)
                         }
