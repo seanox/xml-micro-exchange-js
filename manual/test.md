@@ -4,7 +4,8 @@
 # Test
 
 For testing, the HTTP client of
-[JetBrains WebStorm](https://www.jetbrains.com/webstorm/) is used.  
+[JetBrains WebStorm](https://www.jetbrains.com/webstorm/) or
+[JetBrains IntelliJ IDEA](https://www.jetbrains.com/idea/) is used.  
 read more: https://www.jetbrains.com/help/webstorm/testing-restful-web-services.html
 
 The tests are collected in scenarios.  
