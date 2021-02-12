@@ -150,6 +150,7 @@ TODO:
     * [PUT](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api-put.md)
 * [Error Handling](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/error-handling.md)
 * [Development](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/development.md)
+* [Build](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/build.md)
 * [Test](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/test.md)
 
 

@@ -76,4 +76,5 @@ Machine translation with [DeepL](https://deepl.com).
     * [Response codes / behavior](api-put.md#response-codes--behavior)
 * [Error Handling](error-handling.md)    
 * [Development](development.md)
+* [Build](build.md)
 * [Test](test.md)

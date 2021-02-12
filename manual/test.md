@@ -1,4 +1,4 @@
-[Development](development.md) | [TOC](README.md)
+[Build](build.md) | [TOC](README.md)
 - - -
 
 # Test
@@ -89,4 +89,4 @@ node cumulate.js
 
 - - -
 
-[Development](development.md) | [TOC](README.md)
+[Build](build.md) | [TOC](README.md)

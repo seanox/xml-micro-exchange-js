@@ -1,4 +1,4 @@
-[Error Handling](error-handling.md) | [TOC](README.md) | [Test](test.md)
+[Error Handling](error-handling.md) | [TOC](README.md) | [Build](build.md)
 - - -
 
 # Development
@@ -21,4 +21,4 @@ in understanding.
 
 - - -
 
-[Error Handling](error-handling.md) | [TOC](README.md) | [Test](test.md)
+[Error Handling](error-handling.md) | [TOC](README.md) | [Build](build.md)
