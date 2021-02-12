@@ -85,6 +85,10 @@ rudimentary form. The storage(-key) with a length of 1 - 64 characters and the
 individual root element can be regarded as secret.  
 In addition, HTTPS is supported but without client certificate authorization.   
 
+## Containerization
+XML-Micro-Exchange is also available as a container image on Docker Hub:
+https://hub.docker.com/repository/docker/seanox/xmex
+
 ## Differences to the PHP version
 - XPath as query string is not supported
 - HTTP method CONNECT is not supported
@@ -117,6 +121,10 @@ TODO:
 
 
 # Downloads
+TODO:
+
+
+# Docker Image
 TODO:
 
 

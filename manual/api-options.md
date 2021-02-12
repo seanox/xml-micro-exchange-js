@@ -181,7 +181,7 @@ Execution-Time: 3 ms
 ### HTTP/1.0 400 Bad Request
 - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
 - XPath is missing or malformed
-- XPath is used from PATH_INFO + QUERY_STRING, not the request URI
+- XPath is used from PATH_INFO, not the request URI
 
 ### HTTP/1.0 507 Insufficient Storage
 - Response can be status 507 if the storage is full
