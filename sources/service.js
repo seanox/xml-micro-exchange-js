@@ -2627,19 +2627,13 @@ context.createServer(module.connection.options, (request, response) => {
                         remotehost = remotehost.replace(/\s*:\d+$/, "")
 
                     let dates = date.toString().split(/\s+|(?=[\+\-])/)
-                    let times = date.toTimestampString().match(/^(((\d\d(\d\d))-(\d\d)-(\d\d)) ((\d\d):(\d\d):(\d\d)))$/)
 
                     format = format.replace(/%r/g, "%m %U%q %H")
                     format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z]){0,1})/ig, (symbol) => {
                         if (symbol.match(/%\{[\w-]*\}/i))
                             return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
-                        if (symbol.match(/%[a-z%]:[a-z]/i)) {
-                            symbol = symbol.substr(3)
-                            let index = ("XxYyMDthms").indexOf(symbol)
-                            if (index >= 0)
-                                return times[index +1]
-                            return symbol
-                        }
+                        if (symbol.match(/%[a-z%]:[a-z]/i))
+                            return date.toTimestampString("%" + symbol.substr(3))
                         switch (symbol) {
                             case "%a":
                                 return localhost || "-"
