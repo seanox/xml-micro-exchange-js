@@ -507,7 +507,7 @@ class Streams {
         if (String(target).toLowerCase() !== "off") {
             fs.mkdirSync(path.dirname(target), {recursive:true, mode:0o755})
             stream.write$stream = fs.createWriteStream(target, {flags: "a+"})
-            stream.write = function (message, encoding, fd) {
+            stream.write = function (message, encoding) {
                 stream.write$stream.write(message, encoding || "utf8")
             }
         } else if (String(target).toLowerCase() === "off") {
@@ -2314,7 +2314,7 @@ class Storage {
 
             // Request-Body-Hash
             hash = this.request.data
-            hash = hash.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
+            hash = hash.replace(/((\r\n)|(\n\r)|\r)+/g, "\n")
             hash = hash.replace(/\t/g, " ")
             headers["Trace-Request-Body-Hash"] = cryptoMD5(hash)
             trace.push(cryptoMD5(hash) + " Trace-Request-Body-Hash")
@@ -2384,7 +2384,7 @@ class Storage {
             trace.push(cryptoMD5(hash.join("\n")) + " Trace-Response-Header-Hash", JSON.stringify(hash))
 
             // Response-Body-Hash
-            hash = data.replace(/((\r\n)|(\r\n)|\r)+/g, "\n")
+            hash = data.replace(/((\r\n)|(\n\r)|\r)+/g, "\n")
             hash = hash.replace(/\t/g, " ")
             // The UID is variable and must be normalized so that the hash can be
             // compared later. Therefore the uniques of the UIDs are collected in
