@@ -1,7 +1,10 @@
 /.idea/
+/.credentials
 /node_modules/
 /package-lock.json
+/release/trace/
 /sources/data/
 /sources/logs/
+/sources/*-build*.js
 /sources/*.pem
 /test/cumulate.http
