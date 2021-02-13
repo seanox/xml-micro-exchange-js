@@ -1,8 +1,8 @@
 # The Dockerfile uses multi-stages and targets for different environments
 #     Usage:
-# docker build -t xmex-test --target test .
-# docker build -t xmex --target integration .
-# docker build -t xmex --target release .
+# docker build -t xmex:test --target test .
+# docker build -t xmex:integration --target integration .
+# docker build -t xmex:release --target release .
 
 FROM node:lts-alpine AS release
 RUN apk update
@@ -27,8 +27,8 @@ CMD node service.js ./conf/service.ini
 # This is used for the final integration test before a release.
 
 # docker kill xmex-integration
-# docker build -t xmex-integration --target integration .
-# docker run -d -p 8000:8000/tcp --rm --name xmex-integration xmex-integration
+# docker build -t xmex:integration --target integration .
+# docker run -d -p 8000:8000/tcp --rm --name xmex-integration xmex:integration
 #     after that manual start of ./test/cumulated.http in IntelliJ / WebStorm
 # docker exec -it xmex-integration sh
 # docker logs xmex-integration
@@ -54,8 +54,8 @@ CMD node service.js ./conf/service.ini
 
 
 # docker kill xmex-test
-# docker build -t xmex-test --target test .
-# docker run -d -p 8000:8000/tcp --rm --name xmex-test xmex-test
+# docker build -t xmex:test --target test .
+# docker run -d -p 8000:8000/tcp --rm --name xmex-test xmex:test
 #     after that manual start of ./test/cumulated.http in IntelliJ / WebStorm
 # docker exec -it xmex-test sh
 # docker logs xmex-test
