@@ -55,6 +55,9 @@ keys are inserted directly into the response header.
 | `Access-Control-Max-Age`           | `86400` | TODO:       |
 | `Access-Control-Expose-Headers`    | `*`     | TODO:       |
 
+For the preflight OPTIONS the following headers are added automatically:  
+`Access-Control-Allow-Methods`, `Access-Control-Allow-Headers`
+
 ### STORAGE
 
 In this section the datasource and storage(s) are configured.
