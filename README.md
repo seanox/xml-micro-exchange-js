@@ -122,8 +122,8 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XMEX 1.1.0](https://github.com/seanox/xml-micro-exchange-js/raw/master/releases/seanox-xmex-1.1.0.zip)  
-[Seanox XMEX latest](https://github.com/seanox/xml-micro-exchange-js/raw/master/releases/seanox-xmex-latest.zip)
+[Seanox XMEX 1.1.0](https://github.com/seanox/xml-micro-exchange-js/blob/main/release/seanox-xmex-1.1.0.zip)  
+[Seanox XMEX latest](https://github.com/seanox/xml-micro-exchange-js/blob/main/release/seanox-xmex-latest.zip)
 
 
 # Docker Image
