@@ -3,6 +3,7 @@
 /node_modules/
 /package-lock.json
 /release/trace/
+/release/xmex/
 /sources/data/
 /sources/logs/
 /sources/*-build*.js
