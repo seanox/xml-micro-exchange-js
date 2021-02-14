@@ -232,7 +232,7 @@ Also the reponse has additional headers:
   </tbody>
 </table>
 
-## Table Of Contents 
+## Contents Overview
 
 * [DELETE](api-delete.md)
   * [Request](api-delete.md#request)
