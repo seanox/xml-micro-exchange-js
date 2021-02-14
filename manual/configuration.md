@@ -34,13 +34,13 @@ not available in the implementation of the service.
 
 In this section the servers and HTTP are configured.
 
-| Key       | Value                 | Description |
-| :-------- | :-------------------- | :---------- |
-| `ADDRESS` | `0.0.0.0`             | TODO:       |
-| `PORT`    | `8000`                | TODO:       |
-| `CONTEXT` | `/xmex!`              | TODO:       |
-| `SECURE`  | `cert.pem key.pem`    | TODO:       |
-| `SECURE`  | `cert.pfx passphrase` | TODO:       |
+| Key       | Value                 | Description                                                                                                       |
+| :-------- | :-------------------- | :---------------------------------------------------------------------------------------------------------------- |
+| `ADDRESS` | `0.0.0.0`             | Host name or IP where the server is listening.                                                                    |
+| `PORT`    | `8000`                | Port where the server is listening.                                                                               |
+| `CONTEXT` | `/xmex!`              | Context path der URL.<br/> It should end with a symbol to better visually distinguish the XPath from the request. |
+| `SECURE`  | `cert.pem key.pem`    | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, key                                        |
+| `SECURE`  | `cert.pfx passphrase` | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, passphrase                                 |
 
 ### CORS
 
@@ -59,12 +59,12 @@ keys are inserted directly into the response header.
 
 In this section the datasource and storage(s) are configured.
 
-| Key         | Value    | Description |
-| :---------- | :------- | :---------- |
-| `DIRECTORY` | `./data` | TODO:       |
-| `SPACE`     | `256K`   | TODO:       |
-| `IDLE`      | `900s`   | TODO:       |
-| `QUANTITY`  | `65535`  | TODO:       |
+| Key         | Value    | Description                                                                                                                                                                                                  |
+| :---------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DIRECTORY` | `./data` | Maximum number of files in data storage.<br/> Exceeding the limit causes the status 507 - Insufficient Storage.                                                                                              |
+| `SPACE`     | `256K`   | Maximum data size of files in data storage in bytes.<br/> The value also limits the size of the requests(-body).<br/> The symbols `k`/`m`/`g` are supported.<br/> Without symbol it is bytes.                |
+| `IDLE`      | `900s`   | Maximum idle time of the files in milliseconds.<br/> If the inactivity exceeds this time for a Storage, it expires.<br/> The symbols `ms`/`s`/`m`/`h` are supported.<br/> Without symbol it is milliseconds. |
+| `QUANTITY`  | `65535`  | Maximum number of files in data storage.<br/> Exceeding the limit causes the status 507 - Insufficient Storage.                                                                                              |
 
 ### LOGGING
 
@@ -82,19 +82,55 @@ Common Log Format.
 | `ACCESS` | `%h %l %u [%t] "%r" %s %b "%{User-Agent}" > ./logs/%t:Y%t:M%t:D-%a-access.log` | TODO:       |
 
 Description of the log format symbols for `OUTPUT` and `ERROR`.  
-Simplified symbol set with focus on date and time.
+Simplified symbol set with focus on date and time.    
+For unknown symbols, the `%` character at the beginning is removed and the
+following character is output.
 
-| Symbol   | Description |
-| :------- | :---------- |
-| `%TODO:` | TODO:       |
-
+| Symbol   | Format                | Description |
+| :------- | :-------------------- | :---------- |
+| `%X`     | `YYYY-MM-DD hh:mm:ss` | Timestamp   |
+| `%x`     | `YYYY-MM-DD`          | Timestamp   | 
+| `%Y`     | `YYYY`                | Year        |
+| `%y`     | `YY`                  | Year        | 
+| `%M`     | `MM`                  | Month       | 
+| `%D`     | `DD`                  | Day         |
+| `%t`     | `hh:mm:ss`            | Timestamp   |
+| `%h`     | `hh`                  | Hours       |
+| `%m`     | `mm`                  | Minutes     |
+| `%s`     | `ss`                  | Seconds     |
+| `...`    | `...`                 | Text        |
 
 Description of the log format symbols for `ACCESS`.  
-Extended symbol set with focus on request, response, date and time.
+Extended symbol set with focus on request, response, date and time.    
+For unknown symbols, the `%` character at the beginning is removed and the
+following character is output.
 
-| Symbol   | Description |
-| :------- | :---------- |
-| `%TODO:` | TODO:       |
+| Symbol     | Format                | Description |
+| :--------- | :-------------------- | :---------- |
+| `%r`       | TODO:                 | TODO        | 
+| `%{...}`   | TODO:                 | TODO        |
+| `%a`       | TODO:                 | TODO        |
+| `%h`       | TODO:                 | TODO        |
+| `%l`       | TODO:                 | TODO        |
+| `%u`       | TODO:                 | TODO        |
+| `%s`       | TODO:                 | TODO        |
+| `%b`       | TODO:                 | TODO        |
+| `%B`       | TODO:                 | TODO        |
+| `%m`       | TODO:                 | TODO        |
+| `%U`       | TODO:                 | TODO        |
+| `%q`       | TODO:                 | TODO        |
+| `%H`       | TODO:                 | TODO        |
+| `%t`       | TODO:                 | Timestamp   |
+| `%t:X`     | `YYYY-MM-DD hh:mm:ss` | Timestamp   |
+| `%t:x`     | `YYYY-MM-DD`          | Timestamp   | 
+| `%t:Y`     | `YYYY`                | Year        |
+| `%t:y`     | `YY`                  | Year        | 
+| `%t:M`     | `MM`                  | Month       | 
+| `%t:D`     | `DD`                  | Day         |
+| `%t:t`     | `hh:mm:ss`            | Timestamp   |
+| `%t:h`     | `hh`                  | Hours       |
+| `%t:m`     | `mm`                  | Minutes     |
+| `%t:s`     | `ss`                  | Seconds     |
 
 
 
