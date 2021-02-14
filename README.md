@@ -117,11 +117,13 @@ specific language governing permissions and limitations under the License.
 
 
 # System Requirement
-TODO:
+- [Node.js](https://nodejs.org/en/download/) 14.x or higher
+- [libxml2](http://www.xmlsoft.org/downloads.html) 2.9.x or higher  
 
 
 # Downloads
-TODO:
+[Seanox XMEX 1.1.0](https://github.com/seanox/xml-micro-exchange-js/raw/master/releases/seanox-xmex-1.1.0.zip)  
+[Seanox XMEX latest](https://github.com/seanox/xml-micro-exchange-js/raw/master/releases/seanox-xmex-latest.zip)
 
 
 # Docker Image
@@ -155,7 +157,8 @@ TODO:
 
 
 # Changes (Change Log)
-TODO:
+## 1.1.0 20210215 (summary of the current version)  
+NT: Release is available  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 
