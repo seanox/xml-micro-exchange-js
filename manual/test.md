@@ -62,7 +62,7 @@ For this purpose, the file `./sources/trace.log` is created in test mode, this
 can then be compared in more detail with versions before and after a change.
 This file then also provides the new hash values that are put into the unit
 tests with the `./test/update.js` script.  
-The script uses [node.js](https://nodejs.org) as runtime environment and
+The script uses [Node.js](https://nodejs.org) as runtime environment and
 expects as argument the path to a trace file from which the hash values should
 be used.
 

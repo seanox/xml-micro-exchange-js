@@ -139,8 +139,6 @@ TODO:
 * [Motivation](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/motivation.md)
 * [Installation](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md)
 * [Configuration](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md)
-    * [Web Server](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md#web-server)
-    * [Parameters](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md#parameters)
 * [Terms](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/terms.md)
 * [Getting Started](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/getting-started.md)
 * [API](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api.md)

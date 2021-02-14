@@ -6,7 +6,7 @@
 The following is used to develop the XML-Micro-Exchange:
 
 - [Windows 10 Pro](https://www.microsoft.com/de-de/software-download/windows10) Operating system
-- [node.js 14.x](https://nodejs.org) Runtime
+- [Node.js 14.x](https://nodejs.org) Runtime
 - [libxml2](http://xmlsoft.org/) Runtime
 - [JetBrains WebStorm](https://www.jetbrains.com/webstorm) or [JetBrains IntelliJ IDEA](https://www.jetbrains.com/idea/) IDE  
 - [JetBrains HTTP Client](https://www.jetbrains.com/help/idea/http-client-in-product-code-editor.html) Testing
