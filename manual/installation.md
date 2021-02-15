@@ -82,6 +82,40 @@ TODO:
 
 TODO:
 
+The service runs with the user `nobody` and is therefore not a root.
+```
+docker run -d -p 8000:8000/tcp --rm --name xmex seanox/xmex:latest
+```
+
+The REST API is then usable via all host and IP address allowed/supported for the container as follows.  
+A direct browser request is answered with status 400.  
+Please read more about the usage of the [API](api.md).
+```
+http://localhost:8000/xmex!
+```
+
+## Directory Structure
+
+```
+/xmex
+    /conf
+        - service.ini
+    /data
+        - <storage>.xml
+        - ...
+    /logs
+        - <date>-<host>-access.log
+        - <date>-error.log
+        - <date>-output.log
+        - ...
+    - service.js
+```
+The directories `/xmex/conf`, `/xmex/data`, `/xmex/logs` can be mapped, binded to other places or be changed and overwritten in their own images.  
+For the configuration of the service `/xmex/conf/service.ini` is used.  
+Unlike configurations in JSON, this is more error tolerant and supports comments.
+
+TODO:
+
 
 
 - - -
