@@ -58,7 +58,7 @@ supported for PUT requests and is added to an XPath axis separated by two colons
 at the end (e.g. `/root/element::end` - means put in element as last).
 
 ## XPath Function
-+The XPath notation also supports functions that can be used in combination with
+The XPath notation also supports functions that can be used in combination with
 axes and standalone for dynamic data requests. In combination with XPath axes,
 the addressing and selection of elements and attributes can be made dynamic.
 

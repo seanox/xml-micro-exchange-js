@@ -1,7 +1,8 @@
 <p>
-  <a href="https://github.com/seanox/xml-micro-exchange-js/pulls">
-    <img src="https://img.shields.io/badge/development-active-green?style=for-the-badge">
-  </a>
+  <a href="https://github.com/seanox/xml-micro-exchange-js/pulls"
+      title="Development is waiting for new issues / requests / ideas">
+    <img src="https://img.shields.io/badge/development-passive-blue?style=for-the-badge">
+  </a>  
   <a href="https://github.com/seanox/xml-micro-exchange-js/issues">
     <img src="https://img.shields.io/badge/maintenance-active-green?style=for-the-badge">
   </a>
@@ -122,8 +123,8 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XMEX 1.1.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.1.0.zip)  
-[Seanox XMEX latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip)
+[Seanox XML-Micro-Exchange 1.1.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.1.0.zip)  
+[Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip)
 
 
 # Docker Image
@@ -155,7 +156,7 @@ TODO:
 
 
 # Changes (Change Log)
-## 1.1.0 20210215 (summary of the current version)  
+## 1.2.0 20210215 (summary of the current version)  
 NT: Release is available  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)

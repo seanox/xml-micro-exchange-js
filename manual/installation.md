@@ -97,18 +97,18 @@ http://localhost:8000/xmex!
 ## Directory Structure
 
 ```
-/xmex
-    /conf
-        - service.ini
-    /data
-        - <storage>.xml
-        - ...
-    /logs
-        - <date>-<host>-access.log
-        - <date>-error.log
-        - <date>-output.log
-        - ...
-    - service.js
++ xmex
+  + conf
+    - service.ini
+  + data
+    - <storage>.xml
+    - ...
+  + logs
+    - <date>-<host>-access.log
+    - <date>-error.log
+    - <date>-output.log
+    - ...
+  - service.js
 ```
 The directories `/xmex/conf`, `/xmex/data`, `/xmex/logs` can be mapped, binded
 to other places or be changed and overwritten in their own images. For the
