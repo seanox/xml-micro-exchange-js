@@ -57,7 +57,7 @@ Required components (minimum):
 - mingwrt `libgcc_s_dw2-1.dll`
 
 Download the required files here: http://xmlsoft.org/sources/win32/  
-or use the [Windows Binary (zip)](TODO:latest) for Seanox XML-Micro-Exchange.
+or use the [Windows Binary (zip)](https://github.com/seanox/xml-micro-exchange-js/raw/main/development/libxml2_2.9.3_win_x64.zip) for Seanox XML-Micro-Exchange.
 
 The directory must then be added to the `PATH` that Node.js and the service
 will then also use. It can be the system-wide environment variable `PATH`, but
@@ -110,8 +110,9 @@ http://localhost:8000/xmex!
         - ...
     - service.js
 ```
-The directories `/xmex/conf`, `/xmex/data`, `/xmex/logs` can be mapped, binded to other places or be changed and overwritten in their own images.  
-For the configuration of the service `/xmex/conf/service.ini` is used.  
+The directories `/xmex/conf`, `/xmex/data`, `/xmex/logs` can be mapped, binded
+to other places or be changed and overwritten in their own images. For the
+configuration of the service `/xmex/conf/service.ini` is used.  
 Unlike configurations in JSON, this is more error tolerant and supports comments.
 
 TODO:
