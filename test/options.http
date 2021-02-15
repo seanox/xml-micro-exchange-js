@@ -6,7 +6,7 @@
 # different Allow headers. Also the existence of the target on an XPath
 # axis has an influence on the response. The method will not use status
 # 404 in relation to non-existing targets, but will offer the methods
-# CONNECT, OPTIONS, PUT via Allow-Header.
+# OPTIONS, PUT via Allow-Header.
 # If the XPath is a function, it is executed and thus validated, but
 # without returning the result.
 # The XPath processing is strict and does not accept unnecessary spaces.
@@ -139,7 +139,7 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - Without Storage-Effects header
-# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE
 # - URI: /
 OPTIONS {{service}}0x2f HTTP/1.0
 Storage: {{storage_options}}
@@ -170,7 +170,7 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - Storage-Effects: 1x UID
-# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE
 OPTIONS {{service}}/books HTTP/1.0
 Storage: {{storage_options}}
 
@@ -201,7 +201,7 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - Storage-Effects: 27x UID
-# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE
 # - URI: (/books)//paragraph
 OPTIONS {{service}}0x282f626f6f6b73292f2f706172616772617068 HTTP/1.0
 Storage: {{storage_options}}
@@ -232,7 +232,7 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - Without Storage-Effects header
-# - Allow: CONNECT, OPTIONS, PUT
+# - Allow: OPTIONS, PUT
 OPTIONS {{service}}/books/book/new/new HTTP/1.0
 Storage: {{storage_options}}
 
@@ -277,7 +277,7 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - Storage-Effects: 1x UID
-# - Allow: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+# - Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE
 OPTIONS {{service}}/books/book%5B1%5D/@title HTTP/1.0
 Storage: {{storage_options}}
 

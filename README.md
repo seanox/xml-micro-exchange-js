@@ -51,10 +51,7 @@ __All meet without obligation.__
 # Features
 
 ## RESTful
-The REST API supports the HTTP methods CONNECT, OPTIONS, GET, POST, PUT, PATCH,
-DELETE.  
-The CONNECT method is not a standard and the function can be used
-alternatively via OPTIONS.  
+The REST API supports the HTTP methods OPTIONS, GET, POST, PUT, PATCH, DELETE.  
 
 ## XPath
 XPath axes and functions are used for access, navigation and addressing of
