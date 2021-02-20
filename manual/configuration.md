@@ -108,32 +108,32 @@ Extended symbol set with focus on request, response, date and time.
 For unknown symbols, the `%` character at the beginning is removed and the
 following character is output.
 
-| Symbol     | Format                | Description |
-| :--------- | :-------------------- | :---------- |
-| `%r`       | TODO:                 | TODO        | 
-| `%{...}`   | TODO:                 | TODO        |
-| `%a`       | TODO:                 | TODO        |
-| `%h`       | TODO:                 | TODO        |
-| `%l`       | TODO:                 | TODO        |
-| `%u`       | TODO:                 | TODO        |
-| `%s`       | TODO:                 | TODO        |
-| `%b`       | TODO:                 | TODO        |
-| `%B`       | TODO:                 | TODO        |
-| `%m`       | TODO:                 | TODO        |
-| `%U`       | TODO:                 | TODO        |
-| `%q`       | TODO:                 | TODO        |
-| `%H`       | TODO:                 | TODO        |
-| `%t`       | TODO:                 | Timestamp   |
-| `%t:X`     | `YYYY-MM-DD hh:mm:ss` | Timestamp   |
-| `%t:x`     | `YYYY-MM-DD`          | Timestamp   | 
-| `%t:Y`     | `YYYY`                | Year        |
-| `%t:y`     | `YY`                  | Year        | 
-| `%t:M`     | `MM`                  | Month       | 
-| `%t:D`     | `DD`                  | Day         |
-| `%t:t`     | `hh:mm:ss`            | Timestamp   |
-| `%t:h`     | `hh`                  | Hours       |
-| `%t:m`     | `mm`                  | Minutes     |
-| `%t:s`     | `ss`                  | Seconds     |
+| Symbol     | Format                   | Description                |
+| :--------- | :----------------------- | :------------------------- |
+| `%r`       | TODO:                    | TODO                       | 
+| `%{...}`   | TODO:                    | TODO                       |
+| `%a`       | Name or IP               | Local Host                 |
+| `%h`       | Name or IP               | Remote Host                |
+| `%l`       | `-`                      | Reserved for Authorization |
+| `%u`       | `-`                      | Reserved for User          |
+| `%s`       | `000`                    | Response Status Code       |
+| `%b`       | `0` / `-`                | Response Content Length    |
+| `%B`       | `0`                      | Response Content Length    |
+| `%m`       | Text                     | Request Method             |
+| `%U`       | Text                     | Request URI                |
+| `%q`       | Text                     | Request Query              |
+| `%H`       | Text                     | Request HTTP Version       |
+| `%t`       | `DD/MMM/YYYY:hh:mm:ss Z` | Timestamp                  |
+| `%t:X`     | `YYYY-MM-DD hh:mm:ss`    | Timestamp                  |
+| `%t:x`     | `YYYY-MM-DD`             | Timestamp                  | 
+| `%t:Y`     | `YYYY`                   | Year                       |
+| `%t:y`     | `YY`                     | Year                       | 
+| `%t:M`     | `MM`                     | Month                      | 
+| `%t:D`     | `DD`                     | Day                        |
+| `%t:t`     | `hh:mm:ss`               | Timestamp                  |
+| `%t:h`     | `hh`                     | Hours                      |
+| `%t:m`     | `mm`                     | Minutes                    |
+| `%t:s`     | `ss`                     | Seconds                    |
 
 
 
