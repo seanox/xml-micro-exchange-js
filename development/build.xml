@@ -6,6 +6,9 @@
     <echo>release                Builds the final scripts and creates the release         </echo>
     <echo>                       and Docker images for the distribution.                  </echo>
     <echo>                                                                                </echo>
+    <echo>clean                  Cleanup of temporary directories and files from the      </echo>
+    <echo>                       relase task.                                             </echo>
+    <echo>                                                                                </echo>
     <echo>changes                Synchronizes README.md with CHANGES.                     </echo>
     <echo>                                                                                </echo>
     <echo>docker-test            Creates a test version and Docker image and              </echo>
@@ -299,5 +302,14 @@
       <arg value="/c"/>
       <arg value="docker logout"/>
     </exec>
+  </target>
+
+  <target name="clean">
+    <delete dir="${workspace}/release/trace"/>
+    <delete dir="${workspace}/release/xmex"/>
+    <delete dir="${workspace}/sources/data"/>
+    <delete dir="${workspace}/sources/logs"/>
+    <delete file="${workspace}/sources/service-build.js"/>
+    <delete file="${workspace}/sources/service-build-test.js"/>
   </target>
 </project>
