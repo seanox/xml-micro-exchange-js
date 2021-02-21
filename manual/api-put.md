@@ -1,4 +1,4 @@
-[POST](api-post.md) | [TOC](README.md) | [Error Handling](error-handling.md)
+[POST](api-post.md) | [TOC](README.md) | [Statistic](statistic.md)
 - - -
 
 # PUT
@@ -183,4 +183,4 @@ Execution-Time: 3 ms
 
 - - -
 
-[POST](api-post.md) | [TOC](README.md) | [Error Handling](error-handling.md)
+[POST](api-post.md) | [TOC](README.md) | [Statistic](statistic.md)
