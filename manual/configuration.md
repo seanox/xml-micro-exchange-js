@@ -61,7 +61,11 @@ For the preflight OPTIONS the following headers are added automatically:
 
 ### REQUEST
 
-TODO:
+In this section the request are configured.
+
+| Key                                | Value   | Description                                                                                                             |
+| :--------------------------------- | :------ | :---------------------------------------------------------------------------------------------------------------------- |
+| `DATA-LIMIT`                       | `1024k` | Maximum data size of the request (for all HTTP methods).<br/>An overflow is answered with status 415 Payload Too Large. |
 
 ### STORAGE
 

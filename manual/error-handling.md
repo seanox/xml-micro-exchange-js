@@ -1,4 +1,4 @@
-[PUT](api-put.md) | [TOC](README.md) | [Development](development.md)
+[Statistic](statistic.md) | [TOC](README.md) | [Development](development.md)
 - - -
 
 # Error Handling
@@ -47,4 +47,4 @@ Execution-Time: 16 ms
 
 - - -
 
-[PUT](api-put.md) | [TOC](README.md) | [Development](development.md)
+[Statistic](statistic.md) | [TOC](README.md) | [Development](development.md)

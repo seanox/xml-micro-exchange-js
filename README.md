@@ -146,6 +146,7 @@ TODO:
     * [PATCH](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api-patch.md)
     * [POST](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api-post.md)
     * [PUT](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api-put.md)
+* [Statistic](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/statistic.md)
 * [Error Handling](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/error-handling.md)
 * [Development](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/development.md)
 * [Build](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/build.md)
