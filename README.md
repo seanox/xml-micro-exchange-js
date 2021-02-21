@@ -153,7 +153,7 @@ TODO:
 
 
 # Changes (Change Log)
-## 1.2.0 20210215 (summary of the current version)  
+## 1.1.0 20210215 (summary of the current version)  
 NT: Release is available  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
