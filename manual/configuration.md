@@ -16,6 +16,7 @@ TODO:
 * [Sections](#sections)
   * [CONNECTION](#connection)
   * [CORS](#cors)
+  * [REQUEST](#request)
   * [STORAGE](#storage)
   * [LOGGING](#logging)
 
@@ -58,6 +59,10 @@ keys are inserted directly into the response header.
 For the preflight OPTIONS the following headers are added automatically:  
 `Access-Control-Allow-Methods`, `Access-Control-Allow-Headers`
 
+### REQUEST
+
+TODO:
+
 ### STORAGE
 
 In this section the datasource and storage(s) are configured.
@@ -79,10 +84,13 @@ Common Log Format.
 | :------- | :----------------------------------------------------------------------------- | :---------- |
 | `OUTPUT` | `%X ...`                                                                       | TODO:       |
 | `OUTPUT` | `%X ... > ./logs/%Y%M%D-output.log`                                            | TODO:       |
+| `OUTPUT` | `off`                                                                          | TODO:       |
 | `ERROR`  | `%X ...`                                                                       | TODO:       |
 | `ERROR`  | `%X ... > ./logs/%Y%M%D-error.log`                                             | TODO:       |
+| `ERROR`  | `off`                                                                          | TODO:       |
 | `ACCESS` | `%h %l %u [%t] "%r" %s %b "%{User-Agent}"`                                     | TODO:       |
 | `ACCESS` | `%h %l %u [%t] "%r" %s %b "%{User-Agent}" > ./logs/%t:Y%t:M%t:D-%a-access.log` | TODO:       |
+| `ACCESS` | `off`                                                                          | TODO:       |
 
 Description of the log format symbols for `OUTPUT` and `ERROR`.  
 Simplified symbol set with focus on date and time.    
@@ -110,8 +118,8 @@ following character is output.
 
 | Symbol     | Format                   | Description                |
 | :--------- | :----------------------- | :------------------------- |
-| `%r`       | TODO:                    | TODO                       | 
-| `%{...}`   | TODO:                    | TODO                       |
+| `%r`       | `%m %U%q %H`             | Request                    | 
+| `%{...}`   | Text                     | Request Header             |
 | `%a`       | Name or IP               | Local Host                 |
 | `%h`       | Name or IP               | Remote Host                |
 | `%l`       | `-`                      | Reserved for Authorization |
