@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.1.0 20210212
+ * Service 1.2.0 20210221
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.1.0 20210212
+ * @version 1.2.0 20210221
  */
 const http = require("http")
 const https = require("https")
@@ -391,6 +391,15 @@ JSON.stringify$xml = function(xml) {
     return result
 }
 
+Math.round$ = Math.round
+Math.round = function(value, decimals) {
+    if (!decimals
+            || decimals <= 0)
+        return Math.round$(value)
+    decimals = Math.pow(10, decimals)
+    return Math.round(value *decimals) /decimals
+}
+
 Number.parseBytes = function(text) {
     if (!Object.exists(text)
             || String(text).trim().length <= 0)
@@ -436,7 +445,7 @@ module.init = function() {
             || !fs.lstatSync(file).isFile())
         throw "Configuration file " + file + " not found"
 
-    let meta = {connection: {}, cors: {}, storage: {}, logging: {}}
+    let meta = {connection:{}, cors:{}, request:{}, storage:{}, logging:{}}
     let sections = require("ini").parse(fs.readFileSync(file, "ascii"))
     Object.keys(sections).forEach((section) => {
         let entries = sections[section]
@@ -454,6 +463,7 @@ module.init = function() {
 
     module["connection"] = meta.connection
     module["cors"] = meta.cors
+    module["request"] = meta.request
     module["storage"] = meta.storage
     module["logging"] = meta.logging
 
@@ -2491,6 +2501,45 @@ console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
 console.log("Copyright (C) 0000 Seanox Software Solutions")
 console.log()
 
+let date = new Date()
+const Statistic = {
+    date: date.toTimestampString("%Y-%M-%D"),
+    time: date.getHours(),
+    data: []
+}
+
+// Synchronization is not required here, because the interval is only
+// triggered after the end of the method.
+global.setInterval(() => {
+    let summarize = (statistic, hour = undefined) => {
+        let data = {count:0, time:0, inbound:0, outbound:0}
+        if (!hour) {
+            let data = {count:0, time:0, inbound:0, outbound:0}
+            statistic.data.forEach((record) => {
+                data.count += record.count
+                data.inbound += record.inbound
+                data.outbound += record.outbound
+                data.time += record.time
+            })
+        } else data = statistic.data[hour] || {count:0, time:0, inbound:0, outbound:0}
+        console.log("Statistic", `Requests ${data.count}`
+            + `, Inbound ${Math.round(data.inbound, 2)} MB`
+            + `, Outbound ${Math.round(data.outbound, 2)} MB`
+            + `, Execution ${Math.round(data.time, 2)} min`)
+    }
+    let date = new Date()
+    let text = date.toTimestampString("%Y-%M-%D")
+    if (Statistic.date !== text) {
+        summarize(Statistic)
+        Statistic.date = text
+        Statistic.time = date.getHours()
+        Statistic.data = []
+    } else if (Statistic.time !== date.getHours()) {
+        summarize(Statistic, Statistic.time)
+        Statistic.time = date.getHours()
+    }
+}, 30000)
+
 let context = Object.exists(module.connection.options) ? https : http
 context.createServer(module.connection.options, (request, response) => {
 
@@ -2510,10 +2559,16 @@ context.createServer(module.connection.options, (request, response) => {
         request.unique = request.unique.toUpperCase()
     }
 
+    let dataLimit = Number.parseBytes(module.request["data-limit"])
     request.on("data", (data) => {
         if (!Object.exists(request.data))
             request.data = ""
-        request.data += data
+        if (Object.exists(request.error))
+            return
+        if (request.data.length +data.length > dataLimit) {
+            request.data = ""
+            request.error = [415, "Payload Too Large"]
+        } else request.data += data
     })
 
     request.on("end", () => {
@@ -2523,6 +2578,9 @@ context.createServer(module.connection.options, (request, response) => {
             // Marking the start time for request processing
             request.timing = new Date().getTime()
             request.data = Object.exists(request.data) ? request.data : ""
+
+            if (Object.exists(request.error))
+                (new Storage({request, response})).quit(...request.error)
 
             let context = Object.exists(module.connection.context) ? module.connection.context : ""
 
@@ -2677,6 +2735,20 @@ context.createServer(module.connection.options, (request, response) => {
                         fs.closeSync(file)
                     }
                 } else console.log(logging)
+            })();
+
+            // Synchronization is not required here, because the interval is
+            // only triggered after the end of the method.
+            // The API can be highly-frequented, so the statistical data is
+            // minimized as floating point numbers.
+            (async () => {
+                let date = new Date()
+                let slot = date.getHours()
+                Statistic.data[slot] = Statistic.data[slot] || {count:0, time:0, inbound:0, outbound:0}
+                Statistic.data[slot].count += 1
+                Statistic.data[slot].inbound += Math.round(request.data.length /1024 /1024, 4)
+                Statistic.data[slot].outbound += Math.round(response.contentLength /1024 /1024, 4)
+                Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000 /60, 4)
             })();
 
             (async () => {
