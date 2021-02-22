@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210221
+ * Service 1.2.0 20210222
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210221
+ * @version 1.2.0 20210222
  */
 const http = require("http")
 const https = require("https")
@@ -2512,20 +2512,21 @@ const Statistic = {
 // triggered after the end of the method.
 global.setInterval(() => {
     let summarize = (statistic, hour = undefined) => {
-        let data = {count:0, time:0, inbound:0, outbound:0}
+        let data = {requests:0, time:0, inbound:0, outbound:0, errors:0}
         if (!hour) {
-            let data = {count:0, time:0, inbound:0, outbound:0}
             statistic.data.forEach((record) => {
-                data.count += record.count
+                data.requests += record.requests
                 data.inbound += record.inbound
                 data.outbound += record.outbound
                 data.time += record.time
+                data.errors += record.errors
             })
-        } else data = statistic.data[hour] || {count:0, time:0, inbound:0, outbound:0}
-        console.log("Statistic", `Requests ${data.count}`
+        } else data = statistic.data[hour] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
+        console.log("Statistic", `Requests ${data.requests}`
             + `, Inbound ${Math.round(data.inbound, 2)} MB`
             + `, Outbound ${Math.round(data.outbound, 2)} MB`
-            + `, Execution ${Math.round(data.time, 2)} min`)
+            + `, Execution ${Math.round(data.time, 2)} min`
+            + `, Errors ${data.errors}`)
     }
     let date = new Date()
     let text = date.toTimestampString("%Y-%M-%D")
@@ -2744,11 +2745,13 @@ context.createServer(module.connection.options, (request, response) => {
             (async () => {
                 let date = new Date()
                 let slot = date.getHours()
-                Statistic.data[slot] = Statistic.data[slot] || {count:0, time:0, inbound:0, outbound:0}
-                Statistic.data[slot].count += 1
+                Statistic.data[slot] = Statistic.data[slot] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
+                Statistic.data[slot].requests += 1
                 Statistic.data[slot].inbound += Math.round(request.data.length /1024 /1024, 4)
                 Statistic.data[slot].outbound += Math.round(response.contentLength /1024 /1024, 4)
                 Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000 /60, 4)
+                if (String(response.statusCode).startsWith("5"))
+                    Statistic.data[slot].errors += 1
             })();
 
             (async () => {
