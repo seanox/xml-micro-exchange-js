@@ -100,7 +100,7 @@
  * no effect from then on and are therefore not listed in the response header
  * Storage-Effects.
  *
- *       UID
+ *     UID
  * Each element uses a unique identifier in the form of the read-only attribute
  * ___uid. The unique identifier is automatically created when an element is
  * put into storage and never changes.
@@ -128,20 +128,20 @@
  * For this reason different ways of transmission and escape are supported for
  * the XPath.
  *
- *        URI (not escaped)
+ *         URI (not escaped)
  * e.g. /xmex!//book[last()]/chapter[last()]
  *
- *        URI + URL Encoding
+ *         URI + URL Encoding
  * The XPath is used URL encoding.
  * e.g. /xmex!//book%5Blast()%5D/chapter%5Blast()%5D
  * is equivalent to: /xmex!//book[last()]/chapter[last()]
  *
- *        XPath as hexadecimal string
+ *         XPath as hexadecimal string
  * The URI starts with 0x after the XPath separator:
  * e.g. /xmex!0x2f2f626f6f6b5b6c61737428295d2f636861707465725b6c61737428295d
  * is equivalent to: /xmex!//book[last()]/chapter[last()]
  *
- *        XPath as Base64 encoded string
+ *         XPath as Base64 encoded string
  * The URI starts with Base64 after the XPath separator:
  * e.g. /xmex!Base64:Ly9ib29rW2xhc3QoKV0vY2hhcHRlcltsYXN0KCld
  * is equivalent to: /xmex!//book[last()]/chapter[last()]
@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210222
+ * Service 1.2.0 20210224
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210222
+ * @version 1.2.0 20210224
  */
 const http = require("http")
 const https = require("https")
@@ -483,8 +483,25 @@ module.init = function() {
                     key: fs.readFileSync(secure[1])
                 }
             }
+            if (Object.exists(meta.connection.acme)) {
+                let acme = meta.connection.acme.trim()
+                acme = acme.split(/<+/)
+                if (acme.length > 1) {
+                    module.connection.acme = {
+                        challenge: {
+                            context: acme[0].trim(),
+                            response: acme[1].trim()
+                        }
+                    }
+                }
+            }
         }
     }
+
+    if (Object.exists(meta.connection.acme)
+            && Object.exists(meta.connection.acme.challenge))
+        meta.connection.acme = meta.connection.acme.challenge
+    else delete meta.connection.acme
 
     let parseOutputPhrase = (phrase) => {
         let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*){0,1}$/)
@@ -2499,7 +2516,6 @@ if (module.logging.error) {
 // CHANGES is the basis for builds, releases and README.md
 console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
 console.log("Copyright (C) 0000 Seanox Software Solutions")
-console.log()
 
 let date = new Date()
 const Statistic = {
@@ -2558,6 +2574,23 @@ context.createServer(module.connection.options, (request, response) => {
         request.unique = request.unique.substring(request.unique.length -4)
         request.unique = new Date().getTime().toString(36) + request.unique
         request.unique = request.unique.toUpperCase()
+    }
+
+    try {
+        if (decodeURI(request.url) === module.connection.acme.context) {
+            response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
+            response.end(module.connection.acme.response)
+            return
+        }
+    } catch (exception1) {
+        console.error("Service", "#" + request.unique, exception1)
+        try {
+            response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
+            response.end()
+        } catch (exception2) {
+            console.error("Service", "#" + request.unique, exception2)
+        }
+        return
     }
 
     let dataLimit = Number.parseBytes(module.request["data-limit"])
@@ -2770,5 +2803,50 @@ context.createServer(module.connection.options, (request, response) => {
         }
     })
 }).listen(module.connection.port, module.connection.address, function() {
-    console.log("Service", `Listening at ${this.address().address}:${this.address().port}${module.connection.options ? ' (secure)' : ''}`)
+    let options = ""
+    if (module.connection.options)
+        options += "secure"
+    if (module.connection.options
+            && module.connection.acme)
+        options += " + ACME"
+    console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options ? ' (' + options + ')' : ''}`)
 })
+
+if (module.connection.port !== "80"
+        && Object.exists(module.connection.acme)) {
+    http.createServer((request, response) => {
+
+        // The method is based on time, network port and the assumption that a
+        // port is not used more than once at the same time. On fast platforms,
+        // however, the time factor is uncertain because the time from calling
+        // the method is less than one millisecond. This is ignored here,
+        // assuming that the port reassignment is greater than one millisecond.
+
+        // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
+        request.unique = request.socket.remotePort.toString(36)
+        request.unique = "0000" + request.unique
+        request.unique = request.unique.substring(request.unique.length -4)
+        request.unique = new Date().getTime().toString(36) + request.unique
+        request.unique = request.unique.toUpperCase()
+
+        try {
+            if (decodeURI(request.url) === module.connection.acme.context) {
+                response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
+                response.end(module.connection.acme.response)
+            } else {
+                response.writeHead(404, "Resource Not Found")
+                response.end()
+            }
+        } catch (exception1) {
+            console.error("Service", "#" + request.unique, exception1)
+            try {
+                response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
+                response.end()
+            } catch (exception2) {
+                console.error("Service", "#" + request.unique, exception2)
+            }
+        }
+    }).listen(80, module.connection.address, function() {
+        console.log("Service", `Listening at ${this.address().address}:${this.address().port} (ACME)`)
+    })
+}

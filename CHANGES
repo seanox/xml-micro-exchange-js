@@ -6,8 +6,14 @@
           Example
       2021-02-21 09:00:00 Statistic Requests 424, Inbound 0.73 MB, Outbound 0.17 MB, Execution 0.58 min, Errors 0
   CR: Service: Added Request Data Limit (for all HTTP methods)
-      If the request overruns the data limit, the request is responded with status 415 Payload Too Large.
-      The limit is configurable in section REQUEST, key DATA-LIMIT
+      If the request overruns the data limit, the request is responded with
+      status 415 Payload Too Large. The limit is configurable in section
+      REQUEST, key DATA-LIMIT
+  CR: Service: Added optional ACME challenge function
+      e.g. for Cerbot and Let's Encrypt
+      The challenge only works via port 80. If the service uses another one,
+      this option additionally opens port 80 only exclusive for the challenge.
+      Only available with key "SECURE".
 
 1.1.0 20210215
   NT: Release is available
