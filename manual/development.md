@@ -13,6 +13,7 @@ The following is used to develop the XML-Micro-Exchange:
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) Testing
 - [Git 2.29.x](https://git-scm.com/downloads) SCM
 - [Apache Ant 1.10.x](https://ant.apache.org/) Build
+- [Terminus Alpha 1xx](https://eugeny.github.io/terminus/) Terminal
 
 The specifications are not binding, but should only give an orientation and help
 in understanding.
