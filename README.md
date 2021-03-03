@@ -136,7 +136,7 @@ Requests without storage identifier (see [manual](manual/README.md#manual)) are
 responded with status 400.__
 
 It's just a small playground on a small server in a big data center.  
-__Sponsors are always welcome.__
+__Sponsors are always welcome.__  
 The project needs a good and simple domain and if possible more power.  
 It costs about 7,50 Euro per month for 65535 x 1024 kB with double CPU cores
 and double memory.
