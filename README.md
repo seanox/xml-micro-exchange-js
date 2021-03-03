@@ -128,8 +128,18 @@ specific language governing permissions and limitations under the License.
 https://hub.docker.com/repository/docker/seanox/xmex
 
 
-# Free XML-Micro-Exchange 
-TODO:
+# Free XML-Micro-Exchange
+[https://8e51923.online-server.cloud/xmex!](https://8e51923.online-server.cloud/xmex!)  
+65536 Storages x 64 kB  
+__Please do not get confused, the API is online.  
+Requests without storage identifier (see [manual](manual/README.md#manual)) are
+responded with status 400.__
+
+It's just a small playground on a small server in a big data center.  
+__Sponsors are always welcome.__
+The project needs a good and simple domain and if possible more power.  
+It costs about 7,50 Euro per month for 65535 x 1024 kB with double CPU cores
+and double memory.
 
 
 # Manual
