@@ -81,7 +81,12 @@ transmitted via POST.
 This aspect was deliberately considered and implemented here only in a very
 rudimentary form. The storage(-key) with a length of 1 - 64 characters and the
 individual root element can be regarded as secret.  
-In addition, HTTPS is supported but without client certificate authorization.   
+In addition, HTTPS is supported but without client certificate authorization.
+
+## ACME Challenge Support
+Support of ACME HTTP-01 challenge for automated certificate management e.g.
+with [Let's Encrypt](https://letsencrypt.org/) +
+[Cerbot](https://certbot.eff.org/).
 
 ## Containerization
 XML-Micro-Exchange is also available as a container image on Docker Hub:
