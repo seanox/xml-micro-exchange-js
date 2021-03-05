@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210224
+ * Service 1.2.0 20210305
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210224
+ * @version 1.2.0 20210305
  */
 const http = require("http")
 const https = require("https")
@@ -483,16 +483,17 @@ module.init = function() {
                     key: fs.readFileSync(secure[1])
                 }
             }
-            if (Object.exists(meta.connection.acme)) {
-                let acme = meta.connection.acme.trim()
-                acme = acme.split(/<+/)
-                if (acme.length > 1) {
-                    module.connection.acme = {
-                        challenge: {
-                            context: acme[0].trim(),
-                            response: acme[1].trim()
-                        }
-                    }
+        }
+    }
+
+    if (Object.exists(meta.connection.acme)) {
+        let acme = meta.connection.acme.trim()
+        acme = acme.split(/<+/)
+        if (acme.length > 1) {
+            module.connection.acme = {
+                challenge: {
+                    context: acme[0].trim(),
+                    response: acme[1].trim()
                 }
             }
         }
@@ -2803,13 +2804,13 @@ context.createServer(module.connection.options, (request, response) => {
         }
     })
 }).listen(module.connection.port, module.connection.address, function() {
-    let options = ""
+    let options = []
     if (module.connection.options)
-        options += "secure"
-    if (module.connection.options
-            && module.connection.acme)
-        options += " + ACME"
-    console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options ? ' (' + options + ')' : ''}`)
+        options.push("secure")
+    if (module.connection.acme
+            && module.connection.port === "80")
+        options.push("ACME")
+    console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? ' (' + options.join(" + ") + ')' : ''}`)
 })
 
 if (module.connection.port !== "80"
