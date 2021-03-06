@@ -212,6 +212,7 @@ client.test("unittest", function() {
 
 ###
 # Valid XSLT without XPath and with output
+# District of Berlin, sorted by sum of quarters
 # Expectations:
 # - Status code 200 Success
 # - Content-Length: 642
@@ -249,6 +250,7 @@ client.test("unittest", function() {
 
 ###
 # Valid XSLT without XPath and with output
+# District of Berlin - Lichtenberg, list of quarters, sorted by name
 # Expectations:
 # - Status code 200 Success
 # - Content-Length: 399
@@ -284,6 +286,7 @@ client.test("unittest", function() {
 
 ###
 # Valid XSLT without XPath and with output
+# District of Berlin - Lichtenberg, list of quarters, sorted by area (as plain text)
 # Expectations:
 # - Status code 200 Success
 # - Content-Length: 290
