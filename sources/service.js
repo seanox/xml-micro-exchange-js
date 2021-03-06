@@ -2578,7 +2578,9 @@ context.createServer(module.connection.options, (request, response) => {
     }
 
     try {
-        if (decodeURI(request.url) === module.connection.acme.context) {
+        if (module.connection.acme
+                && module.connection.acme.context
+                && decodeURI(request.url) === module.connection.acme.context) {
             response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
             response.end(module.connection.acme.response)
             return
