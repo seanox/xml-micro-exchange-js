@@ -12,6 +12,7 @@
 
 :main
   set service_name=xmex
+  set service_account=NetworkService
   set nssm=%home%\nssm\nssm.exe
 
   if "%1" == "install"   goto install
@@ -31,7 +32,7 @@
     echo.
     echo This script must run as Administrator.
   )
-  
+
   exit /B 0
 
 :install
@@ -39,7 +40,7 @@
   echo ENVIRONMENT: Add variable LIBXML2_HOME
   echo     %home%\libxml2
 
-  setx /M LIBXML2_HOME %home%\libxml2 >> service.log
+  setx /M LIBXML2_HOME %home%\libxml2 >nul
 
   sc query %service_name% >nul 2>&1
   if "%errorLevel%"=="0" (
@@ -56,22 +57,21 @@
   echo.
   echo PERMISSIONS: Service runs as NetworkService and permits full access to the AppDirectory
   echo     %home%
-  icacls.exe %home% /grant "NetworkService":F /T /Q
+  icacls.exe "%home%" /grant %service_account%:(OI)(CI)F /T /Q
   if not "%lastError%" == "%errorLevel%" goto error
 
-  :: Configuration from service 
+  :: Configuration from service
   echo.
   echo SERVICE: Service will be created and configured
-  %nssm% install %service_name% nssm install %SERVICE_NAME% "%home%\node\node.exe"
+  %nssm% install %service_name% "%home%\node\node.exe"
   %nssm% set %service_name% DisplayName   Seanox XMEX
   %nssm% set %service_name% Description   XML Micro Exchange
-  %nssm% set %service_name% AppDirectory  %home%
+  %nssm% set %service_name% AppDirectory  "%home%"
   %nssm% set %service_name% AppParameters service.js
-  %nssm% set %service_name% AppStdout     %home%\logs\service-output.log
-  %nssm% set %service_name% AppStderr     %home%\logs\service-error.log
+  %nssm% set %service_name% AppStdout     "%home%\logs\output.log"
+  %nssm% set %service_name% AppStderr     "%home%\logs\error.log"
   %nssm% set %service_name% Start         SERVICE_AUTO_START
-  %nssm% set %service_name% ObjectName    NetworkService
-  ::%nssm% set %service_name% Type SERVICE_WIN32_OWN_PROCESS
+  %nssm% set %service_name% ObjectName     %service_account%
 
   if not "%lastError%" == "%errorLevel%"=="0" goto error
 
