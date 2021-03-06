@@ -71,7 +71,7 @@
   %nssm% set %service_name% AppStdout     "%home%\logs\output.log"
   %nssm% set %service_name% AppStderr     "%home%\logs\error.log"
   %nssm% set %service_name% Start         SERVICE_AUTO_START
-  %nssm% set %service_name% ObjectName     %service_account%
+  %nssm% set %service_name% ObjectName    %service_account%
 
   if not "%lastError%" == "%errorLevel%"=="0" goto error
 
