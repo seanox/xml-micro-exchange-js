@@ -31,6 +31,7 @@
   <property name="trace" value="${release}/trace"/>
   <property name="sources" value="${workspace}/sources"/>
   <property name="test" value="${workspace}/test"/>
+  <property name="development" value="${workspace}/development"/>
 
   <target name="release" depends="changes">
     <release-locate/>
@@ -111,6 +112,41 @@
       <arg value="/c"/>
       <arg value="docker images --filter=reference=seanox/${ant.project.name} --filter=reference=${ant.project.name}"/>
     </exec>
+
+    <delete dir="${build}-windows"/>
+    <mkdir dir="${build}-windows"/>
+    <mkdir dir="${build}-windows/data"/>
+    <mkdir dir="${build}-windows/logs"/>
+    <mkdir dir="${build}-windows/node"/>
+    <copy todir="${build}-windows">
+      <fileset dir="${build}" includes="**/*"/>
+    </copy>
+    <copy file="${sources}/service.cmd" todir="${build}-windows"/>
+    <replaceregexp file="${build}-windows/service.cmd" flags="ig" byline="false"
+        match="\[\s*Version\s*0(\.0)+\s*0+\s*\]"
+        replace="[Version ${release.version} ${release.date}]"/>
+    <replaceregexp file="${build}-windows/service.cmd" flags="ig" byline="false"
+        match="Copyright\s+\(C\)\s+(0){4,}\s+Seanox\s+Software\s+Solutions"
+        replace="Copyright (C) ${release.year} Seanox Software Solutions"/>
+    <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${build}-windows"/>
+    <copy file="${development}/libxml2-2.9.3_win_x64.license" tofile="${build}-windows/libxml2/license"/>
+    <unzip src="${development}/nssm-2.24.zip" dest="${build}-windows/nssm"/>
+    <copy file="${build}-windows/nssm/nssm-2.24/win64/nssm.exe" todir="${build}-windows/nssm"/>
+    <copy file="${build}-windows/nssm/nssm-2.24/ChangeLog.txt" todir="${build}-windows/nssm"/>
+    <copy file="${build}-windows/nssm/nssm-2.24/README.txt" todir="${build}-windows/nssm"/>
+    <copy file="${development}/nssm-2.24.license" tofile="${build}-windows/nssm/LICENSE"/>
+    <delete dir="${build}-windows/nssm/nssm-2.24"/>
+    <touch datetime="${release.date}" pattern="yyyyMMdd">
+      <fileset dir="${build}-windows" includes="**/*"/>
+    </touch>
+
+    <delete file="${release}/seanox-${ant.project.name}-${release.version}-windows.zip"/>
+    <delete file="${release}/seanox-${ant.project.name}-windows-latest.zip"/>
+    <zip basedir="${build}-windows" destfile="${release}/seanox-${ant.project.name}-${release.version}-windows.zip"/>
+    <copy file="${release}/seanox-${ant.project.name}-${release.version}.zip" tofile="${release}/seanox-${ant.project.name}-windows-latest.zip" overwrite="true"/>
+    <touch datetime="${release.date}" pattern="yyyyMMdd">
+      <fileset dir="${release}" includes="seanox-${ant.project.name}*.zip"/>
+    </touch>
 
     <replaceregexp file="${workspace}/README.md"
         match="(Seanox\s+XML-Micro-Exchange\s+)\d+[\.\d]+" flags="g" byline="false"
