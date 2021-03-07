@@ -177,8 +177,8 @@ CR: Service: Added Request Data Limit (for all HTTP methods)
 CR: Service: Added optional ACME challenge function  
 CR: Service: Added the support of the XSLT processor as a subdirectory of the application directory  
 CR: Service: Added support of system environment variable LIBXML_HOME, LIBXML2_HOME or XSLTPROC_HOME  
+CR: Service: Check of the availability of the XSLT process with the start of the service  
 CR: Build: Added the creation of a package for Windows  
-CR: Check of the availability of the XSLT process with the start of the service  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 

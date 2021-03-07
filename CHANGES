@@ -24,10 +24,10 @@
   CR: Service: Added support of system environment variable LIBXML_HOME, LIBXML2_HOME or XSLTPROC_HOME
       Can optionally be used as an alternative for the extension of the path variable.
       LIBXML_HOME/LIBXML2_HOME/XSLTPROC_HOME is the bin directory of libxml2/xsltproc.
+  CR: Service: Check of the availability of the XSLT process with the start of the service
+      If the XSLT processor is not available, the service ends with an error output.
   CR: Build: Added the creation of a package for Windows
       The package contains everything except Node.JS and installs XMEX as a service.
-  CR: Check of the availability of the XSLT process with the start of the service
-      If the XSLT processor is not available, the service ends with an error output.
 
 1.1.0 20210215
   NT: Release is available
