@@ -169,8 +169,16 @@ and double memory.
 
 
 # Changes (Change Log)
-## 1.1.0 20210215 (summary of the current version)  
-NT: Release is available  
+## 1.2.0 202103xx (summary of the next version)  
+BF: Service: Optimization of xsltproc error handling  
+BF: Build: Correction of libxml2-2.9.3_win_x64.zip  
+CR: Service: Added an access statistic for StdOut  
+CR: Service: Added Request Data Limit (for all HTTP methods)  
+CR: Service: Added optional ACME challenge function  
+CR: Service: Added the support of the XSLT processor as a subdirectory of the application directory  
+CR: Service: Added support of system environment variable LIBXML_HOME, LIBXML2_HOME or XSLTPROC_HOME  
+CR: Build: Added the creation of a package for Windows  
+CR: Check of the availability of the XSLT process with the start of the service  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 
