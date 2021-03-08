@@ -36,12 +36,6 @@
   exit /B 0
 
 :install
-  echo.
-  echo ENVIRONMENT: Add variable LIBXML2_HOME
-  echo     %home%\libxml2
-
-  setx /M LIBXML2_HOME %home%\libxml2 >nul
-
   sc query %service_name% >nul 2>&1
   if "%errorLevel%"=="0" (
     echo.
@@ -66,12 +60,12 @@
   %nssm% install %service_name% "%home%\node\node.exe"
   %nssm% set %service_name% DisplayName   Seanox XMEX
   %nssm% set %service_name% Description   XML Micro Exchange
-  %nssm% set %service_name% AppDirectory  "%home%"
+  %nssm% set %service_name% AppDirectory  %home%
   %nssm% set %service_name% AppParameters service.js
-  %nssm% set %service_name% AppStdout     "%home%\logs\output.log"
-  %nssm% set %service_name% AppStderr     "%home%\logs\error.log"
+  %nssm% set %service_name% AppStdout     %home%\logs\output.log
+  %nssm% set %service_name% AppStderr     %home%\logs\error.log
   %nssm% set %service_name% Start         SERVICE_AUTO_START
-  %nssm% set %service_name% ObjectName    %service_account%
+::%nssm% set %service_name% ObjectName    %service_account%
 
   if not "%lastError%" == "%errorLevel%"=="0" goto error
 
@@ -86,13 +80,6 @@
   exit /B 0
 
 :uninstall
-  echo.
-  echo ENVIRONMENT: Remove variable LIBXML2_HOME
-  if not "%LIBXML2_HOME%" == "" (
-    reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /F /V LIBXML2_HOME >nul 2>&1
-    setx /M LIBXML2_HOME "" >nul 2>&1
-  )
-
   sc query %service_name% >nul 2>&1
   if "%errorLevel%"=="0" (
     echo.
