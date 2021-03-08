@@ -138,9 +138,10 @@ https://hub.docker.com/repository/docker/seanox/xmex
 65536 Storages x 64 kB  
 __Please do not get confused, the API is online.  
 Requests without storage identifier (see [manual](manual/README.md#manual)) are
-responded with status 400.__
+responded with status 400.__  
 
-It is small server (1 Core, 512 MB, 10 GB HDD) in a big datacenter -- but apparently enough.  
+The address is not pretty, but steady -- it's a matter of cost.  
+It is a small server (1 Core, 512 MB, 10 GB HDD) in a big datacenter -- but apparently enough.  
 __Sponsors are always welcome.__  
 The project needs a good and simple domain and if possible more power.  
 It costs about 7,50 Euro per month for 65535 x 1024 kB with double CPU cores
