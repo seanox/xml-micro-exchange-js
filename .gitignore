@@ -5,7 +5,9 @@
 /release/trace/
 /release/xmex/
 /sources/data/
+/sources/libxml*/
 /sources/logs/
 /sources/*-build*.js
 /sources/*.pem
 /test/cumulate.http
+

@@ -11,6 +11,8 @@
     <echo>                                                                                </echo>
     <echo>changes                Synchronizes README.md with CHANGES.                     </echo>
     <echo>                                                                                </echo>
+    <echo>libxml                 Unzip libxml2 in the project for development on Windows. </echo>
+    <echo>                                                                                </echo>
     <echo>docker-test            Creates a test version and Docker image and              </echo>
     <echo>                       launches it in local Docker.                             </echo>
     <echo>                                                                                </echo>
@@ -32,6 +34,10 @@
   <property name="sources" value="${workspace}/sources"/>
   <property name="test" value="${workspace}/test"/>
   <property name="development" value="${workspace}/development"/>
+
+  <target name="libxml" depends="changes">
+    <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${sources}" overwrite="true"/>
+  </target>
 
   <target name="release" depends="changes">
     <release-locate/>
