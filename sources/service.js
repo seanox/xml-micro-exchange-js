@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210305
+ * Service 1.2.0 20210307
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210305
+ * @version 1.2.0 20210307
  */
 const http = require("http")
 const https = require("https")
@@ -296,8 +296,8 @@ DOMParser.prototype.parseFromString = function(...variable) {
     else if (!variable[2])
         return this.parseFromString$(...variable.slice(0, 2))
     try {return this.parseFromString$(...variable.slice(0, 2))
-    } catch (exception) {
-        return exception
+    } catch (error) {
+        return error
     }
 }
 
@@ -307,16 +307,16 @@ DOMParser.prototype.parseFromString = function(...variable) {
 XPath.evaluate$ = XPath.evaluate
 XPath.evaluate = function(...variable) {
     try {return XPath.evaluate$(...variable)
-    } catch (exception) {
-        return exception
+    } catch (error) {
+        return error
     }
 }
 
 XPath.select$ = XPath.select
 XPath.select = function(...variable) {
     try {return XPath.select$(...variable)
-    } catch (exception) {
-        return exception
+    } catch (error) {
+        return error
     }
 }
 
@@ -430,6 +430,23 @@ Date.parseDuration = function(text) {
     else if (match[2] === "s")
         factor = 1
     return number *factor
+}
+
+child.spawnSyncExt = function(...variable) {
+    try {
+        let output = child.spawnSync(...variable.splice(0, variable.length -1))
+        if (Object.exists(output.stderr)
+                && output.stderr.length > 0)
+            return new Error(output.stderr.toString(variable.splice(-1)))
+        if (!(output instanceof Error)
+                && Object.exists(output.error))
+            return new Error(output.error)
+        if (Object.exists(output.stdout))
+            return output.stdout.toString(variable.splice(-1))
+        return new Error(String(output))
+    } catch (error) {
+        return error
+    }
 }
 
 module.init = function() {
@@ -735,7 +752,7 @@ class Storage {
                         && state.mtimeMs < timeout
                         && fs.existsSync(file))
                     fs.unlinkSync(file)
-            } catch (exception) {
+            } catch (error) {
             }
         })
     }
@@ -1320,21 +1337,9 @@ class Storage {
         let tempXml = this.createTempFile()
         fs.writeFileSync(tempXml, new DOM.XMLSerializer().serializeToString(xml))
 
-        let spawnSync = function(...variable) {
-            try {return child.spawnSync(...variable)
-            } catch (exception) {
-                return exception
-            }
-        }
-
         // XML/XSLT support in node-js is not the best.
         // Therefore the indirection via libxml2 :-|
-        let output = spawnSync("xsltproc", [tempStyle, tempXml])
-        if (Object.exists(output.stderr)
-                && output.stderr.length > 0)
-            output = new Error(output.stderr.toString(Storage.XML.ENCODING))
-        else if (Object.exists(output.stdout))
-            output = output.stdout.toString(Storage.XML.ENCODING)
+        let output = child.spawnSyncExt(XsltProc, [tempStyle, tempXml], Storage.XML.ENCODING)
         if (output instanceof Error) {
             let message = output.message.split(/[\r\n]+/)[0]
             message = message.replace(/\s*(file\s+){0,1}___temp_[\w\:]+\s*/ig, " ").trim()
@@ -2518,6 +2523,35 @@ if (module.logging.error) {
 console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
 console.log("Copyright (C) 0000 Seanox Software Solutions")
 
+const XsltProc = (() => {
+    var locate
+    var output
+    locate = "./libxml2/xsltproc"
+    output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+    if (Object.exists(output)
+            && !(output instanceof Error))
+        return locate
+    locate = "./libxml/xsltproc"
+    output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+    if (Object.exists(output)
+            && !(output instanceof Error))
+        return locate
+    if (process.env.LIBXML_HOME || process.env.LIBXML2_HOME || process.env.XSLTPROC_HOME) {
+        locate = (process.env.LIBXML_HOME || process.env.LIBXML2_HOME || process.env.XSLTPROC_HOME) + "/xsltproc"
+        output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+        if (Object.exists(output)
+                && !(output instanceof Error))
+            return locate
+    }
+    locate = "xsltproc"
+    output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+    if (Object.exists(output)
+            && !(output instanceof Error))
+        return locate
+    console.error("Service", "XSLT processor (xsltproc) not found")
+    process.exit()
+})()
+
 let date = new Date()
 const Statistic = {
     date: date.toTimestampString("%Y-%M-%D"),
@@ -2585,13 +2619,13 @@ context.createServer(module.connection.options, (request, response) => {
             response.end(module.connection.acme.response)
             return
         }
-    } catch (exception1) {
-        console.error("Service", "#" + request.unique, exception1)
+    } catch (error1) {
+        console.error("Service", "#" + request.unique, error1)
         try {
             response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
             response.end()
-        } catch (exception2) {
-            console.error("Service", "#" + request.unique, exception2)
+        } catch (error2) {
+            console.error("Service", "#" + request.unique, error2)
         }
         return
     }
@@ -2690,18 +2724,17 @@ context.createServer(module.connection.options, (request, response) => {
             } finally {
                 storage.close()
             }
-        } catch (exception1) {
-            if (exception1 !== Storage.prototype.quit) {
+        } catch (error1) {
+            if (error1 !== Storage.prototype.quit) {
                 let storage = (new Storage({request, response}))
-                console.error("Service", "#" + request.unique, exception1)
+                console.error("Service", "#" + request.unique, error1)
                 try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
-                } catch (exception2) {
-                    if (exception2 !== Storage.prototype.quit)
-                        console.error("Service", "#" + request.unique, exception2)
+                } catch (error2) {
+                    if (error2 !== Storage.prototype.quit)
+                        console.error("Service", "#" + request.unique, error2)
                 }
             }
         } finally {
-
             (async () => {
                 let formatter = (format, date) => {
 
@@ -2761,6 +2794,8 @@ context.createServer(module.connection.options, (request, response) => {
                     return format
                 }
 
+                if ((module.logging.access.format || "").toLowerCase() === "off")
+                    return;
                 let date = new Date()
                 let logging = formatter(module.logging.access.format || "", date)
                 if (module.logging.access.file) {
@@ -2795,7 +2830,7 @@ context.createServer(module.connection.options, (request, response) => {
                     return
                 request.temp.forEach((file) => {
                     try {fs.unlinkSync(file)
-                    } catch (exception) {
+                    } catch (error) {
                     }
                 })
             })();
@@ -2840,13 +2875,13 @@ if (module.connection.port !== "80"
                 response.writeHead(404, "Resource Not Found")
                 response.end()
             }
-        } catch (exception1) {
-            console.error("Service", "#" + request.unique, exception1)
+        } catch (error1) {
+            console.error("Service", "#" + request.unique, error1)
             try {
                 response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
                 response.end()
-            } catch (exception2) {
-                console.error("Service", "#" + request.unique, exception2)
+            } catch (error2) {
+                console.error("Service", "#" + request.unique, error2)
             }
         }
     }).listen(80, module.connection.address, function() {
