@@ -1,10 +1,13 @@
   @echo off
 
-  echo Seanox XML-Micro-Exchange [Version 0.0.0 00000000]
-  echo Copyright (C) 0000 Seanox Software Solutions
+  echo Seanox XML-Micro-Exchange [Version #[ant:release-version] #[ant:release-date]]
+  echo Copyright (C) #[ant:release-year] Seanox Software Solutions
+  echo.
 
   cd /D "%~dp0"
-  set home=%CD%
+  set home=%cd%
+
+  SetLocal EnableDelayedExpansion
 
   :: The service can only be created as an Administrator.
   net session >nul 2>&1
@@ -19,6 +22,10 @@
   if "%1" == "update"    goto install
   if "%1" == "uninstall" goto uninstall
 
+  if "%1" == "start"     goto start
+  if "%1" == "restart"   goto restart
+  if "%1" == "stop"      goto stop
+
 :usage
   echo.
   echo usage: %~nx0 [command]
@@ -26,37 +33,42 @@
   echo    install
   echo    update
   echo    uninstall
+  echo.
+  echo    start
+  echo    restart
+  echo    stop
 
   net session >nul 2>&1
   if not %errorLevel% == 0 (
     echo.
     echo This script must run as Administrator.
   )
-
-  exit /B 0
+  goto exit
 
 :install
-  sc query %service_name% >nul 2>&1
-  if "%errorLevel%"=="0" (
-    echo.
-    echo SERVICE: Service is still present and will be stopped and removed
-    sc stop %service_name% >nul
-    sc delete %service_name%
-  )
+
+  set label=INSTALL
+  if "%1" == "update" set label=UPDATE
 
   set lastError=
   set lastError=%errorLevel%
 
-  :: Full access for the NetworkService to the AppDirectory
-  echo.
-  echo PERMISSIONS: Service runs as NetworkService and permits full access to the AppDirectory
-  echo     %home%
-  icacls.exe "%home%" /grant %service_account%:(OI)(CI)F /T /Q
+  sc query %service_name% >nul 2>&1
+  if "%errorLevel%" == "0" (
+    echo %label%: Service is still present and will be stopped and removed
+    sc stop %service_name% >nul
+    sc delete %service_name% >%~n0.log 2>&1
+    if not "%errorLevel%" == "%lastError%" goto error
+  )
+
+  :: Full access for the NetworkService or another user to the AppDirectory
+  echo %label%: Grant all privileges for %service_account% to the AppDirectory
+  for %%i in ("%home%") do echo    %%~fi
+  icacls.exe "%home%" /grant %service_account%:(OI)(CI)F /T /Q >%~n0.log 2>&1
   if not "%lastError%" == "%errorLevel%" goto error
 
   :: Configuration from service
-  echo.
-  echo SERVICE: Service will be created and configured
+  echo %label%: Service will be created and configured
   "%nssm%" install %service_name% "%home%\node\node.exe"
   "%nssm%" set %service_name% DisplayName   Seanox XMEX
   "%nssm%" set %service_name% Description   XML Micro Exchange
@@ -67,36 +79,72 @@
   "%nssm%" set %service_name% Start         SERVICE_AUTO_START
   "%nssm%" set %service_name% ObjectName    %service_account%
 
-  if not "%lastError%" == "%errorLevel%"=="0" goto error
+  if not "%lastError%" == "%errorLevel%" == "0" goto error
 
-  echo.
-  echo INSTALL: Successfully completed
+  echo %label%: Successfully completed
 
-  echo.
-  echo SERVICE: Service will be started
-  net start %service_name%
-  if not "%lastError%" == "%errorLevel%"=="0" goto error
+  echo %label%: Service will be started
+  net start %service_name% 2>%~n0.log
+  if not "%lastError%" == "%errorLevel%" == "0" goto error
 
-  exit /B 0
+  goto exit
 
 :uninstall
-
+  set label=UNINSTALL
+  set lastError=
+  set lastError=%errorLevel%
   sc query %service_name% >nul 2>&1
-  if "%errorLevel%"=="0" (
-    echo.
-    echo SERVICE: Service is still present and will be stopped and removed
-    sc stop %service_name% >nul   
-    sc delete %service_name%   
-  ) else (
-    echo.
-    echo SERVICE: Service has already been removed
+  if "%errorLevel%" == "0" (
+    echo %label%: Service is still present and will be stopped and removed
+    sc stop %service_name% >nul
+    sc delete %service_name% >%~n0.log 2>&1
+    if not "%errorLevel%" == "%lastError%" goto error
+  ) else echo %label%: Service has already been removed
+  echo %label%: Successfully completed
+  goto exit
+
+:start
+  sc query %service_name% >nul 2>&1
+  if not "%errorLevel%" == "0" (
+    echo ERROR: Service is not present
+    goto exit
   )
 
-  echo.
-  echo UNINSTALL: Successfully completed
-  exit /B 0
+  net start %service_name%
+  goto exit
+
+:restart
+  sc query %service_name% >nul 2>&1
+  if not "%errorLevel%" == "0" (
+    echo ERROR: Service is not present
+    goto exit
+  )
+
+  net stop %service_name%
+  net start %service_name%
+  goto exit
+
+:stop
+  sc query %service_name% >nul 2>&1
+  if not "%errorLevel%" == "0" (
+    echo ERROR: Service is not present
+    goto exit
+  )
+
+  net stop %service_name%
+  goto exit
 
 :error
-  echo An unexpected error occurred.
-  echo The script was canceled.
+  echo.
+  echo ERROR: An unexpected error occurred.
+  echo ERROR: The script was canceled.
+
+  if not exist %~n0.log goto exit
+
+  echo.
+  type %~n0.log
+  goto exit
+
+:exit
+  if exist %~n0.log del %~n0.log
   exit /B 0
