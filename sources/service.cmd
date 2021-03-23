@@ -113,6 +113,16 @@
   net start %service_name%
   goto exit
 
+:stop
+  sc query %service_name% >nul 2>&1
+  if not "%errorLevel%" == "0" (
+    echo ERROR: Service is not present
+    goto exit
+  )
+
+  net stop %service_name%
+  goto exit
+
 :restart
   sc query %service_name% >nul 2>&1
   if not "%errorLevel%" == "0" (
@@ -122,16 +132,6 @@
 
   net stop %service_name%
   net start %service_name%
-  goto exit
-
-:stop
-  sc query %service_name% >nul 2>&1
-  if not "%errorLevel%" == "0" (
-    echo ERROR: Service is not present
-    goto exit
-  )
-
-  net stop %service_name%
   goto exit
 
 :error
