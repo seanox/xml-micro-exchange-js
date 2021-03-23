@@ -15,6 +15,7 @@ this chapter.__
   * [libxml2](#libxml2)
   * [Node.js](#nodejs)
   * [Service](#service)   
+* [Windows Distribution](#windows-distribution)
 * [Linux](#linux)
   * [libxml2](#libxml2-1)
   * [Node.js](#nodejs-1)
@@ -32,47 +33,115 @@ and so the following directory structure is only an example.
 + xmex
   + data 
   + libxml2
-    - libexslt-0.dll
-    - libgcc_s_dw2-1.dll
     - libxml2-2.dll
     - libxslt-1.dll
     - xsltproc.exe
+    - ...
   + logs  
   + node
     - node.exe
     - ...
   + nssm
+    - nssm.exe
+    - ...
   - service.js
   - service.cmd 
 ```
 
+The most convenient way -- use the [Windows Distribution](#windows-dsitribution)
+or Docker and the [Docker image of Seanox XMEX](https://hub.docker.com/repository/docker/seanox/xmex).
+
+In the following you will find the steps for manual installation.
+
 ## libxml2
 
-Required components (minimum):
+Node.js does not have its own XSLT processor and the existing implementations
+for Node.js did not meet the functional expectation, so there was a decision to
+go with a more powerful native solution -- libxml2 and xsltproc.
 
-- libxml2 &#160; `libxml2-2.dll`
-- libxslt &#160;&#160;&#160; `libexslt-0.dll`
-- libxslt &#160;&#160;&#160; `libxslt-1.dll`
-- libxslt &#160;&#160;&#160; `xsltproc.exe`
-- mingwrt `libgcc_s_dw2-1.dll`
+Download the library here: http://xmlsoft.org/sources/win32/ or use the
+[Windows Binary (zip)](https://github.com/seanox/xml-micro-exchange-js/raw/main/development/libxml2_2.9.3_win_x64.zip)
+for Seanox XML-Micro-Exchange.
 
-Download the required files here: http://xmlsoft.org/sources/win32/  
-or use the [Windows Binary (zip)](https://github.com/seanox/xml-micro-exchange-js/raw/main/development/libxml2_2.9.3_win_x64.zip) for Seanox XML-Micro-Exchange.
-
-The directory must then be added to the `PATH` that Node.js and the service
-will then also use. It can be the system-wide environment variable `PATH`, but
-this is not required.
+After unpacking, the library path must be added to the `PATH` environment
+variable, or the library will be unpacked to `./libxml` or `./libxml2` in the
+application directory of Seanox XMEX and is then automatically found by the
+service at runtime.
 
 ## Node.js
 
+Node.js is the runtime environment used by Seanox XMEX.  
+Download the runtime environment here: https://nodejs.org/en/download/
+
+After unpacking, the runtime environment path must be added to the `PATH`
+environment variable, or the runtime environment will be unpacked to `./node`
+in the application directory of Seanox XMEX.
+
 ## Service
+
+Using Seanox XMEX as a Windows service is completely optional. Here the use
+of [NSSM - the Non-Sucking Service Manager](https://nssm.cc) is described.
+
+For installation, follow the instructions on the manufacturer's page.
+
+Easier is use of the [Windows Distribution](#windows-dsitribution).
+
+
+# Windows Distribution
+
+The Windows Dsitribution is a complete package and contains, with the exception
+of Node.js, all components for using Seanox XMEX in Windows and as a Windows
+service.
+
+Download the library here:
+    https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-win-latest.zip
 
 TODO:
 
 
 # Linux
+
+Installation of the latest version of XMEX.
+```
+cd ~
+mkdir xmex
+cd xmex  
+curl -o seanox-xmex-latest.zip -fsSL https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip
+unzip seanox-xmex-latest.zip -d .
+sudo chmod -R 755 .
+```
+
+TODO:
+
+```
++ xmex
+  + data 
+  + logs  
+  - service.js
+  - service.cmd 
+```
+
+TODO:
+
+```
+sudo apt update
+```
+
 ## libxml2
+
+Installation of libxml2, libxslt and xsltproc.
+```
+sudo apt-get install libxml2 libxslt1.1 xsltproc
+```
+
 ## Node.js
+
+Installation of Node.js, the latest LTS version is recommended.
+```
+curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
 ## Daemon
 
 TODO:
