@@ -35,6 +35,8 @@
   <property name="test" value="${workspace}/test"/>
   <property name="development" value="${workspace}/development"/>
 
+  <property name="filter" value="**/*.js,**/*.html,**/*.ini,**/*.cmd"/>
+
   <target name="libxml" depends="changes">
     <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${sources}" overwrite="true"/>
   </target>
@@ -77,13 +79,9 @@
     <copy file="${sources}/service-build.js" tofile="${build}/service.js" overwrite="true"/>
     <copy file="${sources}/service.ini" tofile="${build}/service.ini" overwrite="true"/>
     <copy file="${workspace}/package.json" tofile="${build}/package.json" overwrite="true"/>
-    <copy file="${workspace}/LICENSE" tofile="${build}/LICENSE" overwrite="true"/>
-    <replaceregexp file="${build}/service.js" encoding="UTF-8" flags="ig" byline="false"
-        match="\[\s*Version\s*0(\.0)+\s*0+\s*\]"
-        replace="[Version ${release.version} ${release.date}]"/>
-    <replaceregexp file="${build}/service.js" encoding="UTF-8" flags="ig" byline="false"
-        match="Copyright\s+\(C\)\s+(0){4,}\s+Seanox\s+Software\s+Solutions"
-        replace="Copyright (C) ${release.year} Seanox Software Solutions"/>
+    <copy file="${workspace}/LICENSE" todir="${build}" overwrite="true"/>
+    <copy file="${workspace}/CHANGES" todir="${build}" overwrite="true"/>
+    <release-insert target="${build}"/>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
       <fileset dir="${build}" includes="**/*"/>
     </touch>
@@ -109,7 +107,7 @@
       <arg value="-t"/>
       <arg value="${ant.project.name}:latest"/>
       <arg value="-t"/>
-      <arg value="seanox/${ant.project.name}:latest2"/>
+      <arg value="seanox/${ant.project.name}:latest"/>
       <arg value="--target"/>
       <arg value="release"/>
       <arg value="."/>
@@ -119,37 +117,32 @@
       <arg value="docker images --filter=reference=seanox/${ant.project.name} --filter=reference=${ant.project.name}"/>
     </exec>
 
-    <delete dir="${build}-windows"/>
-    <mkdir dir="${build}-windows"/>
-    <mkdir dir="${build}-windows/data"/>
-    <mkdir dir="${build}-windows/logs"/>
-    <mkdir dir="${build}-windows/node"/>
-    <copy todir="${build}-windows">
+    <delete dir="${build}-win"/>
+    <mkdir dir="${build}-win"/>
+    <mkdir dir="${build}-win/data"/>
+    <mkdir dir="${build}-win/logs"/>
+    <mkdir dir="${build}-win/node"/>
+    <copy todir="${build}-win">
       <fileset dir="${build}" includes="**/*"/>
     </copy>
-    <copy file="${sources}/service.cmd" todir="${build}-windows"/>
-    <replaceregexp file="${build}-windows/service.cmd" flags="ig" byline="false"
-        match="\[\s*Version\s*0(\.0)+\s*0+\s*\]"
-        replace="[Version ${release.version} ${release.date}]"/>
-    <replaceregexp file="${build}-windows/service.cmd" flags="ig" byline="false"
-        match="Copyright\s+\(C\)\s+(0){4,}\s+Seanox\s+Software\s+Solutions"
-        replace="Copyright (C) ${release.year} Seanox Software Solutions"/>
-    <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${build}-windows"/>
-    <copy file="${development}/libxml2-2.9.3_win_x64.license" tofile="${build}-windows/libxml2/license"/>
-    <unzip src="${development}/nssm-2.24.zip" dest="${build}-windows/nssm"/>
-    <copy file="${build}-windows/nssm/nssm-2.24/win64/nssm.exe" todir="${build}-windows/nssm"/>
-    <copy file="${build}-windows/nssm/nssm-2.24/ChangeLog.txt" todir="${build}-windows/nssm"/>
-    <copy file="${build}-windows/nssm/nssm-2.24/README.txt" todir="${build}-windows/nssm"/>
-    <copy file="${development}/nssm-2.24.license" tofile="${build}-windows/nssm/LICENSE"/>
-    <delete dir="${build}-windows/nssm/nssm-2.24"/>
+    <copy file="${sources}/service.cmd" todir="${build}-win"/>
+    <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${build}-win"/>
+    <copy file="${development}/libxml2-2.9.3_win_x64.license" tofile="${build}-win/libxml2/license"/>
+    <unzip src="${development}/nssm-2.24.zip" dest="${build}-win/nssm"/>
+    <copy file="${build}-win/nssm/nssm-2.24/win64/nssm.exe" todir="${build}-win/nssm"/>
+    <copy file="${build}-win/nssm/nssm-2.24/ChangeLog.txt" todir="${build}-win/nssm"/>
+    <copy file="${build}-win/nssm/nssm-2.24/README.txt" todir="${build}-win/nssm"/>
+    <copy file="${development}/nssm-2.24.license" tofile="${build}-win/nssm/LICENSE"/>
+    <delete dir="${build}-win/nssm/nssm-2.24"/>
+    <release-insert target="${build}-win"/>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
-      <fileset dir="${build}-windows" includes="**/*"/>
+      <fileset dir="${build}-win" includes="**/*"/>
     </touch>
 
-    <delete file="${release}/seanox-${ant.project.name}-${release.version}-windows.zip"/>
-    <delete file="${release}/seanox-${ant.project.name}-windows-latest.zip"/>
-    <zip basedir="${build}-windows" destfile="${release}/seanox-${ant.project.name}-${release.version}-windows.zip"/>
-    <copy file="${release}/seanox-${ant.project.name}-${release.version}.zip" tofile="${release}/seanox-${ant.project.name}-windows-latest.zip" overwrite="true"/>
+    <delete file="${release}/seanox-${ant.project.name}-${release.version}-win.zip"/>
+    <delete file="${release}/seanox-${ant.project.name}-win-latest.zip"/>
+    <zip basedir="${build}-win" destfile="${release}/seanox-${ant.project.name}-${release.version}-win.zip"/>
+    <copy file="${release}/seanox-${ant.project.name}-${release.version}.zip" tofile="${release}/seanox-${ant.project.name}-win-latest.zip" overwrite="true"/>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
       <fileset dir="${release}" includes="seanox-${ant.project.name}*.zip"/>
     </touch>
@@ -182,6 +175,18 @@
         <file file="CHANGES.tmp"/>
       </loadproperties>
       <delete file="CHANGES.tmp"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="release-insert">
+    <attribute name="target"/>
+    <sequential>
+      <replace dir="@{target}" includes="${filter}"
+          token="#[ant:release-year]" value="${release.year}"/>
+      <replace dir="@{target}" includes="${filter}"
+          token="#[ant:release-date]" value="${release.date}"/>
+      <replace dir="@{target}" includes="${filter}"
+          token="#[ant:release-version]" value="${release.version}"/>
     </sequential>
   </macrodef>
 
