@@ -78,6 +78,13 @@ After unpacking, the runtime environment path must be added to the `PATH`
 environment variable, or the runtime environment will be unpacked to `./node`
 in the application directory of Seanox XMEX.
 
+After this step, Seanox XMEX can be started manually in the application
+directory as follows.
+
+```
+./node/node service.js 
+```
+
 ## Service
 
 Using Seanox XMEX as a Windows service is completely optional. Here the use
@@ -141,7 +148,11 @@ in the application directory of Seanox XMEX.
 
 # Linux
 
-Installation of the latest version of XMEX.
+In the following the installation is described exemplarily for distributions
+based on Debian.
+
+Download and installation of the latest version of XMEX.
+
 ```
 cd ~
 mkdir xmex
@@ -151,7 +162,7 @@ unzip seanox-xmex-latest.zip -d .
 sudo chmod -R 755 .
 ```
 
-TODO:
+After unpacking, the following directory structure should be available.
 
 ```
 + xmex
@@ -161,7 +172,8 @@ TODO:
   - service.cmd 
 ```
 
-TODO:
+Afterwards the installation of the further runtime components follows. Before
+this, the system should be brought up to date.
 
 ```
 sudo apt update
@@ -169,17 +181,32 @@ sudo apt update
 
 ## libxml2
 
+Node.js does not have its own XSLT processor and the existing implementations
+for Node.js did not meet the functional expectation, so there was a decision to
+go with a more powerful native solution -- libxml2 and xsltproc.
+
 Installation of libxml2, libxslt and xsltproc.
+
 ```
 sudo apt-get install libxml2 libxslt1.1 xsltproc
 ```
 
 ## Node.js
 
+Node.js is the runtime environment used by Seanox XMEX.
+
 Installation of Node.js, the latest LTS version is recommended.
+
 ```
 curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt-get install -y nodejs
+```
+
+After this step, Seanox XMEX can be started manually in the application
+directory as follows.
+
+```
+node service.js 
 ```
 
 ## Daemon
@@ -189,9 +216,12 @@ TODO:
 
 # Container
 
-TODO:
+Containers are also a very easy way to use Seanox XMEX.
+
+The container is available in the Docker Hub: https://hub.docker.com/repository/docker/seanox/xmex
 
 The service runs with the user `nobody` and is therefore not a root.
+
 ```
 docker run -d -p 8000:8000/tcp --rm --name xmex seanox/xmex:latest
 ```
@@ -222,9 +252,6 @@ http://localhost:8000/xmex!
 The directories `/xmex/conf`, `/xmex/data`, `/xmex/logs` can be mapped, binded
 to other places or be changed and overwritten in their own images. For the
 configuration of the service `/xmex/conf/service.ini` is used.  
-Unlike configurations in JSON, this is more error tolerant and supports comments.
-
-TODO:
 
 
 
