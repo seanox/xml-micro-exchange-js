@@ -35,13 +35,14 @@ not available in the implementation of the service.
 
 In this section the servers and HTTP are configured.
 
-| Key       | Value                 | Description                                                                                                       |
-| :-------- | :-------------------- | :---------------------------------------------------------------------------------------------------------------- |
-| `ADDRESS` | `0.0.0.0`             | Host name or IP where the server is listening.                                                                    |
-| `PORT`    | `8000`                | Port where the server is listening.                                                                               |
-| `CONTEXT` | `/xmex!`              | Context path der URL.<br/> It should end with a symbol to better visually distinguish the XPath from the request. |
-| `SECURE`  | `cert.pem key.pem`    | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, key                                        |
-| `SECURE`  | `cert.pfx passphrase` | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, passphrase                                 |
+| Key       | Value                  | Description                                                                                                       |
+| :-------- | :--------------------- | :---------------------------------------------------------------------------------------------------------------- |
+| `ADDRESS` | `0.0.0.0`              | Host name or IP where the server is listening.                                                                    |
+| `PORT`    | `8000`                 | Port where the server is listening.                                                                               |
+| `CONTEXT` | `/xmex!`               | Context path der URL.<br/> It should end with a symbol to better visually distinguish the XPath from the request. |
+| `SECURE`  | `cert.pem key.pem`     | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, key                                        |
+| `SECURE`  | `cert.pfx passphrase`  | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, passphrase                                 |
+| `ACME`    | `/.well-known/acme...` | Virtual path of the key for the ACME-challenge                                                                    |
 
 ### CORS
 

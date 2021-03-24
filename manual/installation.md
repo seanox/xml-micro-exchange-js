@@ -25,7 +25,7 @@ this chapter.__
 
 # Windows
 
-The setup for Windows is described here in an installation-free version.
+The setup for Windows is described here in an installation-free version.  
 Therefore the location in the file system is relative and can be freely chosen
 and so the following directory structure is only an example.
 
@@ -48,7 +48,7 @@ and so the following directory structure is only an example.
   - service.cmd 
 ```
 
-The most convenient way -- use the [Windows Distribution](#windows-dsitribution)
+The most convenient way -- use the [Windows Distribution](#windows-distribution)
 or Docker and the [Docker image of Seanox XMEX](https://hub.docker.com/repository/docker/seanox/xmex).
 
 In the following you will find the steps for manual installation.
@@ -70,7 +70,8 @@ service at runtime.
 
 ## Node.js
 
-Node.js is the runtime environment used by Seanox XMEX.  
+Node.js is the runtime environment used by Seanox XMEX.
+
 Download the runtime environment here: https://nodejs.org/en/download/
 
 After unpacking, the runtime environment path must be added to the `PATH`
@@ -84,19 +85,58 @@ of [NSSM - the Non-Sucking Service Manager](https://nssm.cc) is described.
 
 For installation, follow the instructions on the manufacturer's page.
 
-Easier is use of the [Windows Distribution](#windows-dsitribution).
+Easier is use of the [Windows Distribution](#windows-distribution).
 
 
 # Windows Distribution
 
-The Windows Dsitribution is a complete package and contains, with the exception
+The Windows distribution is a complete package and contains, with the exception
 of Node.js, all components for using Seanox XMEX in Windows and as a Windows
 service.
 
-Download the library here:
-    https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-win-latest.zip
+Download the library here: https://github.com/seanox/xml-micro-exchange-js/releases
 
-TODO:
+Also with the Windows distribution, the archive can be unpacked anywhere file
+system. Because the service should run with a Windows service account and
+proper access rights, it is recommended to place and install it outside the
+user profiles.
+
+By default, the service is installed with the Windows service account
+`NetworkService`, but other service accounts can also be used. The access
+rights required for the program directory are set during installation.
+
+The parameters to configure the service have been bundled in the batch file and
+are easily accessible.
+
+To install the service, the batch file `service.cmd` is used.  
+To do this, open the console (shell/prompt) as administrator and change to the
+application directory and call the batch file with the desired function.
+
+```
+usage: service.cmd [command]
+```
+
+Overview of available commands:
+The letter case (upper and lower case) is to be respected for the commands.
+
+| Command     | Description                                                       |
+| :---------- | :---------------------------------------------------------------- |
+| `install`   |	Installs the service.                                             |
+| `update`    |	Removes the service and reinstalls it with updated configuration. |
+| `uninstall` |	Removes the service.                                              |
+| `start`     |	Starts the service.                                               |
+| `restart`   |	Stops the service and restarts it.                                |
+| `stop`      |	Stops the service.                                                |
+
+__The distribution does not contain a Node.js.__
+
+Node.js is the runtime environment used by Seanox XMEX.
+
+Download the runtime environment here: https://nodejs.org/en/download/
+
+After unpacking, the runtime environment path must be added to the `PATH`
+environment variable, or the runtime environment will be unpacked to `./node`
+in the application directory of Seanox XMEX.
 
 
 # Linux
