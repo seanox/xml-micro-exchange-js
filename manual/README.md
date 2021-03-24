@@ -11,6 +11,7 @@ Machine translation with [DeepL](https://deepl.com).
     * [libxml2](installation.md#libxml2)
     * [Node.js](installation.md#nodejs)
     * [Service](installation.md#service)
+  * [Windows Distribution](installation.md#windows-distribution)
   * [Linux](installation.md#linux)
     * [libxml2](installation.md#libxml2-1)
     * [Node.js](installation.md#nodejs-1)
