@@ -211,7 +211,50 @@ node service.js
 
 ## Daemon
 
-TODO:
+Using Seanox XMEX as a daemon is completely optional. Here the use of `systemd`
+is described.
+
+Creating of the configuration file.
+
+```
+sudo nano /lib/systemd/system/xmex.service
+```
+
+Example of the structure and content of the configuration file.
+
+```
+[Unit]
+Description=Seanox XML-Micro-Exchange
+Documentation=https://github.com/seanox/xml-micro-exchange-js
+After=network.target
+
+[Service]
+Environment=NODE_PORT=80
+Type=simple
+User=nobody
+WorkingDirectory=/home/<user>/xmex/
+ExecStart=/usr/bin/node /home/<user>/xmex/service.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+After that, the daemon must be reloaded from systemd.
+
+```
+sudo systemctl daemon-reload
+```
+
+Overview of available commands for the daemon:
+
+| Command                        | Description                      |
+| :----------------------------- | :------------------------------- |
+| `sudo systemctl start xmex`    | Starts the daemon.               |
+| `sudo systemctl stop xmex`     | Stops the daemon.                |
+| `sudo systemctl status xmex`   | Shows the staus from the demon.  |
+| `sudo systemctl daemon-reload` | Reconfigures the daemon.         |
+| `journalctl -u xmex`           | Shows the logging of the daemon. |
 
 
 # Container
