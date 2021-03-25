@@ -208,7 +208,7 @@ const XML_DOCUMENT_FRAGMENT_NODE      = 11
 const XML_NOTATION_NODE               = 12
 
 process.on("uncaughtException", function(error) {
-    console.error(error.stack)
+    console.error(error.stack || error)
 })
 
 process.on("exit", function() {
