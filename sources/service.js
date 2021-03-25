@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210307
+ * Service 1.2.0 20210325
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210307
+ * @version 1.2.0 20210325
  */
 const http = require("http")
 const https = require("https")
@@ -2592,263 +2592,316 @@ global.setInterval(() => {
     }
 }, 30000)
 
-let context = Object.exists(module.connection.options) ? https : http
-context.createServer(module.connection.options, (request, response) => {
+class ServerFactory {
+    static newInstance(module) {
+        let context = Object.exists(module.connection.options) ? https : http
+        let server = context.createServer(module.connection.options, (request, response) => {
 
-    if (!Object.exists(request.unique)) {
+            if (!Object.exists(request.unique)) {
 
-        // The method is based on time, network port and the assumption that a
-        // port is not used more than once at the same time. On fast platforms,
-        // however, the time factor is uncertain because the time from calling
-        // the method is less than one millisecond. This is ignored here,
-        // assuming that the port reassignment is greater than one millisecond.
+                // The method is based on time, network port and the assumption
+                // that a port is not used more than once at the same time. On
+                // fast platforms, however, the time factor is uncertain
+                // because the time from calling the method is less than one
+                // millisecond. This is ignored here, assuming that the port
+                // reassignment is greater than one millisecond.
 
-        // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
-        request.unique = request.socket.remotePort.toString(36)
-        request.unique = "0000" + request.unique
-        request.unique = request.unique.substring(request.unique.length -4)
-        request.unique = new Date().getTime().toString(36) + request.unique
-        request.unique = request.unique.toUpperCase()
-    }
-
-    try {
-        if (module.connection.acme
-                && module.connection.acme.context
-                && decodeURI(request.url) === module.connection.acme.context) {
-            response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
-            response.end(module.connection.acme.response)
-            return
-        }
-    } catch (error1) {
-        console.error("Service", "#" + request.unique, error1)
-        try {
-            response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
-            response.end()
-        } catch (error2) {
-            console.error("Service", "#" + request.unique, error2)
-        }
-        return
-    }
-
-    let dataLimit = Number.parseBytes(module.request["data-limit"])
-    request.on("data", (data) => {
-        if (!Object.exists(request.data))
-            request.data = ""
-        if (Object.exists(request.error))
-            return
-        if (request.data.length +data.length > dataLimit) {
-            request.data = ""
-            request.error = [415, "Payload Too Large"]
-        } else request.data += data
-    })
-
-    request.on("end", () => {
-
-        try {
-
-            // Marking the start time for request processing
-            request.timing = new Date().getTime()
-            request.data = Object.exists(request.data) ? request.data : ""
-
-            if (Object.exists(request.error))
-                (new Storage({request, response})).quit(...request.error)
-
-            let context = Object.exists(module.connection.context) ? module.connection.context : ""
-
-            // The API should always use a context path so that the separation
-            // between URI and XPath is also visually recognizable.
-            // Other requests will be answered with status 404.
-            if (!decodeURI(request.url).startsWith(context))
-                (new Storage({request, response})).quit(404, "Resource Not Found")
-
-            // Request method is determined
-            let method = request.method.toUpperCase()
-
-            // Access-Control headers are received during preflight OPTIONS request
-            if (method.toUpperCase() === "OPTIONS"
-                    && request.headers.origin
-                    && !request.headers.storage)
-                (new Storage({request, response})).quit(200, "Success")
-
-            let storage
-            if (request.headers.storage)
-                storage = request.headers.storage
-            if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                (new Storage({request, response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
-
-            // The XPath is determined from REQUEST_URI.
-            // The XPath starts directly after the context path. To improve visual
-            // recognition, the context path should always end with a symbol.
-            let xpath = decodeURI(request.url).substr(context.length)
-            if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
-                xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
-                    return String.fromCharCode(parseInt(matched, 16))
-                })
-            else if (xpath.match(/^Base64:[A-Za-z0-9+\/]+=*$/))
-                xpath = Buffer.from(xpath.substring(8), "base64").toString("ascii")
-            else xpath = decodeURIComponent(xpath)
-
-            // With the exception of OPTIONS and POST, all requests expect an
-            // XPath or XPath function.
-            // OPTIONS do not use an (X)Path to establish a storage.
-            // POST uses the XPath for transformation only optionally to delimit the XML
-            // data for the transformation and works also without.
-            // In the other cases an empty XPath is replaced by the root slash.
-            if (!xpath && !["OPTIONS", "POST"].includes(method))
-                xpath = "/"
-
-            storage = Storage.share({request, response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
-
-            // The HTTP method CONNECT is not supported in node.js, but the
-            // implementation from PHP is used again. The method was simply
-            // removed from the Allow headers, and the entry point for the HTTP
-            // method is removed.
+                // Structure of the Unique-Id [? MICROSECONDS][4 PORT]
+                request.unique = request.socket.remotePort.toString(36)
+                request.unique = "0000" + request.unique
+                request.unique = request.unique.substring(request.unique.length -4)
+                request.unique = new Date().getTime().toString(36) + request.unique
+                request.unique = request.unique.toUpperCase()
+            }
 
             try {
-                switch (method) {
-                    case "OPTIONS":
-                        storage.doOptions()
-                    case "GET":
-                        storage.doGet()
-                    case "POST":
-                        storage.doPost()
-                    case "PUT":
-                        storage.doPut()
-                    case "PATCH":
-                        storage.doPatch()
-                    case "DELETE":
-                        storage.doDelete()
-                    default:
-                        storage.quit(405, "Method Not Allowed")
-                }
-            } finally {
-                storage.close()
-            }
-        } catch (error1) {
-            if (error1 !== Storage.prototype.quit) {
-                let storage = (new Storage({request, response}))
-                console.error("Service", "#" + request.unique, error1)
-                try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
-                } catch (error2) {
-                    if (error2 !== Storage.prototype.quit)
-                        console.error("Service", "#" + request.unique, error2)
-                }
-            }
-        } finally {
-            (async () => {
-                let formatter = (format, date) => {
-
-                    date = date || new Date()
-
-                    let localhost = (request.headers.host || "").trim()
-                    if (localhost.length <= 0) {
-                        localhost = request.socket.localAddress
-                        if (localhost.includes("."))
-                            localhost = localhost.replace(/(^.*:)/, "")
-                    } else if (localhost.match(/^[^:]+:\d+$/))
-                        localhost = localhost.replace(/\s*:\d+$/, "")
-
-                    let remotehost = (request.socket.remoteAddress || "").trim()
-                    if (remotehost.includes("."))
-                        remotehost = remotehost.replace(/(^.*:)/, "")
-                    else if (remotehost.match(/^[^:]+:\d+$/))
-                        remotehost = remotehost.replace(/\s*:\d+$/, "")
-
-                    let dates = date.toString().split(/\s+|(?=[\+\-])/)
-
-                    format = format.replace(/%r/g, "%m %U%q %H")
-                    format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z]){0,1})/ig, (symbol) => {
-                        if (symbol.match(/%\{[\w-]*\}/i))
-                            return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
-                        if (symbol.match(/%[a-z%]:[a-z]/i))
-                            return date.toTimestampString("%" + symbol.substr(3))
-                        switch (symbol) {
-                            case "%a":
-                                return localhost || "-"
-                            case "%h":
-                                return remotehost || "-"
-                            case "%l":
-                                return "-"
-                            case "%u":
-                                return "-"
-                            case "%s":
-                                return response.statusCode || "-"
-                            case "%b":
-                                return response.contentLength || "-"
-                            case "%B":
-                                return response.contentLength || "0"
-                            case "%m":
-                                return request.method || "-"
-                            case "%U":
-                                return (request.url || "").replace(/\?.*$/, "")
-                            case "%q":
-                                return (request.url || "").replace(/^.*\?/, "")
-                            case "%H":
-                                return request.httpVersion ? "HTTP/" + request.httpVersion : ""
-                            case "%t":
-                                return `${dates[2]}/${dates[1]}/${dates[3]}:${dates[4]} ${dates[6]}`
-                            default:
-                                return symbol.substr(1)
-                        }
-                    })
-                    return format
-                }
-
-                if ((module.logging.access.format || "").toLowerCase() === "off")
-                    return;
-                let date = new Date()
-                let logging = formatter(module.logging.access.format || "", date)
-                if (module.logging.access.file) {
-                    let filename = formatter(module.logging.access.file, date)
-                    fs.mkdirSync(path.dirname(filename), {recursive:true, mode:0o755})
-                    let file = fs.openSync(filename, "as")
-                    try {fs.writeSync(file, logging + EOL)
-                    } finally {
-                        fs.closeSync(file)
-                    }
-                } else console.log(logging)
-            })();
-
-            // Synchronization is not required here, because the interval is
-            // only triggered after the end of the method.
-            // The API can be highly-frequented, so the statistical data is
-            // minimized as floating point numbers.
-            (async () => {
-                let date = new Date()
-                let slot = date.getHours()
-                Statistic.data[slot] = Statistic.data[slot] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
-                Statistic.data[slot].requests += 1
-                Statistic.data[slot].inbound += Math.round(request.data.length /1024 /1024, 4)
-                Statistic.data[slot].outbound += Math.round(response.contentLength /1024 /1024, 4)
-                Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000 /60, 4)
-                if (String(response.statusCode).startsWith("5"))
-                    Statistic.data[slot].errors += 1
-            })();
-
-            (async () => {
-                if (!Object.exists(request.temp))
+                if (module.connection.acme
+                        && module.connection.acme.context
+                        && decodeURI(request.url) === module.connection.acme.context) {
+                    response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
+                    response.end(module.connection.acme.response)
                     return
-                request.temp.forEach((file) => {
-                    try {fs.unlinkSync(file)
-                    } catch (error) {
-                    }
-                })
-            })();
+                }
+            } catch (error1) {
+                console.error("Service", "#" + request.unique, error1)
+                try {
+                    response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
+                    response.end()
+                } catch (error2) {
+                    console.error("Service", "#" + request.unique, error2)
+                }
+                return
+            }
 
-            (async () => {
-                Storage.cleanUp()
-            })();
+            let dataLimit = Number.parseBytes(module.request["data-limit"])
+            request.on("data", (data) => {
+                if (!Object.exists(request.data))
+                    request.data = ""
+                if (Object.exists(request.error))
+                    return
+                if (request.data.length +data.length > dataLimit) {
+                    request.data = ""
+                    request.error = [415, "Payload Too Large"]
+                } else request.data += data
+            })
+
+            request.on("end", () => {
+
+                try {
+
+                    // Marking the start time for request processing
+                    request.timing = new Date().getTime()
+                    request.data = Object.exists(request.data) ? request.data : ""
+
+                    if (Object.exists(request.error))
+                        (new Storage({request, response})).quit(...request.error)
+
+                    let context = Object.exists(module.connection.context) ? module.connection.context : ""
+
+                    // The API should always use a context path so that the separation
+                    // between URI and XPath is also visually recognizable.
+                    // Other requests will be answered with status 404.
+                    if (!decodeURI(request.url).startsWith(context))
+                        (new Storage({request, response})).quit(404, "Resource Not Found")
+
+                    // Request method is determined
+                    let method = request.method.toUpperCase()
+
+                    // Access-Control headers are received during preflight OPTIONS request
+                    if (method.toUpperCase() === "OPTIONS"
+                            && request.headers.origin
+                            && !request.headers.storage)
+                        (new Storage({request, response})).quit(200, "Success")
+
+                    let storage
+                    if (request.headers.storage)
+                        storage = request.headers.storage
+                    if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
+                        (new Storage({request, response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
+
+                    // The XPath is determined from REQUEST_URI.
+                    // The XPath starts directly after the context path. To improve visual
+                    // recognition, the context path should always end with a symbol.
+                    let xpath = decodeURI(request.url).substr(context.length)
+                    if (xpath.match(/^0x([A-Fa-f0-9]{2})+$/))
+                        xpath = xpath.substring(2).replace(/[A-Fa-f0-9]{2}/g, (matched) => {
+                            return String.fromCharCode(parseInt(matched, 16))
+                        })
+                    else if (xpath.match(/^Base64:[A-Za-z0-9+\/]+=*$/))
+                        xpath = Buffer.from(xpath.substring(8), "base64").toString("ascii")
+                    else xpath = decodeURIComponent(xpath)
+
+                    // With the exception of OPTIONS and POST, all requests expect an
+                    // XPath or XPath function.
+                    // OPTIONS do not use an (X)Path to establish a storage.
+                    // POST uses the XPath for transformation only optionally to delimit the XML
+                    // data for the transformation and works also without.
+                    // In the other cases an empty XPath is replaced by the root slash.
+                    if (!xpath && !["OPTIONS", "POST"].includes(method))
+                        xpath = "/"
+
+                    storage = Storage.share({request, response, storage:storage, xpath:xpath, exclusive:["DELETE", "PATCH", "PUT"].includes(method)})
+
+                    // The HTTP method CONNECT is not supported in node.js, but the
+                    // implementation from PHP is used again. The method was simply
+                    // removed from the Allow headers, and the entry point for the HTTP
+                    // method is removed.
+
+                    try {
+                        switch (method) {
+                            case "OPTIONS":
+                                storage.doOptions()
+                            case "GET":
+                                storage.doGet()
+                            case "POST":
+                                storage.doPost()
+                            case "PUT":
+                                storage.doPut()
+                            case "PATCH":
+                                storage.doPatch()
+                            case "DELETE":
+                                storage.doDelete()
+                            default:
+                                storage.quit(405, "Method Not Allowed")
+                        }
+                    } finally {
+                        storage.close()
+                    }
+                } catch (error1) {
+                    if (error1 !== Storage.prototype.quit) {
+                        let storage = (new Storage({request, response}))
+                        console.error("Service", "#" + request.unique, error1)
+                        try {storage.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
+                        } catch (error2) {
+                            if (error2 !== Storage.prototype.quit)
+                                console.error("Service", "#" + request.unique, error2)
+                        }
+                    }
+                } finally {
+                    (async () => {
+                        let formatter = (format, date) => {
+
+                            date = date || new Date()
+
+                            let localhost = (request.headers.host || "").trim()
+                            if (localhost.length <= 0) {
+                                localhost = request.socket.localAddress
+                                if (localhost.includes("."))
+                                    localhost = localhost.replace(/(^.*:)/, "")
+                            } else if (localhost.match(/^[^:]+:\d+$/))
+                                localhost = localhost.replace(/\s*:\d+$/, "")
+
+                            let remotehost = (request.socket.remoteAddress || "").trim()
+                            if (remotehost.includes("."))
+                                remotehost = remotehost.replace(/(^.*:)/, "")
+                            else if (remotehost.match(/^[^:]+:\d+$/))
+                                remotehost = remotehost.replace(/\s*:\d+$/, "")
+
+                            let dates = date.toString().split(/\s+|(?=[\+\-])/)
+
+                            format = format.replace(/%r/g, "%m %U%q %H")
+                            format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z]){0,1})/ig, (symbol) => {
+                                if (symbol.match(/%\{[\w-]*\}/i))
+                                    return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
+                                if (symbol.match(/%[a-z%]:[a-z]/i))
+                                    return date.toTimestampString("%" + symbol.substr(3))
+                                switch (symbol) {
+                                    case "%a":
+                                        return localhost || "-"
+                                    case "%h":
+                                        return remotehost || "-"
+                                    case "%l":
+                                        return "-"
+                                    case "%u":
+                                        return "-"
+                                    case "%s":
+                                        return response.statusCode || "-"
+                                    case "%b":
+                                        return response.contentLength || "-"
+                                    case "%B":
+                                        return response.contentLength || "0"
+                                    case "%m":
+                                        return request.method || "-"
+                                    case "%U":
+                                        return (request.url || "").replace(/\?.*$/, "")
+                                    case "%q":
+                                        return (request.url || "").replace(/^.*\?/, "")
+                                    case "%H":
+                                        return request.httpVersion ? "HTTP/" + request.httpVersion : ""
+                                    case "%t":
+                                        return `${dates[2]}/${dates[1]}/${dates[3]}:${dates[4]} ${dates[6]}`
+                                    default:
+                                        return symbol.substr(1)
+                                }
+                            })
+                            return format
+                        }
+
+                        if ((module.logging.access.format || "").toLowerCase() === "off")
+                            return;
+                        let date = new Date()
+                        let logging = formatter(module.logging.access.format || "", date)
+                        if (module.logging.access.file) {
+                            let filename = formatter(module.logging.access.file, date)
+                            fs.mkdirSync(path.dirname(filename), {recursive:true, mode:0o755})
+                            let file = fs.openSync(filename, "as")
+                            try {fs.writeSync(file, logging + EOL)
+                            } finally {
+                                fs.closeSync(file)
+                            }
+                        } else console.log(logging)
+                    })();
+
+                    // Synchronization is not required here, because the interval is
+                    // only triggered after the end of the method.
+                    // The API can be highly-frequented, so the statistical data is
+                    // minimized as floating point numbers.
+                    (async () => {
+                        let date = new Date()
+                        let slot = date.getHours()
+                        Statistic.data[slot] = Statistic.data[slot] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
+                        Statistic.data[slot].requests += 1
+                        Statistic.data[slot].inbound += Math.round(request.data.length /1024 /1024, 4)
+                        Statistic.data[slot].outbound += Math.round(response.contentLength /1024 /1024, 4)
+                        Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000 /60, 4)
+                        if (String(response.statusCode).startsWith("5"))
+                            Statistic.data[slot].errors += 1
+                    })();
+
+                    (async () => {
+                        if (!Object.exists(request.temp))
+                            return
+                        request.temp.forEach((file) => {
+                            try {fs.unlinkSync(file)
+                            } catch (error) {
+                            }
+                        })
+                    })();
+
+                    (async () => {
+                        Storage.cleanUp()
+                    })();
+                }
+            })
+        })
+
+        server.sockets = new Set();
+        server.on("connection", (socket) => {
+            server.sockets.add(socket);
+            server.once("close", () => {
+                server.sockets.delete(socket);
+            });
+        })
+
+        server.listen(module.connection.port, module.connection.address, function() {
+            let options = []
+            if (module.connection.options)
+                options.push("secure")
+            if (module.connection.acme
+                    && module.connection.port === "80")
+                options.push("ACME")
+            console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? ' (' + options.join(" + ") + ')' : ''}`)
+        })
+
+        server.close$ = server.close
+        server.close = function(callback) {
+            server.close$(callback)
+            for (const socket of server.sockets)
+                socket.destroy()
         }
-    })
-}).listen(module.connection.port, module.connection.address, function() {
-    let options = []
-    if (module.connection.options)
-        options.push("secure")
-    if (module.connection.acme
-            && module.connection.port === "80")
-        options.push("ACME")
-    console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? ' (' + options.join(" + ") + ')' : ''}`)
-})
+
+        return server
+    }
+}
+
+let server = ServerFactory.newInstance(module)
+if (Object.exists(module.connection)
+        && Object.exists(module.connection.options)
+        && Object.exists(module.connection.secure)
+        && Object.exists(module.connection.acme)) {
+    let monitor = {
+        file: module.connection.secure.split(/\s+/)[0],
+        lastModified: 0,
+        update: function() {
+            let state = fs.lstatSync(this.file)
+            if (!state.isFile()
+                    || state.mtimeMs === this.lastModified)
+                return false
+            try {return this.lastModified !== 0
+            } finally {
+                this.lastModified = state.mtimeMs
+            }
+        }
+    }
+    global.setInterval((monitor) => {
+        if (!monitor.update())
+            return
+        console.log("Service", "Certificate update found")
+        console.log("Service", `Closing at ${server.address().address}:${server.address().port} (secure)`)
+        server.close()
+        server = ServerFactory.newInstance(module)
+    }, 2500, monitor)
+}
 
 if (module.connection.port !== "80"
         && Object.exists(module.connection.acme)) {
