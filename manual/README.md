@@ -20,6 +20,7 @@ Machine translation with [DeepL](https://deepl.com).
 * [Configuration](configuration.md)
   * [Sections](configuration.md#sections)
     * [CONNECTION](configuration.md#connection)
+    * [ACME](configuration.md#acme)
     * [CORS](configuration.md#cors)
     * [REQUEST](configuration.md#request)
     * [STORAGE](configuration.md#storage)

@@ -15,6 +15,7 @@ TODO:
 
 * [Sections](#sections)
   * [CONNECTION](#connection)
+  * [ACME](#acme)  
   * [CORS](#cors)
   * [REQUEST](#request)
   * [STORAGE](#storage)
@@ -42,7 +43,20 @@ In this section the servers and HTTP are configured.
 | `CONTEXT` | `/xmex!`               | Context path der URL.<br/> It should end with a symbol to better visually distinguish the XPath from the request. |
 | `SECURE`  | `cert.pem key.pem`     | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, key                                        |
 | `SECURE`  | `cert.pfx passphrase`  | Certificate files if TLS/HTTPS is to be used.<br/> Order: certificate, passphrase                                 |
-| `ACME`    | `/.well-known/acme...` | Virtual path of the key for the ACME-challenge                                                                    |
+| `ACME`    | `/.well-known/acme...` | Virtual path of the key for the ACME-challenge.                                                                   |
+
+### ACME
+
+Automated Certificate Management Environment (ACME) is used for automatic
+verification of Internet domain ownership and simplified automated certificates
+for TLS encryption, which allows services like Let's Encrypt to be used.  
+For ACME HTTP-01, the procedure is based on an ACME HTTP challenge.  
+In Seanox XMEX, the ACME HTTP challenge is started automatically when the key
+`ACME` is enabled by a value in the section `CONNECTION`.  
+If a certificate is present and the key `SECURE` is also activated in the
+section `CONNECTION`, the service also starts a monitor that checks for a new
+certificate about every 12 hours. If a new certificate was provided, the active
+HTTPS server is terminated and started with the new certificate.
 
 ### CORS
 
