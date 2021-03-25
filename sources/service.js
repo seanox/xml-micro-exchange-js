@@ -2900,7 +2900,7 @@ if (Object.exists(module.connection)
         console.log("Service", `Closing at ${server.address().address}:${server.address().port} (secure)`)
         server.close()
         server = ServerFactory.newInstance(module)
-    }, 2500, monitor)
+    }, 12 *60 *60 *1000, monitor)
 }
 
 if (module.connection.port !== "80"
