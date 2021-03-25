@@ -396,7 +396,7 @@ client.test("unittest", function() {
 %}
 
 ###
-# TODO: not supported test case
+# TODO: Not supported test case
 # The JetBrains HTTP client automatically adds the Content-Length header to the
 # requestand the request should be tested without the Content-Length header.
 # Expectations:
@@ -419,7 +419,7 @@ client.test("unittest", function() {
 #%}
 
 ###
-# TODO: not supported test case
+# TODO: Not supported test case
 # The JetBrains HTTP client automatically adds the Content-Length header to the
 # requestand the request should be tested with a wrong Content-Length header.
 # Expectations:

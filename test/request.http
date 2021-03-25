@@ -302,7 +302,7 @@ client.test("unittest", function() {
 %}
 
 ###
-# TODO: Test of Accept-Effect
+# Test of Accept-Effect
 # Unknown entries
 # Expectations:
 # - Status code 204 No Content
@@ -545,7 +545,7 @@ client.test("unittest", function() {
 
 ###
 # The Base64 encoding from XPath must work.
-# TODO: not supported test case
+# TODO: Not supported test case
 # The REST HTTP client interprets the colon after Base64 as a control
 # character, the URI fades the space and protocol from the request,
 # making the request invalid.
