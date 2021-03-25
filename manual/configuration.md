@@ -58,6 +58,8 @@ section `CONNECTION`, the service also starts a monitor that checks for a new
 certificate about every 12 hours. If a new certificate was provided, the active
 HTTPS server is terminated and started with the new certificate.
 
+This makes Seanox XMEX ready for automated ACME administration e.g. by certbot.
+
 ### CORS
 
 In this section the CORS (Cross-Origin Resource Sharing) are configured.  
