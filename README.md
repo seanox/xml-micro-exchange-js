@@ -125,8 +125,15 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XML-Micro-Exchange 1.1.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.1.0.zip)  
-[Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip)
+[Seanox XML-Micro-Exchange 1.2.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.2.0.zip)  
+[Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip)  
+
+# Distributions for Microsoft Windows
+
+Complete package without Node.js to use as a Windows service.
+
+[Seanox XML-Micro-Exchange 1.2.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.2.0-win.zip)  
+[Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-win-latest.zip)
 
 
 # Docker Image
@@ -152,7 +159,11 @@ and double memory.
 * [Table Of Contents](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/README.md#manual)
 * [Motivation](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/motivation.md)
 * [Installation](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md)
-* [Configuration](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md)
+  * [Windows](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#windows)
+  * [Windows Distribution](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#windows-distribution)
+  * [Linux](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#linux)
+  * [Container](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#container)
+* [Configuration](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md)
 * [Terms](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/terms.md)
 * [Getting Started](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/getting-started.md)
 * [API](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api.md)
@@ -170,7 +181,7 @@ and double memory.
 
 
 # Changes (Change Log)
-## 1.2.0 202103xx (summary of the next version)  
+## 1.2.0 20210327 (summary of the current version)  
 BF: Service: Optimization of xsltproc error handling  
 BF: Build: Correction of libxml2-2.9.3_win_x64.zip  
 CR: Service: Added an access statistic for StdOut  

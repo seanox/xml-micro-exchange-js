@@ -1,4 +1,4 @@
-1.2.0 202103xx
+1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling
       The log output was not correct and did not help in finding the error.
   BF: Build: Correction of libxml2-2.9.3_win_x64.zip
