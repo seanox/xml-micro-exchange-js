@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210325
+ * Service 1.2.0 20210326
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210325
+ * @version 1.2.0 20210326
  */
 const http = require("http")
 const https = require("https")
@@ -2845,14 +2845,6 @@ class ServerFactory {
             })
         })
 
-        server.sockets = new Set();
-        server.on("connection", (socket) => {
-            server.sockets.add(socket);
-            server.once("close", () => {
-                server.sockets.delete(socket);
-            });
-        })
-
         server.listen(module.connection.port, module.connection.address, function() {
             let options = []
             if (module.connection.options)
@@ -2862,13 +2854,6 @@ class ServerFactory {
                 options.push("ACME")
             console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? ' (' + options.join(" + ") + ')' : ''}`)
         })
-
-        server.close$ = server.close
-        server.close = function(callback) {
-            server.close$(callback)
-            for (const socket of server.sockets)
-                socket.destroy()
-        }
 
         return server
     }
@@ -2900,7 +2885,7 @@ if (Object.exists(module.connection)
         console.log("Service", `Closing at ${server.address().address}:${server.address().port} (secure)`)
         server.close()
         server = ServerFactory.newInstance(module)
-    }, 12 *60 *60 *1000, monitor)
+    }, 15 *60 *1000, monitor)
 }
 
 if (module.connection.port !== "80"

@@ -55,10 +55,13 @@ In Seanox XMEX, the ACME HTTP challenge is started automatically when the key
 `ACME` is enabled by a value in the section `CONNECTION`.  
 If a certificate is present and the key `SECURE` is also activated in the
 section `CONNECTION`, the service also starts a monitor that checks for a new
-certificate about every 12 hours. If a new certificate was provided, the active
-HTTPS server is terminated and started with the new certificate.
+certificate about every 15 minutes. If a new certificate was provided, the
+active HTTPS server is terminated and started with the new certificate.  
+Why 15 minutes? Not because the certificate is changed so often, but so that
+there is a timely effect for initiated changes.
 
-This makes Seanox XMEX ready for automated ACME administration e.g. by certbot.
+With the automatism Seanox XMEX is ready for automated ACME management e.g. by
+certbot.
 
 ### CORS
 
