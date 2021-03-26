@@ -77,11 +77,15 @@
     <delete dir="${build}"/>
     <mkdir dir="${build}"/>
     <copy file="${sources}/service-build.js" tofile="${build}/service.js" overwrite="true"/>
+    <copy file="${sources}/service-build.js" todir="${build}" overwrite="true"/>
+    <copy file="${sources}/service-build-test.js" todir="${build}" overwrite="true"/>
     <copy file="${sources}/service.ini" tofile="${build}/service.ini" overwrite="true"/>
     <copy file="${workspace}/package.json" tofile="${build}/package.json" overwrite="true"/>
     <copy file="${workspace}/LICENSE" todir="${build}" overwrite="true"/>
     <copy file="${workspace}/CHANGES" todir="${build}" overwrite="true"/>
     <release-insert target="${build}"/>
+    <move file="${build}/service-build.js" todir="${sources}" overwrite="true"/>
+    <move file="${build}/service-build-test.js" todir="${sources}" overwrite="true"/>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
       <fileset dir="${build}" includes="**/*"/>
     </touch>
