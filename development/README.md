@@ -12,6 +12,8 @@
   `cd /test`  
   `node cumulate.js`
 ---
+- Clear all Docker imgaes  
+  `docker system prune -a`
 - Execute `ant release`  
 ---
 - Start the service locally  
