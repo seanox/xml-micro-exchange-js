@@ -2845,6 +2845,11 @@ class ServerFactory {
             })
         })
 
+        server.on("error", (error) => {
+            console.error(error.stack || error)
+            process.exit(1)
+        })
+
         server.listen(module.connection.port, module.connection.address, function() {
             let options = []
             if (module.connection.options)
@@ -2890,7 +2895,7 @@ if (Object.exists(module.connection)
 
 if (module.connection.port !== "80"
         && Object.exists(module.connection.acme)) {
-    http.createServer((request, response) => {
+    let server = http.createServer((request, response) => {
 
         // The method is based on time, network port and the assumption that a
         // port is not used more than once at the same time. On fast platforms,
@@ -2922,7 +2927,14 @@ if (module.connection.port !== "80"
                 console.error("Service", "#" + request.unique, error2)
             }
         }
-    }).listen(80, module.connection.address, function() {
+    })
+
+    server.on("error", (error) => {
+        console.error(error.stack || error)
+        process.exit(1)
+    })
+
+    server.listen(80, module.connection.address, function() {
         console.log("Service", `Listening at ${this.address().address}:${this.address().port} (ACME)`)
     })
 }
