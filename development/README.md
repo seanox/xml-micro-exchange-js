@@ -31,6 +31,26 @@
   e.g. line endings causing the hash values to differ. However, it is
   considered in the trace.
 ---
+- Install seanox-xmex-win-latest.zip  
+  e.g. unzip into C:\Temp\xmex
+- Add Node.js in to ./xmex/node  
+- Open the console (shell/prompt) as administrator
+- Install the service    
+  `cd /D C:\Temp\xmex`  
+  `service.cmd install`
+- Test of `snake.html`
+- Switch to service-build-test.js (replace service.js)
+- Restart from service
+- Test of `cumulate.http`
+- Test of the service functions
+  `cd /D C:\Temp\xmex`  
+  `service.cmd update`  
+  `service.cmd start`  
+  `service.cmd restart`  
+  `service.cmd stop`  
+  `service.cmd uninstall`
+- Remove the installation  
+---
 - Finalize the version in CHANGES  
 - Execute `ant release`
 - Check the ./xml-micro-exchange-js/.credentials
