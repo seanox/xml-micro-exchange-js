@@ -77,6 +77,9 @@ The POST method supports data transformation via XSLT.
 Similar to GET, data can be queried and then transformed with an XSLT template
 transmitted via POST.
 
+## JSON Support
+All requests can be responded by the service in JSON format.
+
 ## Security
 This aspect was deliberately considered and implemented here only in a very
 rudimentary form. The storage(-key) with a length of 1 - 64 characters and the
