@@ -149,8 +149,8 @@ responded with status 400.__
 
 It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter -- but apparently enough.  
 __Sponsors are always welcome.__  
-The project needs a good and simple domain and if possible more power.  
-It costs about 7,50 Euro per month for 65535 x 1024 kB with double CPU cores
+The project needs ~~a good and simple domain~~ and if possible more power.  
+It costs about 5 Euro per month for 65535 x 1024 kB with double CPU cores
 and double memory.
 
 
