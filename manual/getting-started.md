@@ -76,7 +76,7 @@ Who wants to participate in the regulars' table needs the place and address.
 For the XML-Micro-Exchange, this is the URL of the API and a storage
 identifier.
 
-__URL:__ [https://seanox.com/xmex!](https://seanox.com/xmex!)  
+__URL:__ [https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)  
 The here listed datasource contains 65536 storages with max. 256 kByte per
 storage. The expiration occurs after 15 minutes of inactivity.  
 Do not panic when opening the URL in the browser, the service is online and the
