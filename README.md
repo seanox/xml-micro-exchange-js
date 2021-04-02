@@ -144,7 +144,7 @@ https://hub.docker.com/repository/docker/seanox/xmex
 
 
 # Free XML-Micro-Exchange
-[TERMS OF SERVICE](./TERMS OF SERVICE)
+[TERMS OF SERVICE](./TERMS%20OF%20SERVICE)
 
 [https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)    
 65536 Storages x 64 kB  
