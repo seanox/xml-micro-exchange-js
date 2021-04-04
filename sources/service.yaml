@@ -1,0 +1,206 @@
+swagger: "2.0"
+info:
+  description: "
+XML-Micro-Exchange is a volatile NoSQL stateless micro datasource for the
+Internet. It is designed for easy communication and data exchange of
+web-applications and for IoT or for other Internet-based modules and
+components.<br>
+The XML based datasource is volatile and lives through continuous use and
+expires through inactivity. They are designed for active and near real-time data
+exchange but not as a real-time capable long-term storage.<br>
+Compared to a JSON storage, this datasource supports more dynamics, partial data
+access, data transformation, and volatile short-term storage.
+
+<h1>API</h1>
+The API uses the HTTP.<br>
+The URI typically contains a noticeable separator to divide it into context
+path and XPath.<br>
+For the API only the XPath is relevant.
+
+<pre>
+https://xmex.seanox.com/xmex!xpath(-function)<br>
+<-------------------------->|<--------------><br>
+&#160;       Context Path              XPath
+</pre>
+
+In some cases, the XPath syntax may not be supported as a URI by the client or
+provider.<br>
+In these cases, the XPath can alternatively be used as a query string or
+hexadecimal or Base64 encoded.<br>
+<pre>
+https://xmex.seanox.com/xmex!count(//items[@id<0])<br>
+https://xmex.seanox.com/xmex!count(%2F%2Fitems[@id<0])<br>
+https://xmex.seanox.com/xmex!0x636F756E74282F2F6974656D735B4069643C305D29<br>
+https://xmex.seanox.com/xmex!Base64:Y291bnQoLy9pdGVtc1tAaWQ8MF0p
+</pre>
+
+The request supports the following additional headers:<br>
+<pre>
+Storage                   Storage identifier optional with name of the root element<br>
+Accept-Effects            Controls the content of Storage Effects header
+</pre>
+
+Also the reponse has additional headers:
+<pre>
+Connection-Unique          Unique ID created by the API to mark client owner data.<br>
+Storage                    Storage identifier without the name of the root element<br>
+Storage-Revision           Current revision of the storage<br>
+Storage-Space              Capacity of the storage (total/used in bytes)<br>
+Storage-Last-Modified      Timestamp (RFC822) of the last access<br>
+Storage-Expiration         Timestamp (RFC822) when the storage will expire<br>
+Storage-Expiration-Time    Idle time in milliseconds until storage expires<br>
+Storage-Effects            For PUT/PATCH/DELETE, UUIDs directly affected by the request<br>
+Execution-Time             Duration of request processing in milliseconds<br>
+Error                      Error number from the log file in combination with status 500<br>
+Message                    Detailed error message in combination with status 400 / 422
+</pre>
+<br>
+"
+  version: "1.2.0"
+  title: "Seanox XMEX - XML-Micro-Exchange"
+  termsOfService: "https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/TERMS%20OF%20SERVICE"
+  contact:
+    name: "dddd"
+    email: "xmex@seanox.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "xmex.seanox.com"
+basePath: "/"
+produces:
+  - application/xml
+  - application/json
+  - text/plain
+schemes:
+  - "https"
+tags:
+  - name: ""
+paths:
+  /xmex!{xpath}:
+    options:
+      tags:
+        - ""
+      summary: "
+        Opens a storage or queries information with an XPath about the storage
+        and the target
+      "
+      description: ""
+      consumes:
+      produces:
+        - none
+      parameters:
+        - in: "path"
+          name: "xpath"
+          description: ""
+          type: string
+          required: false
+        - in: "header"
+          name: "Storage"
+          description: "
+            Each storage has an identifier, the storage identifier.<br>
+            The Storage Identifier is used as the filename of the corresponding
+            XML file and must be specified with each request so that the
+            datasource uses the correct storage.<br>
+            Optionally, the storage identifier can be followed by the name of
+            the root element of the XML file separated by a space.<br>
+            If the root element is not specified, the default 'data' is used.
+            <br><br>
+            <b>Important:</b> To use a storage, the storage identifier and name
+            of the root element must match.<br>
+            <br>
+            <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+            <br>
+            <b>Example:</b> WEATHER_STATION / WEATHER_STATION data
+          "
+          type: string
+          required: true
+          schema:
+            $ref: "#definitions/storage-identifier"
+      responses:
+        201:
+          description: "Response can be status 201 if the storage was newly created"
+          headers:
+        202:
+          description: "Response can be status 202 if the storage already exists"
+        204:
+          description: "Request was successfully executed"
+        400:
+          description: "
+            Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
+            or XPath is missing or malformed
+          "
+          headers:
+        404:
+          description: "Storage or does not exist"
+        500:
+          description: "TODO:"
+          headers:
+        507:
+          description: "Response can be status 507 if the storage is full"
+    put:
+      tags:
+        - ""
+    patch:
+      tags:
+        - ""
+    get:
+      tags:
+        - ""
+    post:
+      tags:
+        - ""
+    delete:
+      tags:
+        - ""
+definitions:
+  storage-identifier:
+    title: "Storage Identifier"
+    description: "
+      Each storage has an identifier, the storage identifier.<br>
+      The Storage Identifier is used as the filename of the corresponding XML
+      file and must be specified with each request so that the datasource uses
+      the correct storage.<br>
+      OWithout further specification, the default 'data' is used for the root
+      element of the XML file from storage.<br>
+      Important -- To use a storage, the storage identifier and name of
+      the root element must match.
+    "
+    type: string
+    pattern: "^(\\w{1,64})$"
+    minLength: 1
+    maxLength: 64
+    example: "WEATHER_STATION"
+  storage-identifier-with-root:
+    title: "Storage Identifier with Root"
+    description: "
+      Each storage has an identifier, the storage identifier.<br>
+      The Storage Identifier is used as the filename of the corresponding XML
+      file and must be specified with each request so that the datasource uses
+      the correct storage.<br>
+      Optionally, the storage identifier can be followed by the name of th
+      root element of the XML file separated by a space.<br>
+      If the root element is not specified, the default 'data' is used.<br>
+      Important -- To use a storage, the storage identifier and name of
+      the root element must match.
+    "
+    type: string
+    pattern: "^(\\w{1,64})(?:\\s+(\\w+))?$"
+    minLength: 1
+    example: "WEATHER_STATION data"
+  xpath-axis:
+    title: "XPath Axis"
+    description: "
+      TODO:
+    "
+    type: string
+    example: "/data/sensors/temperature/latest"
+  xpath-function:
+    title: "XPath Function"
+    description: "
+      TODO:
+    "
+    type: string
+    example: "TODO: "
+externalDocs:
+  description: "Find out more about Seanox XMEX"
+  url: "https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/README.md"
