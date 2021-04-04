@@ -9,9 +9,9 @@ path and XPath.
 For the API only the XPath is relevant.
 
 ```
-https://seanox.com/xmex!xpath(-function)
-<--------------------->|<-------------->
-     Context Path            XPath
+https://xmex.seanox.com/xmex!xpath(-function)
+<-------------------------->|<-------------->
+        Context Path              XPath
 ```
 
 In some cases, the XPath syntax may not be supported as a URI by the client or
@@ -20,10 +20,10 @@ In these cases, the XPath can alternatively be used as a query string or
 hexadecimal or Base64 encoded.
 
 ```
-https://seanox.com/xmex!count(//items[@id<0])
-https://seanox.com/xmex!count(%2F%2Fitems[@id<0])
-https://seanox.com/xmex!0x636F756E74282F2F6974656D735B4069643C305D29
-https://seanox.com/xmex!Base64:Y291bnQoLy9pdGVtc1tAaWQ8MF0p
+https://xmex.seanox.com/xmex!count(//items[@id<0])
+https://xmex.seanox.com/xmex!count(%2F%2Fitems[@id<0])
+https://xmex.seanox.com/xmex!0x636F756E74282F2F6974656D735B4069643C305D29
+https://xmex.seanox.com/xmex!Base64:Y291bnQoLy9pdGVtc1tAaWQ8MF0p
 ```
 
 The request supports the following additional headers:
