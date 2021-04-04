@@ -149,8 +149,9 @@ https://hub.docker.com/repository/docker/seanox/xmex
 [https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)    
 65536 Storages x 64 kB  
 __Please do not get confused, the API is online.  
-Requests without storage identifier (see [manual](manual/README.md#manual)) are
-responded with status 400.__  
+Requests without storage identifier (see [manual](manual/README.md#manual) and/or
+[OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml))
+are responded with status 400.__  
 
 It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter -- but apparently enough.  
 __Sponsors are always welcome.__  
