@@ -8,7 +8,7 @@
 
 * [Datasource](#apache-httpd)
 * [Storage](#seanox-devwex)
-* [Storage Identifier](#other-http-servers)
+* [Storage Identifier](#storage-identifier)
 * [Element(s)](#elements)
 * [Attribute(s)](#attributes)
 * [XPath](#xpath)

@@ -164,7 +164,6 @@ Execution-Time: 3 ms
 
 ### HTTP/1.0 404 Resource Not Found
 - Storage does not exist
-- XPath axis finds no target
 
 ### HTTP/1.0 413 Payload Too Large
 - Allowed size of the request(-body) and/or storage is exceeded

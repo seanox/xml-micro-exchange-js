@@ -3,8 +3,8 @@
 
 # PUT
 
-PUT creates elements and attributes in storage and/or changes the value of  
-existing ones.
+PUT creates elements and attributes in storage and/or changes the value of
+existing ones.  
 The position for the insert is defined via an XPath.  
 For better understanding, the method should be called PUT INTO, because it is
 always based on an existing XPath axis as the parent target.  
@@ -168,7 +168,6 @@ Execution-Time: 3 ms
 
 ### HTTP/1.0 404 Resource Not Found
 - Storage does not exist 
-- XPath axis finds no target
 
 ### HTTP/1.0 413 Payload Too Large
 - Allowed size of the request(-body) and/or storage is exceeded
