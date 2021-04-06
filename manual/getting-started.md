@@ -130,7 +130,7 @@ In both cases, the request is responded to with the response header
 to use connection- or session-specific keys in the storage.
 
 ```
-HTTP/1.0 202 Accepted / 201 Resource Created
+HTTP/1.0 204 No Content / 201 Resource Created
 Date: Wed, 11 Nov 2020 12:00:00 GMT
 Access-Control-Allow-Origin: *
 Storage: US_NY_10003_123_EAST_8TH_STREET_BLUE_BEAR_T_01
@@ -223,7 +223,7 @@ OPTIONS https://xmex.seanox.com/xmex! HTTP/1.0
 Storage: US_NY_10003_123_EAST_8TH_STREET_BLUE_BEAR_T_01 table
 ```
 ```
-HTTP/1.0 202 Accepted
+HTTP/1.0 204 No Content
 Date: Wed, 11 Nov 2020 12:00:00 GMT
 Access-Control-Allow-Origin: *
 Storage: US_NY_10003_123_EAST_8TH_STREET_BLUE_BEAR_T_01

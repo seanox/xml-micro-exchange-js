@@ -23,7 +23,7 @@ The processing is strict and does not accept unnecessary spaces.
 * [Response](#response)
   * [Example](#example-1)
 * [Response codes / behavior](#response-codes--behavior)  
-  * [HTTP/1.0 200 Success](#http10-202-success)
+  * [HTTP/1.0 200 Success](#http10-200-success)
   * [HTTP/1.0 400 Bad Request](#http10-400-bad-request)
   * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
   * [HTTP/1.0 415 Unsupported Media Type](#http10-415-unsupported-media-type)

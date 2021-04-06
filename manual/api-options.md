@@ -39,7 +39,7 @@ Faulty XPath will cause the status 400.
   * [Example](#example-3)
 * [Response codes / behavior](#response-codes--behavior-1)  
   * [HTTP/1.0 201 Resource Created](#http10-201-resource-created)
-  * [HTTP/1.0 202 Accepted](#http10-202-accepted)
+  * [HTTP/1.0 204 No Content](#http10-204-no-content)
   * [HTTP/1.0 400 Bad Request](#http10-400-bad-request-1)
   * [HTTP/1.0 507 Insufficient Storage](#http10-507-insufficient-storage)
 
@@ -144,7 +144,7 @@ Storage-Expiration-Time: Timeout (milliseconds)
 Connection-Unique: UID
 ```
 ``` 
-HTTP/1.0 202 Accepted
+HTTP/1.0 204 No Content
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
 Storage-Revision: Revision (number)
 Storage-Space: Total/Used (bytes)
@@ -175,8 +175,8 @@ Execution-Time: 3 ms
 ### HTTP/1.0 201 Resource Created
 - Response can be status 201 if the storage was newly created
 
-### HTTP/1.0 202 Accepted
-- Response can be status 202 if the storage already exists
+### HTTP/1.0 204 No Content
+- Response can be status 204 if the storage already exists
 
 ### HTTP/1.0 400 Bad Request
 - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
