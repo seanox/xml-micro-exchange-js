@@ -1,3 +1,8 @@
+1.3.0 2021xxxx
+  BF: Service: Uniform use of status 204 for 202 / 404
+      Concerns: OPTIONS
+      Status 404 always refers  storage and not entities/addressed targets in the storage.
+
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling
       The log output was not correct and did not help in finding the error.

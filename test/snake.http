@@ -44,13 +44,13 @@ client.test("unittest", function() {
 # initDatasource
 # Initialization from another player
 # Expectations:
-# - Status code 202 Accepted
+# - Status code 204 No Content
 OPTIONS {{service}} HTTP/1.0
 Storage: {{storage_snake}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8468a686c32980a78775eaab8f5c9d99");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2b2ef100d86b2776ff005e217a5eda18");
 });
 %}
 

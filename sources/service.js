@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.2.0 20210326
+ * Service 1.3.0 20210406
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.2.0 20210326
+ * @version 1.3.0 20210406
  */
 const http = require("http")
 const https = require("https")
@@ -960,7 +960,7 @@ class Storage {
      * Connection-Unique: UID
      *
      *     Response:
-     * HTTP/1.0 202 Accepted
+     * HTTP/1.0 204 No Content
      * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
      * Storage-Revision: Revision (number)
      * Storage-Space: Total/Used (bytes)
@@ -972,8 +972,8 @@ class Storage {
      *     Response codes / behavior:
      *         HTTP/1.0 201 Resource Created
      * - Response can be status 201 if the storage was newly created
-     *         HTTP/1.0 202 Accepted
-     * - Response can be status 202 if the storage already exists#
+     *         HTTP/1.0 204 No Content
+     * - Response can be status 204 if the storage already exists#
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
      * - XPath is missing or malformed
@@ -992,10 +992,10 @@ class Storage {
             if (files.length >= Storage.QUANTITY)
                 this.quit(507, "Insufficient Storage")
             this.open(true)
-        } else response = [202, "Accepted"]
+        } else response = [204, "No Content"]
 
         this.materialize()
-        this.quit(response[0], response[1], {"Connection-Unique": this.unique})
+        this.quit(response[0], response[1], {"Connection-Unique": this.unique, "Allow": "OPTIONS, GET, POST, PUT, PATCH, DELETE"})
     }
 
     /**
@@ -1018,7 +1018,7 @@ class Storage {
      * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
      *
      *     Response:
-     * HTTP/1.0 204 Success
+     * HTTP/1.0 204 No Content
      * Storage-Effects: ... (list of UIDs)
      * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
      * Storage-Revision: Revision (number)
@@ -1064,7 +1064,7 @@ class Storage {
      * Connection-Unique: UID
      *
      *     Response:
-     * HTTP/1.0 202 Accepted
+     * HTTP/1.0 204 No Content
      * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
      * Storage-Revision: Revision (number)
      * Storage-Space: Total/Used (bytes)
@@ -1076,8 +1076,8 @@ class Storage {
      *     Response codes / behavior:
      *         HTTP/1.0 201 Resource Created
      * - Response can be status 201 if the storage was newly created
-     *         HTTP/1.0 202 Accepted
-     * - Response can be status 202 if the storage already exists#
+     *         HTTP/1.0 204 No Content
+     * - Response can be status 204 if the storage already exists#
      *         HTTP/1.0 507 Insufficient Storage
      * - Response can be status 507 if the storage is full
      */
@@ -2310,13 +2310,6 @@ class Storage {
             if (data !== "" || status === 200)
                 headers["Content-Length"] = Buffer.from(data).length
 
-        // When responding to an error, the default Allow header is added.
-        // But only if no Allow header was passed.
-        // So the header does not always have to be added manually.
-        if ([201, 202, 405].includes(status)
-                && Object.keys(headers).filter(header => header.toLowerCase() === "allow").length <= 0)
-            headers["Allow"] = "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-
         headers["Execution-Time"] = (new Date().getTime() -this.request.timing) + " ms"
 
         {{{
@@ -2722,7 +2715,7 @@ class ServerFactory {
                             case "DELETE":
                                 storage.doDelete()
                             default:
-                                storage.quit(405, "Method Not Allowed")
+                                storage.quit(405, "Method Not Allowed", {"Allow": "OPTIONS, GET, POST, PUT, PATCH, DELETE"})
                         }
                     } finally {
                         storage.close()

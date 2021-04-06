@@ -73,13 +73,13 @@ client.test("unittest", function() {
 ###
 # The storage identifier is case-sensitive
 # Expectations:
-# - Status code 202 Accepted
+# - Status code 204 No Content
 OPTIONS {{service}} HTTP/1.0
 Storage: O________10________20________30________40________50________60__A
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9b7cdd8147417ec0ca11468b92b2fe86");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0afdb29e1fd2f20615650fde99b822d7");
 });
 %}
 
@@ -156,14 +156,14 @@ client.test("unittest", function() {
 # Everything is correct, storage and name of the root element are transmitted
 # correctly, the storage can be shared.
 # Expectations:
-# - Status code 202 Accepted
+# - Status code 204 No Content
 # - Connection-Unique: UID
 OPTIONS {{service}} HTTP/1.0
 Storage: {{storage_options_connect}} books
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "352106e8736af7eb2e88a7ad381f13c5");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "efff2f71b778979d3f1c17362ff5ff6a");
 });
 %}
 
