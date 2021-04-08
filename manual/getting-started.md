@@ -258,7 +258,7 @@ They are also all familiar with the rituals and rules of the regulars' table
 and the pub and thus do the same as John.
 
 They join the regulars' table with OPTIONS and are informed by the server
-status 202 that the regulars' table already exists. Because they do not know
+status 204 that the regulars' table already exists. Because they do not know
 the state of the regulars' table, they arrange it in the same way as John.
 
 ```
