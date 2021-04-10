@@ -22,11 +22,12 @@
 - Execute `./test/cumulate.http` (local)
 - Compare `./sources/trace.log` with the version in GitHub
 ---
-- Start `xmex:integration` in Docker  
+- Start `ant docker-test` or manually `xmex:integration` in Docker  
   `docker run -d -p 8000:8000 --rm --name xmex-int xmex:integration` 
 - Execute `./test/cumulate.http` (local Docker)
 - Update trace-docker.log  
-  `docker cp xmex-int:/xmex/trace.log ../sources/trace-docker.log` 
+  `docker cp xmex-test:/xmex/trace.log ../sources/trace-docker.log`  
+  or if manual `docker cp xmex-int:/xmex/trace.log ../sources/trace-docker.log` 
 - Compare `./sources/trace-docker.log` with the version in GitHub  
   Ignore the test results, only the comparison of the trace files is relevant.
   The tests may differ due to the different operating systems and components
