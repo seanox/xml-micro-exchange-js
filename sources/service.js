@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210406
+ * Service 1.3.0 20210410
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210406
+ * @version 1.3.0 20210410
  */
 const http = require("http")
 const https = require("https")
@@ -404,7 +404,7 @@ Number.parseBytes = function(text) {
     if (!Object.exists(text)
             || String(text).trim().length <= 0)
         throw "Number parser error: Invalid value"
-    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]{0,1})\s*$/i)
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]?)\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
         throw "Number parser error: Invalid value " + String(text).trim()
     let number = Number.parseFloat(match[1])
@@ -416,7 +416,7 @@ Date.parseDuration = function(text) {
     if (!Object.exists(text)
             || String(text).trim().length <= 0)
         throw "Date parser error: Invalid value"
-    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h{0,1})\s*$/i)
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h?)\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
         throw "Date parser error: Invalid value " + String(text).trim()
     let number = Number.parseFloat(match[1])
@@ -522,7 +522,7 @@ module.init = function() {
     else delete meta.connection.acme
 
     let parseOutputPhrase = (phrase) => {
-        let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*){0,1}$/)
+        let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*)?$/)
         if (!output || output.length < 2)
             return undefined
         return {format: output[1], file: output.length > 2 ? output[2] : undefined}
@@ -622,7 +622,7 @@ class Storage {
      *     Group 2. Name of the root element (optional)
      */
     static get PATTERN_HEADER_STORAGE() {
-        return /^(\w{1,64})(?:\s+(\w+)){0,1}$/
+        return /^(\w{1,64})(?:\s+(\w+))?$/
     }
 
     /**
@@ -632,7 +632,7 @@ class Storage {
      *     Group 2. options (optional)
      */
     static get PATTERN_XPATH_OPTIONS() {
-        return /^(.*?)((?:!+\w+){0,})$/
+        return /^(.*?)((?:!+\w+)*)$/
     }
 
     /**
@@ -652,7 +652,7 @@ class Storage {
      *     Group 2. Attribute
      */
     static get PATTERN_XPATH_PSEUDO() {
-        return /^(.*?)(?:::(before|after|first|last)){0,1}$/i
+        return /^(.*?)(?:::(before|after|first|last))?$/i
     }
 
     /**
@@ -1342,7 +1342,7 @@ class Storage {
         let output = child.spawnSyncExt(XsltProc, [tempStyle, tempXml], Storage.XML.ENCODING)
         if (output instanceof Error) {
             let message = output.message.split(/[\r\n]+/)[0]
-            message = message.replace(/\s*(file\s+){0,1}___temp_[\w\:]+\s*/ig, " ").trim()
+            message = message.replace(/\s*(file\s+)?___temp_[\w\:]+\s*/ig, " ").trim()
             message = message.replace(/\s+(?=:)/g, "")
             message = "Transformation failed (" + message.trim() + ")"
             this.quit(422, "Unprocessable Entity", {"Message": message})
@@ -1524,7 +1524,7 @@ class Storage {
 
             let input = this.request.data
 
-            // The Content-Type text/xpath is a special of the XMXE Storage.
+            // The Content-Type text/xpath is a special of the XMEX Storage.
             // It expects a plain text which is an XPath function.
             // The XPath function is first once applied to the current XML
             // document from the storage and the result is put like the
@@ -1617,7 +1617,7 @@ class Storage {
 
             let input = this.request.data
 
-            // The Content-Type text/xpath is a special of the XMXE Storage.
+            // The Content-Type text/xpath is a special of the XMEX Storage.
             // It expects a plain text which is an XPath function.
             // The XPath function is first once applied to the current XML
             // document from the storage and the result is put like the
@@ -1953,7 +1953,7 @@ class Storage {
         }
 
         if (!this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)
-                && this.xpath.match(/::((\w+)*\)*){0,1}((?:!+\w*){0,})$/)) {
+                && this.xpath.match(/::((\w+)*\)*)?((?:!+\w*){0,})$/)) {
             let message = "Invalid XPath axis"
             this.quit(400, "Bad Request", {"Message": message})
         }
@@ -2498,13 +2498,13 @@ class Storage {
 // have to be handled with stdout/strerr when calling the program. But this
 // option is still available as well.
 if (module.logging.output) {
-    console.warn$format = module.logging.output.format.replace(/\x20{0,1}\.{3,}/g, "")
-    console.log$format = module.logging.output.format.replace(/\x20{0,1}\.{3,}/g, "")
+    console.warn$format = module.logging.output.format.replace(/\x20?\.{3,}/g, "")
+    console.log$format = module.logging.output.format.replace(/\x20?\.{3,}/g, "")
     if (module.logging.output.file)
         Streams.rotate(process.stdout, module.logging.output.file)
 }
 if (module.logging.error) {
-    console.error$format = module.logging.error.format.replace(/\x20{0,1}\.{3,}/g, "")
+    console.error$format = module.logging.error.format.replace(/\x20?\.{3,}/g, "")
     if (module.logging.error.file)
         Streams.rotate(process.stderr, module.logging.error.file)
 }
@@ -2752,7 +2752,7 @@ class ServerFactory {
                             let dates = date.toString().split(/\s+|(?=[\+\-])/)
 
                             format = format.replace(/%r/g, "%m %U%q %H")
-                            format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z]){0,1})/ig, (symbol) => {
+                            format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z])?)/ig, (symbol) => {
                                 if (symbol.match(/%\{[\w-]*\}/i))
                                     return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
                                 if (symbol.match(/%[a-z%]:[a-z]/i))
