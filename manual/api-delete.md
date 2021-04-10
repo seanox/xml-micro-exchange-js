@@ -22,14 +22,15 @@ The XPath processing is strict and does not accept unnecessary spaces.
 The attributes `___rev` / `___uid` used internally by the storage are read-only
 and cannot be changed.
 
-In general, if no target can be reached via XPath, status 404 will occur. In
-all other cases the DELETE method informs the client about changes with status
-204 and the response headers `Storage-Effects` and `Storage-Revision`. The
-header `Storage-Effects` contains a list of the UIDs that were directly
-affected by the change and also contains the UIDs of newly created elements
-(e.g. when the root element is deleted, a new one is automatically created). If
-no changes were made because the XPath cannot find a writable target, the
-header Storage-Effects can be omitted completely in the response.
+In general, DELETE requests are responded to with status 204. Status 404 is
+used only with relation to the storage. In all other cases the DELETE method
+informs the client about changes with status 204 and the response headers
+`Storage-Effects` and `Storage-Revision`. The header `Storage-Effects` contains
+a list of the UIDs that were directly affected by the change and also contains
+the UIDs of newly created elements (e.g. when the root element is deleted, a
+new one is automatically created). If no changes were made because the XPath
+cannot find a writable target, the header `Storage-Effects` can be omitted
+completely in the response.
 
 Syntactic and semantic errors in the request and/or XPath can cause error
 status 400.
