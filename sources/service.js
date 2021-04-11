@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210410
+ * Service 1.3.0 20210411
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210410
+ * @version 1.3.0 20210411
  */
 const http = require("http")
 const https = require("https")
@@ -1032,7 +1032,6 @@ class Storage {
      * - Request was successfully executed
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
-     * - XPath is missing or malformed
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
      *
@@ -1175,7 +1174,6 @@ class Storage {
      * - XPath is missing or malformed
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
-     * - XPath axis finds no target
      */
     doGet() {
 
@@ -1197,7 +1195,7 @@ class Storage {
         }
         if (!this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)
                 && (!Object.exists(result) || result.length <= 0))
-            this.quit(404, "Resource Not Found")
+            this.quit(204, "No Content")
 
         if (Array.isArray(result)) {
             if (result.length === 1) {
@@ -1270,7 +1268,6 @@ class Storage {
      * - XSLT Stylesheet is erroneous
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
-     * - XPath axis finds no target
      *         HTTP/1.0 415 Unsupported Media Type
      * - Attribute request without Content-Type text/plain
      *         HTTP/1.0 422 Unprocessable Entity
@@ -1305,7 +1302,7 @@ class Storage {
                 this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found")
+                this.quit(204, "No Content")
             if (targets.length === 1) {
                 let target = targets[0]
                 if (target.nodeType === XML_ATTRIBUTE_NODE)
@@ -1458,7 +1455,6 @@ class Storage {
      * - XPath without addressing a target is responded with status 204
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
-     * - XPath axis finds no target
      *         HTTP/1.0 413 Payload Too Large
      * - Allowed size of the request(-body) and/or storage is exceeded
      *         HTTP/1.0 415 Unsupported Media Type
@@ -1557,7 +1553,7 @@ class Storage {
                 this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found")
+                this.quit(204, "No Content")
 
             // The attributes ___rev and ___uid are essential for the internal
             // organization and management of the data and cannot be changed.
@@ -1646,7 +1642,7 @@ class Storage {
                 this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found")
+                this.quit(204, "No Content")
 
             targets.forEach((target) => {
                 // Overwriting of the root element is not possible, as it
@@ -1723,7 +1719,7 @@ class Storage {
                 this.quit(400, "Bad Request", {"Message": message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
-                this.quit(404, "Resource Not Found")
+                this.quit(204, "No Content")
 
             targets.forEach((target) => {
 
@@ -1959,7 +1955,7 @@ class Storage {
         }
 
         if (!Object.exists(targets) || targets.length <= 0)
-            this.quit(404, "Resource Not Found")
+            this.quit(204, "No Content")
 
         // The response to the request is delegated to PUT.
         // The function call is executed and the request is terminated.
@@ -2057,7 +2053,7 @@ class Storage {
         }
 
         if (!Object.exists(targets) || targets.length <= 0)
-            this.quit(404, "Resource Not Found")
+            this.quit(204, "No Content")
 
         // Pseudo elements can be used to delete in an XML substructure
         // relative to the selected element.

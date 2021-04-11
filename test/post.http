@@ -624,7 +624,7 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c8b70700ead7a1e22ae62890691c90f4");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3cd070aa5fb7136eaa4c652974e2ab77");
 });
 %}
 

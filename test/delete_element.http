@@ -155,7 +155,7 @@ Storage: {{storage_delete_element}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3b014aa9c4070af9231ab5ec667b494a");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5f63693f2fbab1630821e052cdf26de6");
 });
 %}
 

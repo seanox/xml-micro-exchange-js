@@ -288,7 +288,7 @@ Test
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a1aa1324e0a14105f07931a091241c9b");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "705ff45f29cf6562b90ed32145e2f04f");
 });
 %}
 
@@ -304,7 +304,7 @@ Test
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1778f2e4b137c1657623a03742bf427f");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3779b6b0aae590455b9b1f7722f58047");
 });
 %}
 
