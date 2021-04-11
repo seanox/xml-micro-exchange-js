@@ -2,6 +2,9 @@
   BF: Service: Uniform use of status 204 for 202 / 404
       Concerns: OPTIONS
       Status 404 always refers  storage and not entities/addressed targets in the storage.
+  BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)
+      Status 404 is now only used in relation to storage.
+      Addressed targets (axes) use status 204 in combination with the response header Storage-Effects.
 
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling
