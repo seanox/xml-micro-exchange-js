@@ -62,7 +62,7 @@ Error                      Unique error number from the logging with status 500<
 Message                    Detailed error message with status 400 / 422
 </pre>
 <b>
-  Notice about response code 404, this always refers to the storage, but never
+  Notice about response code 404: This always refers to the storage, but never
   to an addressed target in the storage.<br>
   If a target does not exist, requests are responded to with code 204.
 </b>
@@ -87,112 +87,522 @@ paths:
     options:
       tags:
         - API
+      parameters:
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+              <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <br>
+              Special case CORS.<br>
+              The request header Storage is normally always required. However,
+              it is not required for the CORS preflight-request. Therefore, the
+              header has been decalarized as non-optional.
+            "
+          required: false
+          schema:
+            type: string
+            example: WEATHER_STATION station
       responses:
+        200:
+          description: "CORS Access-Control preflight request"
+        201:
+          description: "Storage was newly created"
+        204:
+          description: "Storage already exists"
+        400:
+          description: "
+              Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
+              or XPath is missing or malformed
+            "
         404:
+          description: "Storage does not exist."
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
+        507:
+          description: "Storage is full"
   /xmex!{xpath}:
     options:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
     put:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
+        413:
+          description: "TODO:"
+        415:
+          description: "TODO:"
+        422:
+          description: "TODO:"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
     patch:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
+        413:
+          description: "TODO:"
+        415:
+          description: "TODO:"
+        422:
+          description: "TODO:"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
     get:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        200:
+          description: "TODO:"
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
     post:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        200:
+          description: "TODO:"
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
+        415:
+          description: "TODO:"
+        422:
+          description: "TODO:"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
     delete:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
   /xmex!{xpath}!json:
     get:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        200:
+          description: "TODO:"
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
     post:
       tags:
         - API
       parameters:
-        - name: xpath
-          in: path
-          description: ID of pet to return
+        - name: Storage
+          in: header
+          description: "
+              Each storage has an identifier. The Storage Identifier is used as
+              the filename of the corresponding XML file and must be specified
+              with each request so that the datasource uses the correct storage.
+              Optionally, the storage identifier can be followed by the name of
+              the root element of the XML file separated by a space.<br>
+              If the root element is not specified, the default 'data' is used.<br>
+              <br>
+             <b>Important:</b> To use a storage, the storage identifier and name
+              of the root element must match.<br>
+              <br>
+              <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
+              <br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+            "
           required: true
           schema:
             type: string
+            example: WEATHER_STATION station
+        - name: xpath
+          in: path
+          description: "
+              XPath axis or function.<br>
+              Axes always start with a slash, functions do not.<br>
+              This is only for the initial distinction from the expression for the interpreter.<br>
+              Functions can then also use axes and axes can then also use functions.
+              <dir>Example:</dir>
+              <pre>
+              count(//sensors/*)<br>
+              //sensors/nox/data/record[position()>count(//record)-5]
+              </pre>
+            "
+          required: true
+          schema:
+            type: string
+            example: //sensors/nox/data/record
       responses:
+        200:
+          description: "TODO:"
+        204:
+          description: "TODO:"
+        400:
+          description: "TODO:"
         404:
+          description: "Storage does not exist"
+        415:
+          description: "TODO:"
+        422:
+          description: "TODO:"
         500:
+          description: "
+              An unexpected error has occurred.<br>
+              The response contains the response header with a unique error number.<br>
+              A corresponding entry exists in the logging.
+            "
