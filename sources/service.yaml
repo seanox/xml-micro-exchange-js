@@ -87,6 +87,20 @@ paths:
     options:
       tags:
         - API
+      summary: "
+          Opens a storage for use and/or queries the current informations about the storage.
+        "
+      description: "
+          OPTIONS is used for two things. Without an XPath, the method opens a
+          storage for use and queries information about the storage. Requests
+          with the OPTIONS method are always answered without a response body.
+          All information about the storage is returned via response headers.<br>
+          <br>
+          <b>
+            Before a storage can be used, it must always be opened with an
+            OPTIONS request and without an XPath.
+          </b>
+        "
       parameters:
         - name: Storage
           in: header
@@ -140,6 +154,67 @@ paths:
     options:
       tags:
         - API
+      summary: "
+          Gets information about the storage and/or a target addressed by XPath.
+        "
+      description: "
+          OPTIONS is used to query the allowed HTTP methods for an XPath, which is
+          responded with the Allow-header. This method distinguishes between XPath axis
+          and XPath function and uses different Allow headers. Also the existence of the
+          target on an XPath axis has an influence on the response. The method will not
+          use status 404 in relation to non-existing targets, but will offer the methods
+          <code>OPTIONS</code>, <code>PUT</code> via Allow-Header.<br>
+          <br>
+          In the case of an XPath axis, the UIDs of the targets are returned in the
+          Storage-Effects header. Unlike modifier methods like <code>PUT</code>, <code>PATCH</code> and
+          <code>DELETE</code>, the effect suffix (<code>:A</code>/<code>:M</code>/<code>:D</code>) is omitted here.<br>
+          <br>
+          If the XPath is a function, it is executed and thus validated, but without
+          returning the result.<br>
+          <br>
+          The XPath processing is strict and does not accept unnecessary spaces.<br>
+          Faulty XPath will cause the status 400.
+
+          <h2>Request</h2>
+          <pre>
+          OPTIONS /&lt;xpath&gt; HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          OPTIONS /xmex!/books/book HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          </pre>
+
+          <h2>Response</h2>
+          <pre>
+          HTTP/1.0 204 Success<br>
+          Storage-Effects: ... (list of UIDs)<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: Revision (number)<br>
+          Storage-Space: Total/Used (bytes)<br>
+          Storage-Last-Modified: Timestamp (RFC822)<br>
+          Storage-Expiration: Timestamp (RFC822)<br>
+          Storage-Expiration-Time: Timeout (milliseconds)
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          HTTP/1.0 204 No Content<br>
+          Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
+          Access-Control-Allow-Origin: *<br>
+          Storage-Effects: KHDCPS0013C2:0 KHDCPS0013C2:13 KHDCPS0013C2:26<br>
+          Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: 123<br>
+          Storage-Space: 262144/1363 bytes<br>
+          Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration-Time: 900000 ms<br>
+          Execution-Time: 4 ms
+          </pre>
+        "
       parameters:
         - name: Storage
           in: header
@@ -151,12 +226,12 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station
             "
           required: true
           schema:
@@ -195,6 +270,143 @@ paths:
     put:
       tags:
         - API
+      summary: "
+          Creates elements and attributes in storage and/or changes the value of existing ones
+        "
+      description: "
+          PUT creates elements and attributes in storage and/or changes the value of
+          existing ones.<br>
+          The position for the insert is defined via an XPath.<br>
+          For better understanding, the method should be called PUT INTO, because it is
+          always based on an existing XPath axis as the parent target.<br>
+          XPath uses different notations for elements and attributes.<br>
+          <br>
+          The notation for attributes use the following structure at the end.<br>
+          &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
+              <code>&lt;XPath&gt;/@&lt;attribute&gt;</code> or <code>&lt;XPath&gt;/attribute::&lt;attribute&gt;</code><br>
+          The attribute values can be static (text) and dynamic (XPath function).<br>
+          Values are send as request-body.
+          Whether they are used as text or XPath function is decided by the
+          Content-Type header of the request:
+          <ul>
+            <li><code>text/plain</code> Static text</li>
+            <li><code>text/xpath</code> XPath function</li>
+          </ul>
+          <br>
+          If the XPath notation does not match the attributes, elements are assumed.<br>
+          For elements, the notation for pseudo elements is supported:<br>
+          &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
+              <code>&lt;XPath&gt;::first</code>, <code>&lt;XPath&gt;::last</code>, <code>&lt;XPath&gt;::before</code> or <code>&lt;XPath&gt;::after</code><br>
+          Pseudo elements are a relative position specification to the selected element.<br>
+          <br>
+          The value of elements can be static (text), dynamic (XPath function) or be an
+          XML structure. Also here the value is send with the request-body  and the type
+          of processing is determined by the Content-Type:
+          <ul>
+            <li><code>text/plain</code> Static text</li>
+            <li><code>text/xpath</code> XPath function</li>
+            <li><code>application/xslt+xml</code> XML structure</li>
+          </ul>
+          <br>
+          The PUT method works resolutely and inserts or overwrites existing data.
+          The XPath processing is strict and does not accept unnecessary spaces.
+          The attributes <code>___rev</code> / <code>___uid</code> used internally by the storage are
+          read-only and cannot be changed.<br>
+          <br>
+          In general, PUT requests are responded to with status 204. Status 404 is used
+          only with relation to the storage. In all other cases the PUT method informs
+          the client about changes also with status 204 and the response headers
+          <code>Storage-Effects</code> and <code>Storage-Revision</code>. The header <code>Storage-Effects</code> contains
+          a list of the UIDs that were directly affected by the change and also contains
+          the UIDs of newly created elements. If no changes were made because the XPath
+          cannot find a writable target, the header <code>Storage-Effects</code> can be omitted
+          completely in the response.<br>
+          <br>
+          Syntactic and semantic errors in the request and/or XPath and/or value can cause
+          error status 400 and 415. If errors occur due to the transmitted request body,
+          this causes status 422.
+
+          <h2>Request</h2>
+          <pre>
+          PUT /&lt;xpath&gt; HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
+          Content-Length: (bytes)<br>
+          Content-Type: application/xslt+xml<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Request-Body:<br>
+          XML structure
+          </pre>
+          <pre>
+          PUT /&lt;xpath&gt; HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
+          Content-Length: (bytes)<br>
+          Content-Type: text/plain<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Request-Body:<br>
+          Value as plain text
+          </pre>
+          <pre>
+          PUT /&lt;xpath&gt; HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
+          Content-Length: (bytes)<br>
+          Content-Type: text/xpath<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Request-Body:<br>
+          Value as XPath function
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          PUT /xmex!/books/attribute::attrA HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Content-Type: text/plain<br>
+          Content-Length: 5<br>
+          <br>
+          Value
+          </pre>
+          <pre>
+          PUT /xmex!/books/@attrA HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Content-Type: text/xpath<br>
+          Content-Length: 25<br>
+          <br>
+          concat(name(/*), \"-Test\")
+          </pre>
+          <pre>
+          PUT /xmex!/books HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Content-Type: application/xslt+xml<br>
+          Content-Length: 70<br>
+          <br>
+          &lt;book title=\"Book A\"/&gt;<br>
+          &lt;book title=\"Book B\"/&gt;<br>
+          &lt;book title=\"Book C\"/&gt;
+          </pre>
+
+          <h2>Response</h2>
+          <pre>
+          HTTP/1.0 204 No Content<br>
+          Storage-Effects: &#46;&#46;&#46; (list of UIDs)<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: Revision (number)<br>
+          Storage-Space: Total/Used (bytes)<br>
+          Storage-Last-Modified: Timestamp (RFC822)<br>
+          Storage-Expiration: Timestamp (RFC822)<br>
+          Storage-Expiration-Time: Timeout (milliseconds)
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          HTTP/1.0 204 No Content<br>
+          Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
+          Storage-Effects: KHDCPS0018U4:0 KHDCPS0018U2:0 KHDCPS0018U4:1 KHDCPS0018U4:2<br>
+          Access-Control-Allow-Origin: *<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: 123<br>
+          Storage-Space: 262144/1363 bytes<br>
+          Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration-Time: 900000 ms<br>
+          Execution-Time: 3 ms<br>
+          </pre>
+        "
       parameters:
         - name: Storage
           in: header
@@ -206,7 +418,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
@@ -256,6 +468,12 @@ paths:
     patch:
       tags:
         - API
+      summary: "
+          TODO:
+        "
+      description: "
+          TODO:
+        "
       parameters:
         - name: Storage
           in: header
@@ -267,7 +485,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
@@ -317,6 +535,11 @@ paths:
     get:
       tags:
         - API
+      summary: "
+           TODO:
+         "
+      description: "
+         "
       parameters:
         - name: Storage
           in: header
@@ -328,7 +551,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
@@ -374,6 +597,80 @@ paths:
     post:
       tags:
         - API
+      summary: "
+          Queries data about XPath axes and functions via transformation
+        "
+      description: "
+          POST queries data about XPath axes and functions via transformation.
+          For this, an XSLT stylesheet is sent with the request-body, which is then
+          applied by the XSLT processor to the data in storage.<br>
+          Thus the content type <code>application/xslt+xml</code> is always required.<br>
+          The client defines the content type for the output with the output-tag and the
+          method-attribute.<br>
+          The XPath is optional for this method and is used to limit and preselect the
+          data. If the XPath addresses one or more attributes as preselection, then tags
+          of the same name of these attributes are used, which contain the value of the
+          attribute as content.<br>
+          The processing is strict and does not accept unnecessary spaces.
+
+          <h2>Request</h2>
+          <pre>
+          POST /&lt;xpath&gt; HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
+          Content-Length: (bytes)<br>
+          Content-Type: application/xslt+xml<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Request-Body<br>
+          XSLT stylesheet
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          POST /xmex!/ HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Content-Type: application/xslt+xml<br>
+          Content-Length: 212<br>
+          <br>
+          &lt;?xml version=\"1.0\"?&gt;<br>
+          &lt;xsl:stylesheet version=\"1.0\"<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"&gt;<br>
+          &nbsp;&nbsp;&lt;xsl:output method=\"xml\"/&gt;<br>
+          &nbsp;&nbsp;&lt;xsl:template match=\"/\"&gt;<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#46;&#46;&#46;<br>
+          &nbsp;&nbsp;&lt;/xsl:template&gt;<br>
+          &lt;/xsl:stylesheet&gt;<br>
+          </pre>
+
+          <h2>Response</h2>
+          <pre>
+          HTTP/1.0 200 Success<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
+          Storage-Revision: Revision (number)<br>
+          Storage-Space: Total/Used (bytes)<br>
+          Storage-Last-Modified: Timestamp (RFC822)<br>
+          Storage-Expiration: Timestamp (RFC822)<br>
+          Storage-Expiration-Time: Timeout (milliseconds)<br>
+          Content-Length: (bytes)
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          HTTP/1.0 200 Success<br>
+          Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
+          Access-Control-Allow-Origin: *<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: 123<br>
+          Storage-Space: 262144/1363 bytes<br>
+          Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration-Time: 900000 ms<br>
+          Content-Length: 26<br>
+          Content-Type: application/xslt+xml<br>
+          Execution-Time: 4 ms<br>
+          <br>
+          &lt;?xml version=\"1.0\"?&gt;<br>
+          &#46;&#46;&#46;
+          </pre>
+        "
       parameters:
         - name: Storage
           in: header
@@ -385,7 +682,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
@@ -435,6 +732,82 @@ paths:
     delete:
       tags:
         - API
+      summary: "
+          TODO:
+        "
+      description: "
+          DELETE deletes elements and attributes in the storage.<br>
+          The position for deletion is defined via an XPath.<br>
+          XPath uses different notations for elements and attributes.<br>
+          <br>
+          The notation for attributes use the following structure at the end.<br>
+          &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
+              `<XPath>/@<attribute>` or `<XPath>/attribute::<attribute>`<br>
+          <br>
+          If the XPath notation does not match the attributes, elements are assumed.<br>
+          For elements, the notation for pseudo elements is supported:<br>
+          &#160;&#160;&#160;&#160;&#160;&#160;
+              `<XPath>::first`, `<XPath>::last`, `<XPath>::before` or `<XPath>::after`<br>
+          Pseudo elements are a relative position specification to the selected element.<br>
+          <br>
+          The DELETE method works resolutely and deletes existing data.<br>
+          The XPath processing is strict and does not accept unnecessary spaces.<br>
+          The attributes `___rev` / `___uid` used internally by the storage are read-only
+          and cannot be changed.<br>
+          <br>
+          In general, DELETE requests are responded to with status 204. Status 404 is
+          used only with relation to the storage. In all other cases the DELETE method
+          informs the client about changes with status 204 and the response headers
+          `Storage-Effects` and `Storage-Revision`. The header `Storage-Effects` contains
+          a list of the UIDs that were directly affected by the change and also contains
+          the UIDs of newly created elements (e.g. when the root element is deleted, a
+          new one is automatically created). If no changes were made because the XPath
+          cannot find a writable target, the header `Storage-Effects` can be omitted
+          completely in the response.<br>
+          <br>
+          Syntactic and semantic errors in the request and/or XPath can cause error
+          status 400.
+
+          <h2>Request</h2>
+          <pre>
+          DELETE /<xpath> HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          DELETE /books/book[1] HTTP/1.0<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          </pre>
+
+          <h2>Response</h2>
+          <pre>
+          HTTP/1.0 204 No Content<br>
+          Storage-Effects: ... (list of UIDs)<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: Revision (number)<br>
+          Storage-Space: Total/Used (bytes)<br>
+          Storage-Last-Modified: Timestamp (RFC822)<br>
+          Storage-Expiration: Timestamp (RFC822)<br>
+          Storage-Expiration-Time: Timeout (milliseconds)
+          </pre>
+
+          <h3>Example</h3>
+          <pre>
+          HTTP/1.1 204 No Content<br>
+          Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
+          Server: Apache/2.4.43 (Unix)<br>
+          Access-Control-Allow-Origin: *<br>
+          Storage-Effects: KHDCPS001E7C:9:D KHDCPS001DDS:0:M<br>
+          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage-Revision: 123<br>
+          Storage-Space: 262144/1363 bytes<br>
+          Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
+          Storage-Expiration-Time: 900000 ms<br>
+          Execution-Time: 7 ms
+          </pre>
+        "
       parameters:
         - name: Storage
           in: header
@@ -446,7 +819,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
@@ -491,6 +864,12 @@ paths:
     get:
       tags:
         - API
+      summary: "
+          TODO:
+        "
+      description: "
+          TODO:
+        "
       parameters:
         - name: Storage
           in: header
@@ -502,7 +881,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
@@ -548,6 +927,12 @@ paths:
     post:
       tags:
         - API
+      summary: "
+          TODO:
+        "
+      description: "
+          TODO:
+        "
       parameters:
         - name: Storage
           in: header
@@ -559,7 +944,7 @@ paths:
               the root element of the XML file separated by a space.<br>
               If the root element is not specified, the default 'data' is used.<br>
               <br>
-             <b>Important:</b> To use a storage, the storage identifier and name
+              <b>Important:</b> To use a storage, the storage identifier and name
               of the root element must match.<br>
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
