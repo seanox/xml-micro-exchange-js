@@ -67,7 +67,7 @@ this causes status 422.
   * [HTTP/1.0 422 Unprocessable Entity](#http10-422-unprocessable-entity)
   
 
-#### Request
+## Request
 
 ```
 PUT /<xpath> HTTP/1.0
@@ -94,7 +94,7 @@ Content-Type: text/xpath
 Value as XPath function 
 ```
 
-##### Example
+### Example
 
 ```
 PUT /xmex!/books/attribute::attrA HTTP/1.0

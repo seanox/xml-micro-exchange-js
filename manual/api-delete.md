@@ -48,7 +48,7 @@ status 400.
     * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
 
 
-#### Request
+## Request
 
 ```
 DELETE /<xpath> HTTP/1.0
@@ -56,7 +56,7 @@ Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
 ```
 
 
-##### Example
+### Example
 
 ```
 DELETE /books/book[1] HTTP/1.0
