@@ -3,24 +3,25 @@
 
 # DELETE
 
-DELETE deletes elements and attributes in the storage.  
-The position for deletion is defined via an XPath.  
+DELETE deletes elements and attributes in the storage. The position for
+deletion is defined via an XPath.
+
 XPath uses different notations for elements and attributes.
 
 The notation for attributes use the following structure at the end.  
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
     `<XPath>/@<attribute>` or `<XPath>/attribute::<attribute>`  
 
-If the XPath notation does not match the attributes, elements are assumed.  
-For elements, the notation for pseudo elements is supported:  
+If the XPath notation does not match the attributes, elements are assumed. For
+elements, the notation for pseudo elements is supported:  
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
     `<XPath>::first`, `<XPath>::last`, `<XPath>::before` or `<XPath>::after`  
 Pseudo elements are a relative position specification to the selected element.
 
-The DELETE method works resolutely and deletes existing data.  
-The XPath processing is strict and does not accept unnecessary spaces.  
-The attributes `___rev` / `___uid` used internally by the storage are read-only
-and cannot be changed.
+The DELETE method works resolutely and deletes existing data. The XPath
+processing is strict and does not accept unnecessary spaces. The attributes
+`___rev` / `___uid` used internally by the storage are read-only and cannot be
+changed.
 
 In general, DELETE requests are responded to with status 204. Status 404 is
 used only with relation to the storage. In all other cases the DELETE method

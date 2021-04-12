@@ -111,16 +111,16 @@ Execution-Time: 4 ms
 OPTIONS is used for several things. Without an XPath, the method opens a
 storage for use and queries information about the storage. Requests with the
 OPTIONS method are always answered without a response body. All information
-about the storage is returned via response headers.  
-The response always contains a Connection-Unique header. This is unique in the
-datasource and in the storage and can be used by the client, e.g. in XML, as an
-attribute to find its data more faster.
+about the storage is returned via response headers. The response always
+contains a Connection-Unique header. This is unique in the datasource and in
+the storage and can be used by the client, e.g. in XML, as an attribute to find
+its data more faster.
 
 __Before a storage can be used, it must always be opened with an OPTIONS
 request and without an XPath.__
 
-In addition, OPTIONS without XPath is also used as a prefetch for CORS.  
-For this purpose the request header Storage is not required and the request is
+In addition, OPTIONS without XPath is also used as a prefetch for CORS. For
+this purpose the request header Storage is not required and the request is
 responded with status 200.
 
 

@@ -4,24 +4,22 @@
 # PUT
 
 PUT creates elements and attributes in storage and/or changes the value of
-existing ones.  
-The position for the insert is defined via an XPath.  
-For better understanding, the method should be called PUT INTO, because it is
-always based on an existing XPath axis as the parent target.  
-XPath uses different notations for elements and attributes.
+existing ones. The position for the insert is defined via an XPath. For better
+understanding, the method should be called PUT INTO, because it is always based
+on an existing XPath axis as the parent target. XPath uses different notations
+for elements and attributes.
 
 The notation for attributes use the following structure at the end.  
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
     `<XPath>/@<attribute>` or `<XPath>/attribute::<attribute>`  
-The attribute values can be static (text) and dynamic (XPath function).  
-Values are send as request-body.
-Whether they are used as text or XPath function is decided by the
-Content-Type header of the request:
+The attribute values can be static (text) and dynamic (XPath function). Values
+are send as request-body. Whether they are used as text or XPath function is
+decided by the Content-Type header of the request:
 - `text/plain` Static text
 - `text/xpath` XPath function
 
-If the XPath notation does not match the attributes, elements are assumed.  
-For elements, the notation for pseudo elements is supported:  
+If the XPath notation does not match the attributes, elements are assumed. For
+elements, the notation for pseudo elements is supported:  
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
     `<XPath>::first`, `<XPath>::last`, `<XPath>::before` or `<XPath>::after`
 Pseudo elements are a relative position specification to the selected element.
@@ -33,10 +31,10 @@ of processing is determined by the Content-Type:
 - `text/xpath` XPath function
 - `application/xslt+xml` XML structure
 
-The PUT method works resolutely and inserts or overwrites existing data.
-The XPath processing is strict and does not accept unnecessary spaces.
-The attributes `___rev` / `___uid` used internally by the storage are
-read-only and cannot be changed.
+The PUT method works resolutely and inserts or overwrites existing data. The
+XPath processing is strict and does not accept unnecessary spaces. The
+attributes `___rev` / `___uid` used internally by the storage are read-only and
+cannot be changed.
 
 In general, PUT requests are responded to with status 204. Status 404 is used
 only with relation to the storage. In all other cases the PUT method informs

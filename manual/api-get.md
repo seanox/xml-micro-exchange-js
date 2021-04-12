@@ -3,10 +3,9 @@
 
 # GET
 
-GET queries data about XPath axes and functions.  
-For this, the XPath axis or function is sent with URI.  
-Depending on whether the request is an XPath axis or an XPath function,
-different Content-Type are used for the response.
+GET queries data about XPath axes and functions. For this, the XPath axis or
+function is sent with URI. Depending on whether the request is an XPath axis or
+an XPath function, different Content-Type are used for the response.
 
 
 ## Contents Overview
@@ -28,9 +27,8 @@ different Content-Type are used for the response.
 
 Content-Type: `application/xslt+xml`  
 When the XPath axis addresses one target, the addressed target is the root
-element of the returned XML structure.  
-If the XPath addresses multiple targets, their XML structure is combined in the
-root element collection.
+element of the returned XML structure. If the XPath addresses multiple targets,
+their XML structure is combined in the root element collection.
 
 Content-Type: `text/plain`  
 If the XPath addresses only one attribute, the value is returned as plain text.
@@ -38,9 +36,9 @@ If the XPath addresses only one attribute, the value is returned as plain text.
 
 ## XPath function
 
-Content-Type: `text/plain`  
-The result of XPath functions is returned as plain text.  
-Decimal results use float, booleans the values true and false.
+Content-Type: `text/xpath`  
+The result of XPath functions is returned as plain text. Decimal results use
+float, booleans the values true and false.
 
 The XPath processing is strict and does not accept unnecessary spaces.
 

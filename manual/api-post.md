@@ -3,17 +3,18 @@
 
 # POST
 
-POST queries data about XPath axes and functions via transformation.
-For this, an XSLT stylesheet is sent with the request-body, which is then
-applied by the XSLT processor to the data in storage.  
-Thus the content type `application/xslt+xml` is always required.  
-The client defines the content type for the output with the output-tag and the
-method-attribute.  
+POST queries data about XPath axes and functions via transformation. For this,
+an XSLT stylesheet is sent with the request-body, which is then applied by the
+XSLT processor to the data in storage. Thus the content type
+`application/xslt+xml` is always required. The client defines the content type
+for the output with the output-tag and the method-attribute.
+
 The XPath is optional for this method and is used to limit and preselect the
 data. If the XPath addresses one or more attributes as preselection, then tags
 of the same name of these attributes are used, which contain the value of the
-attribute as content.  
-The processing is strict and does not accept unnecessary spaces.  
+attribute as content.
+
+The processing is strict and does not accept unnecessary spaces.
 
 
 ## Contents Overview

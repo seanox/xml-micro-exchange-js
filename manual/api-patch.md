@@ -3,19 +3,18 @@
 
 # PATCH
 
-PATCH changes existing elements and attributes in storage.  
-The position for the insert is defined via an XPath.  
-The method works almost like PUT, but the XPath axis of the request always
-expects an existing target.  
+PATCH changes existing elements and attributes in storage. The position for the
+insert is defined via an XPath. The method works almost like PUT, but the XPath
+axis of the request always expects an existing target.
+
 XPath uses different notations for elements and attributes.
 
 The notation for attributes use the following structure at the end.  
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
     `<XPath>/@<attribute>` or `<XPath>/attribute::<attribute>`  
-The attribute values can be static (text) and dynamic (XPath function).  
-Values are send as request-body.
-Whether they are used as text or XPath function is decided by the
-Content-Type header of the request:
+The attribute values can be static (text) and dynamic (XPath function). Values
+are send as request-body. Whether they are used as text or XPath function is
+decided by the Content-Type header of the request:
 - `text/plain` Static text
 - `text/xpath` XPath function
 
@@ -29,10 +28,10 @@ of processing is determined by the Content-Type:
 - `text/xpath` XPath function
 - `application/xslt+xml` XML structure
 
-The PATCH method works resolutely and overwrites existing data.
-The XPath processing is strict and does not accept unnecessary spaces.
-The attributes `___rev` / `___uid` used internally by the storage are
-read-only and cannot be changed.
+The PATCH method works resolutely and overwrites existing data. The XPath
+processing is strict and does not accept unnecessary spaces. The attributes
+`___rev` / `___uid` used internally by the storage are read-only and cannot be
+changed.
 
 In general, PATCH requests are responded to with status 204. Status 404 is used
 only with relation to the storage. In all other cases the PATCH method informs
