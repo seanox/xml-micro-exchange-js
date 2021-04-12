@@ -21,6 +21,7 @@ different Content-Type are used for the response.
   * [HTTP/1.0 200 Success](#http10-200-success)
   * [HTTP/1.0 400 Bad Request](#http10-400-bad-request)
   * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
+  * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error)
 
 
 ## XPath axis
@@ -130,6 +131,9 @@ Execution-Time: 4 ms
 
 ### HTTP/1.0 404 Resource Not Found
 - Storage does not exist
+
+### HTTP/1.0 500 Internal Server Error
+- An unexpected error has occurred.
 
 
 

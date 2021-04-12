@@ -60,6 +60,7 @@ this causes status 422.
   * [HTTP/1.0 413 Payload Too Large](#http10-413-payload-too-large)  
   * [HTTP/1.0 415 Unsupported Media Type](#http10-415-unsupported-media-type)
   * [HTTP/1.0 422 Unprocessable Entity](#http10-422-unprocessable-entity)
+  * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error)
   
 
 ## Request
@@ -173,6 +174,9 @@ Execution-Time: 3 ms
 
 ### HTTP/1.0 422 Unprocessable Entity
 - Data in the request body cannot be processed
+
+### HTTP/1.0 500 Internal Server Error
+- An unexpected error has occurred.
 
 
 

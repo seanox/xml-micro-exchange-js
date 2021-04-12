@@ -33,6 +33,7 @@ Faulty XPath will cause the status 400.
   * [HTTP/1.0 204 No Content](#http10-204-no-content)
   * [HTTP/1.0 400 Bad Request](#http10-400-bad-request)
   * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
+  * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error)
 * [Request](#request-1)
   * [Example](#example-2)
 * [Response](#response-1)
@@ -41,6 +42,7 @@ Faulty XPath will cause the status 400.
   * [HTTP/1.0 201 Resource Created](#http10-201-resource-created)
   * [HTTP/1.0 204 No Content](#http10-204-no-content)
   * [HTTP/1.0 400 Bad Request](#http10-400-bad-request-1)
+  * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error-1)
   * [HTTP/1.0 507 Insufficient Storage](#http10-507-insufficient-storage)
 
 
@@ -101,6 +103,9 @@ Execution-Time: 4 ms
 
 ### HTTP/1.0 404 Resource Not Found
 - Storage does not exist
+
+### HTTP/1.0 500 Internal Server Error
+- An unexpected error has occurred.
 
 
 OPTIONS is used for several things. Without an XPath, the method opens a
@@ -190,6 +195,9 @@ Execution-Time: 3 ms
 - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
 - XPath is missing or malformed
 - XPath is used from PATH_INFO, not the request URI
+
+### HTTP/1.0 500 Internal Server Error
+- An unexpected error has occurred.
 
 ### HTTP/1.0 507 Insufficient Storage
 - Response can be status 507 if the storage is full

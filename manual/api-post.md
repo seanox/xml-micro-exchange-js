@@ -28,6 +28,7 @@ The processing is strict and does not accept unnecessary spaces.
   * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
   * [HTTP/1.0 415 Unsupported Media Type](#http10-415-unsupported-media-type)
   * [HTTP/1.0 422 Unprocessable Entity](#http10-422-unprocessable-entity)
+  * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error)
   
 
 ## Request
@@ -112,6 +113,9 @@ Execution-Time: 4 ms
 
 ### HTTP/1.0 422 Unprocessable Entity
 - Data in the request body cannot be processed
+
+### HTTP/1.0 500 Internal Server Error
+- An unexpected error has occurred.
 
 
 

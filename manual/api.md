@@ -15,9 +15,8 @@ https://xmex.seanox.com/xmex!xpath(-function)
 ```
 
 In some cases, the XPath syntax may not be supported as a URI by the client or
-provider.  
-In these cases, the XPath can alternatively be used as a query string or
-hexadecimal or Base64 encoded.
+provider. In these cases, the XPath can alternatively be used as a query string
+or hexadecimal or Base64 encoded.
 
 ```
 https://xmex.seanox.com/xmex!count(//items[@id<0])

@@ -13,7 +13,7 @@ The notation for attributes use the following structure at the end.
 
 If the XPath notation does not match the attributes, elements are assumed.  
 For elements, the notation for pseudo elements is supported:  
-&#160;&#160;&#160;&#160;&#160;&#160;
+&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
     `<XPath>::first`, `<XPath>::last`, `<XPath>::before` or `<XPath>::after`  
 Pseudo elements are a relative position specification to the selected element.
 
@@ -39,13 +39,14 @@ status 400.
 ## Contents Overview
 
 * [Request](#request)
-    * [Example](#example)
+  * [Example](#example)
 * [Response](#response)
-    * [Example](#example-1)
+  * [Example](#example-1)
 * [Response codes / behavior](#response-codes--behavior)
-    * [HTTP/1.0 204 No Content](#http10-204-no-content)
-    * [HTTP/1.0 400 Bad Request](#http10-400-bad-request)
-    * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
+  * [HTTP/1.0 204 No Content](#http10-204-no-content)
+  * [HTTP/1.0 400 Bad Request](#http10-400-bad-request)
+  * [HTTP/1.0 404 Resource Not Found](#http10-404-resource-not-found)
+  * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error)
 
 
 ## Request
@@ -111,6 +112,9 @@ Execution-Time: 7 ms
 
 ### HTTP/1.0 404 Resource Not Found
 - Storage is invalid
+
+### HTTP/1.0 500 Internal Server Error
+- An unexpected error has occurred.
 
 
 
