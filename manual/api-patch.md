@@ -11,13 +11,13 @@ XPath uses different notations for elements and attributes.
 
 The notation for attributes use the following structure at the end.  
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
-`<XPath>/@<attribute>` or `<XPath>/attribute::<attribute>`  
+    `<XPath>/@<attribute>` or `<XPath>/attribute::<attribute>`  
 The attribute values can be static (text) and dynamic (XPath function).  
 Values are send as request-body.
 Whether they are used as text or XPath function is decided by the
 Content-Type header of the request:
-- `text/plain`: static text
-- `text/xpath`: XPath function
+- `text/plain` Static text
+- `text/xpath` XPath function
 
 If the XPath notation does not match the attributes, elements are assumed.
 Unlike the PUT method, no pseudo elements are supported for elements.
@@ -25,11 +25,11 @@ Unlike the PUT method, no pseudo elements are supported for elements.
 The value of elements can be static (text), dynamic (XPath function) or be an
 XML structure. Also here the value is send with the request-body  and the type
 of processing is determined by the Content-Type:
-- `text/plain`: static text
-- `text/xpath`: XPath function
-- `application/xslt+xml`: XML structure
+- `text/plain` Static text
+- `text/xpath` XPath function
+- `application/xslt+xml` XML structure
 
-The PATCH method works resolutely and  overwrites existing data.
+The PATCH method works resolutely and overwrites existing data.
 The XPath processing is strict and does not accept unnecessary spaces.
 The attributes `___rev` / `___uid` used internally by the storage are
 read-only and cannot be changed.
