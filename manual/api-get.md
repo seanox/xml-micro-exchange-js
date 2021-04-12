@@ -123,6 +123,9 @@ Execution-Time: 4 ms
 ### HTTP/1.0 200 Success
 - Request was successfully executed
 
+### HTTP/1.0 204 No Content
+- TODO:
+
 ### HTTP/1.0 400 Bad Request
 - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
 - XPath is missing or malformed

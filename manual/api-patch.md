@@ -160,7 +160,6 @@ Execution-Time: 3 ms
 ### HTTP/1.0 400 Bad Request
 - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
 - XPath is missing or malformed
-- XPath without addressing a target is responded with status 204
 
 ### HTTP/1.0 404 Resource Not Found
 - Storage does not exist
