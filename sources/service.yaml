@@ -64,7 +64,39 @@ Message                    Detailed error message with status 400 / 422
   to an addressed target in the storage.<br>
   If a target does not exist, requests are responded to with code 204.
 </b>
-<br><br>
+
+<h2>Usage</h2>
+<ol>
+  <li>
+    The storage must be opened by OPTIONS.<br>
+    This can be done by any client, even if the storage already exists. The
+    response then contains the header <code>Connection-Unique</code>. This is unique
+    across all storages and can be used by the client to identify its own data
+    in the storage. But this is optional and <code>Connection-Unique</code> is neither
+    assigned to the client nor to the connection, it is just a unique value.
+  </li>
+  <li>
+    The client should always proceed as if it were using storage alone and
+    created the schema it needs.<br>
+    The creation of the schema is done with PUT. Relative and conditional axes
+    should be used as targets. This ensures that no duplicates are created or
+    data is overwritten.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        e.g. <code>PUT /books[not(book[@title='A Modern Utopia'])]::last</code><br>
+    This approach made transactions unnecessary.
+  </li>
+  <li>
+    Now the client can use the storage.
+  </li>
+  <li>
+    Closing or terminating the storage is not possible and required.<br>
+    The storage expires automatically due to inactivity. The duration of use
+    and expiration time of the storage is contained in the response in the
+    headers <code>Storage-Last-Modified</code>, <code>Storage-Expiration</code>,
+    <code>Storage-Expiration-Time</code>.
+  </li>
+</ol>
+<br>
   "
   termsOfService: "https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/TERMS%20OF%20SERVICE"
   contact:
@@ -74,7 +106,7 @@ Message                    Detailed error message with status 400 / 422
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 externalDocs:
   description: Find out more about Seanox XMEX
-  url: https://github.com/seanox/xml-micro-exchange-js
+  url: https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/README.md
 servers:
   - url: https://xmex.seanox.com
   - url: http://127.0.0.1:8000
@@ -366,7 +398,7 @@ paths:
           <ul>
             <li><code>text/plain</code> Static text</li>
             <li><code>text/xpath</code> XPath function</li>
-            <li><code>application/xslt+xml</code> XML structure</li>
+            <li><code>application/xml</code> XML structure</li>
           </ul>
           <br>
           The PUT method works resolutely and inserts or overwrites existing data. The
@@ -392,7 +424,7 @@ paths:
           PUT /&lt;xpath&gt; HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
           Content-Length: (bytes)<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           &nbsp;&nbsp;&nbsp;&nbsp;Request-Body:<br>
           XML structure
           </pre>
@@ -415,7 +447,7 @@ paths:
 
           <h3>Example</h3>
           <pre>
-          PUT /xmex!/books/attribute::attrA HTTP/1.0<br>
+          PUT /xmex!/books/attribute::genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
           Content-Type: text/plain<br>
           Content-Length: 5<br>
@@ -423,7 +455,7 @@ paths:
           Value
           </pre>
           <pre>
-          PUT /xmex!/books/@attrA HTTP/1.0<br>
+          PUT /xmex!/books/@genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
           Content-Type: text/xpath<br>
           Content-Length: 25<br>
@@ -433,7 +465,7 @@ paths:
           <pre>
           PUT /xmex!/books HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           Content-Length: 70<br>
           <br>
           &lt;book title=\"Book A\"/&gt;<br>
@@ -498,14 +530,29 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: "TODO:"
+      requestBody:
+        description: "TODO"
+        content:
+          application/xml:
+            schema:
+              type: object
+              xml:
+                name: "comment"
+              example: "<!-- XML fragments are expected, see examples in description -->"
+          text/plain:
+            schema:
+              example: "TODO:"
+          text/xpath:
+            schema:
+              example: "TODO:"
       responses:
         204:
           description: "
@@ -565,7 +612,7 @@ paths:
           <ul>
             <li><code>text/plain</code> Static text</li>
             <li><code>text/xpath</code> XPath function</li>
-            <li><code>application/xslt+xml</code> XML structure</li>
+            <li><code>application/xml</code> XML structure</li>
           </ul>
           <br>
           The PATCH method works resolutely and  overwrites existing data. The XPath processing is
@@ -589,7 +636,7 @@ paths:
           PATCH /&lt;xpath&gt; HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)<br>
           Content-Length: (bytes)<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           &nbsp;&nbsp;&nbsp;&nbsp;Request-Body:<br>
           XML structure
           </pre>
@@ -612,7 +659,7 @@ paths:
 
           <h3>Example</h3>
           <pre>
-          PATCH /xmex!/books/attribute::attrA HTTP/1.0<br>
+          PATCH /xmex!/books/attribute::genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
           Content-Type: text/plain<br>
           Content-Length: 5<br>
@@ -620,7 +667,7 @@ paths:
           Value
           </pre>
           <pre>
-          PATCH /xmex!/books/@attrA HTTP/1.0<br>
+          PATCH /xmex!/books/@genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
           Content-Type: text/xpath<br>
           Content-Length: 25<br>
@@ -630,7 +677,7 @@ paths:
           <pre>
           PATCH /xmex!/books HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           Content-Length: 70<br>
           <br>
           &lt;book title=\"Book A\"/&gt;<br>
@@ -703,6 +750,21 @@ paths:
           schema:
             type: string
             example: //sensors/nox/data/record
+      requestBody:
+        description: "TODO"
+        content:
+          application/xml:
+            schema:
+              type: object
+              xml:
+                name: "comment"
+              example: "<!-- XML fragments are expected, see examples in description -->"
+          "text/plain":
+            schema:
+              example: "TODO:"
+          "text/xpath":
+            schema:
+              example: "TODO:"
       responses:
         204:
           description: "
@@ -741,19 +803,15 @@ paths:
           function is sent with URI. Depending on whether the request is an XPath axis or
           an XPath function, different Content-Type are used for the response.
 
-          <h2>XPath axis</h2>
-          Content-Type: <code>application/xslt+xml</code><br>
+          <h2>application/xml</h2>
           When the XPath axis addresses one target, the addressed target is the root
           element of the returned XML structure. If the XPath addresses multiple targets,
-          their XML structure is combined in the root element collection.<br>
-          <br>
-          Content-Type: <code>text/plain</code><br>
-          If the XPath addresses only one attribute, the value is returned as plain text.
+          their XML structure is combined in the root element collection.
 
-          <h2>XPath function</h2>
-          Content-Type: <code>text/xpath</code><br>
-          The result of XPath functions is returned as plain text. Decimal results use
-          float, booleans the values true and false.<br>
+          <h2>text/plain</h2>
+          If the XPath addresses only one attribute, the value is returned as plain text.
+          Also the result of XPath functions is returned as plain text. Decimal results
+          use float, booleans the values true and false.<br>
           <br>
           The XPath processing is strict and does not accept unnecessary spaces.
 
@@ -765,11 +823,11 @@ paths:
 
           <h3>Example</h3>
           <pre>
-          GET /xmex!/books/attribute::attrA HTTP/1.0<br>
+          GET /xmex!/books/attribute::genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
           </pre>
           <pre>
-          GET /xmex!/books/@attrA HTTP/1.0<br>
+          GET /xmex!/books/@genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
           </pre>
           <pre>
@@ -803,7 +861,7 @@ paths:
           Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
           Storage-Expiration-Time: 900000 ms<br>
           Content-Length: 26<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           Execution-Time: 4 ms<br>
           <br>
           &lt;?xml version=\"1.0\"?&gt;<br>
@@ -961,7 +1019,7 @@ paths:
           Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
           Storage-Expiration-Time: 900000 ms<br>
           Content-Length: 26<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           Execution-Time: 4 ms<br>
           <br>
           &lt;?xml version=\"1.0\"?&gt;<br>
@@ -1006,6 +1064,15 @@ paths:
           schema:
             type: string
             example: //sensors/nox/data/record
+      requestBody:
+        description: "TODO"
+        content:
+          application/xslt+xml:
+            schema:
+              type: object
+              xml:
+                name: "comment"
+              example: "<!-- XML fragments are expected, see examples in description -->"
       responses:
         200:
           description: "Request was successfully executed."
@@ -1188,22 +1255,11 @@ paths:
          "
       description: "
           GET queries data about XPath axes and functions. For this, the XPath axis or
-          function is sent with URI. Depending on whether the request is an XPath axis or
-          an XPath function, different Content-Type are used for the response.
-
-          <h2>XPath axis</h2>
-          Content-Type: <code>application/xslt+xml</code><br>
-          When the XPath axis addresses one target, the addressed target is the root
-          element of the returned XML structure. If the XPath addresses multiple targets,
-          their XML structure is combined in the root element collection.<br>
+          function is sent with URI. If the XPath addresses multiple targets, their XML
+          structure is combined in the root element collection.<br>
           <br>
-          Content-Type: <code>text/plain</code><br>
-          If the XPath addresses only one attribute, the value is returned as plain text.
-
-          <h2>XPath function</h2>
-          Content-Type: <code>text/xpath</code><br>
-          The result of XPath functions is returned as plain text. Decimal results use
-          float, booleans the values true and false.<br>
+          With the directive <code>!json</code> at the end of the URL, the content type of the
+          response is always <code>application/json</code>.<br>
           <br>
           The XPath processing is strict and does not accept unnecessary spaces.
 
@@ -1215,11 +1271,11 @@ paths:
 
           <h3>Example</h3>
           <pre>
-          GET /xmex!/books/attribute::attrA HTTP/1.0<br>
+          GET /xmex!/books/attribute::genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
           </pre>
           <pre>
-          GET /xmex!/books/@attrA HTTP/1.0<br>
+          GET /xmex!/books/@genre HTTP/1.0<br>
           Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
           </pre>
           <pre>
@@ -1253,7 +1309,7 @@ paths:
           Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
           Storage-Expiration-Time: 900000 ms<br>
           Content-Length: 26<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           Execution-Time: 4 ms<br>
           <br>
           &lt;?xml version=\"1.0\"?&gt;<br>
@@ -1320,10 +1376,6 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                example: "TODO:"
-            text/plain:
-              schema:
                 type: string
                 example: "TODO:"
         204:
@@ -1357,6 +1409,10 @@ paths:
           data. If the XPath addresses one or more attributes as preselection, then tags
           of the same name of these attributes are used, which contain the value of the
           attribute as content.<br>
+          <br>
+          With the directive <code>!json</code> at the end of the URL, XML data and simple data
+          types for the response are converted to the content type
+          <code>application/json</code>.<br>
           <br>
           The processing is strict and does not accept unnecessary spaces.
 
@@ -1411,7 +1467,7 @@ paths:
           Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000<br>
           Storage-Expiration-Time: 900000 ms<br>
           Content-Length: 26<br>
-          Content-Type: application/xslt+xml<br>
+          Content-Type: application/xml<br>
           Execution-Time: 4 ms<br>
           <br>
           &lt;?xml version=\"1.0\"?&gt;<br>
@@ -1456,15 +1512,24 @@ paths:
           schema:
             type: string
             example: //sensors/nox/data/record
+      requestBody:
+        description: "TODO"
+        content:
+          application/xslt+xml:
+            schema:
+              type: object
+              xml:
+                name: "comment"
+              example: "<!-- XML fragments are expected, see examples in description -->"
       responses:
         200:
           description: "Request was successfully executed."
           content:
             application/json:
               schema:
-                type: object
+                type: string
                 example: "TODO:"
-            text/plain:
+            text/html:
               schema:
                 type: string
                 example: "TODO:"
