@@ -677,15 +677,12 @@ class Storage {
         return "text/html"
     }
     static get CONTENT_TYPE_XML() {
-        return "text/xml"
-    }
-    static get CONTENT_TYPE_APP_XML() {
         return "application/xml"
     }
-    static get CONTENT_TYPE_APP_XSLT() {
+    static get CONTENT_TYPE_XSLT() {
         return "application/xslt+xml"
     }
-    static get CONTENT_TYPE_APP_JSON() {
+    static get CONTENT_TYPE_JSON() {
         return "application/json"
     }
 
@@ -1297,7 +1294,7 @@ class Storage {
 
         // POST always expects an valid XSLT template for transformation.
         let media = (this.request.headers["content-type"] || "").toLowerCase()
-        if (media !== Storage.CONTENT_TYPE_APP_XSLT)
+        if (media !== Storage.CONTENT_TYPE_XSLT)
             this.quit(415, "Unsupported Media Type")
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
@@ -1372,7 +1369,7 @@ class Storage {
                     || method === "")
                 if (this.options.includes("json"))
                     output = new DOMParser().parseFromString(output)
-                else header["Content-Type"] = Storage.CONTENT_TYPE_APP_XML
+                else header["Content-Type"] = Storage.CONTENT_TYPE_XML
             else if (method === "html")
                 header["Content-Type"] = Storage.CONTENT_TYPE_HTML
         }
@@ -2309,11 +2306,11 @@ class Storage {
                 && data !== "") {
             if (!media) {
                 if (this.options.includes("json")) {
-                    media = Storage.CONTENT_TYPE_APP_JSON
+                    media = Storage.CONTENT_TYPE_JSON
                     data = JSON.stringify(data)
                 } else {
                     if (Object.getClassName(data) === "Document") {
-                        media = Storage.CONTENT_TYPE_APP_XML
+                        media = Storage.CONTENT_TYPE_XML
                         data = this.serialize(data)
                     } else media = Storage.CONTENT_TYPE_TEXT
                 }

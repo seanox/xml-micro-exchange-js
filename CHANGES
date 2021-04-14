@@ -5,7 +5,7 @@
       Status 404 is now only used in relation to storage.
       Addressed targets (axes) use status 204 in combination with the response header Storage-Effects.
   BF: Service: Optimization/harmonization of content types for XML
-      Fragments (PUT/PATCH) uses text/xhtml
+      Fragments (PUT/PATCH) uses application/xml
       XML output uses application/xml
       XSLT input (POST) uses application/xslt+xml
 
