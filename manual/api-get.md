@@ -47,11 +47,11 @@ Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
 ### Example
 
 ```
-GET /xmex!/books/attribute::attrA HTTP/1.0
+GET /xmex!/books/attribute::genre HTTP/1.0
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
 ```
 ```
-GET /xmex!/books/@attrA HTTP/1.0
+GET /xmex!/books/@genre HTTP/1.0
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
 ```
 ```

@@ -92,7 +92,7 @@ Value as XPath function
 ### Example
 
 ```
-PATCH /xmex!/books/attribute::attrA HTTP/1.0
+PATCH /xmex!/books/attribute::genre HTTP/1.0
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
 Content-Type: text/plain
 Content-Length: 5
@@ -100,7 +100,7 @@ Content-Length: 5
 Value
 ```
 ```
-PATCH /xmex!/books/@attrA HTTP/1.0
+PATCH /xmex!/books/@genre HTTP/1.0
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
 Content-Type: text/xpath
 Content-Length: 25
