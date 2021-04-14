@@ -26,7 +26,7 @@ XML structure. Also here the value is send with the request-body  and the type
 of processing is determined by the Content-Type:
 - `text/plain` Static text
 - `text/xpath` XPath function
-- `application/xslt+xml` XML structure
+- `application/xml` XML structure
 
 The PATCH method works resolutely and overwrites existing data. The XPath
 processing is strict and does not accept unnecessary spaces. The attributes
@@ -68,7 +68,7 @@ this causes status 422.
 PATCH /<xpath> HTTP/1.0
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
 Content-Length: (bytes)
-Content-Type: application/xslt+xml
+Content-Type: application/xml
      Request-Body:
 XML structure
 ```
@@ -110,7 +110,7 @@ concat(name(/*), "-Test")
 ```
 PATCH /xmex!/books HTTP/1.0
 Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 Content-Length: 70
 
 <book title="Book A"/>

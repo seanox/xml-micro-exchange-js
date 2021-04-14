@@ -88,7 +88,7 @@ Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
 Storage-Expiration: Wed, 11 Nov 20 12:00:00 +0000
 Storage-Expiration-Time: 900000 ms
 Content-Length: 26
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 Execution-Time: 4 ms
 
 <?xml version="1.0"?>
