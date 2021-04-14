@@ -1140,22 +1140,21 @@ class Storage {
     }
 
     /**
-     * GET queries data about XPath axes and functions.
-     * For this, the XPath axis or function is sent with URI.
-     * Depending on whether the request is an XPath axis or an XPath function,
-     * different Content-Type are used for the response.
+     * GET queries data about XPath axes and functions. For this, the XPath
+     * axis or function is sent with URI. Depending on whether the request is
+     * an XPath axis or an XPath function, different Content-Type are used for
+     * the response.
      *
-     *     XPath axis
-     * Content-Type: application/xslt+xml
+     *     application/xml
      * When the XPath axis addresses one target, the addressed target is the
-     * root element of the returned XML structure.
-     * If the XPath addresses multiple targets, their XML structure is combined
-     * in the root element collection.
+     * root element of the returned XML structure. If the XPath addresses
+     * multiple targets, their XML structure is combined in the root element
+     * collection.
      *
-     *     XPath function
-     * Content-Type: text/plain
-     * The result of XPath functions is returned as plain text.
-     * Decimal results use float, booleans the values true and false.
+     *     text/plain
+     * If the XPath addresses only one attribute, the value is returned as
+     * plain text. Also the result of XPath functions is returned as plain
+     * text. Decimal results use float, booleans the values true and false.
      *
      * The XPath processing is strict and does not accept unnecessary spaces.
      *
@@ -1405,7 +1404,7 @@ class Storage {
      * and the type of processing is determined by the Content-Type:
      *     text/plain: static text
      *     text/xpath: XPath function
-     *     application/xslt+xml: XML structure
+     *     application/xml: XML structure
      *
      * The PUT method works resolutely and inserts or overwrites existing data.
      * The XPath processing is strict and does not accept unnecessary spaces.
@@ -1429,7 +1428,7 @@ class Storage {
      * PUT /<xpath> HTTP/1.0
      * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
      * Content-Length: (bytes)
-     * Content-Type: application/xslt+xml
+     * Content-Type: application/xml
      *     Request-Body:
      * XML structure
      *
@@ -1614,7 +1613,7 @@ class Storage {
         let pseudo = (matches[2] || "").toLowerCase()
 
         // The following Content-Type is supported for elements:
-        // - application/xslt+xml for XML structures
+        // - application/xml for XML structures
         // - text/plain for static values (text)
         // - text/xpath for dynamic values, based on XPath functions
 
@@ -1692,7 +1691,7 @@ class Storage {
         }
 
         // Only an XML structure can be inserted, nothing else is supported.
-        // So only the Content-Type application/xslt+xml can be used.
+        // So only the Content-Type application/xml can be used.
         if (media !== Storage.CONTENT_TYPE_XML)
             this.quit(415, "Unsupported Media Type")
 
@@ -1855,7 +1854,7 @@ class Storage {
      * and the type of processing is determined by the Content-Type:
      *     text/plain: static text
      *     text/xpath: XPath function
-     *     application/xslt+xml: XML structure
+     *     application/xml: XML structure
      *
      * The PATCH method works resolutely and  overwrites existing data.
      * The XPath processing is strict and does not accept unnecessary spaces.
@@ -1879,7 +1878,7 @@ class Storage {
      * PATCH /<xpath> HTTP/1.0
      * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
      * Content-Length: (bytes)
-     * Content-Type: application/xslt+xml
+     * Content-Type: application/xml
      *     Request-Body:
      * XML structure
      *
