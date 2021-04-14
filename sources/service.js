@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210411
+ * Service 1.3.0 20210410
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210411
+ * @version 1.3.0 20210410
  */
 const http = require("http")
 const https = require("https")
@@ -677,9 +677,15 @@ class Storage {
         return "text/html"
     }
     static get CONTENT_TYPE_XML() {
+        return "text/xml"
+    }
+    static get CONTENT_TYPE_APP_XML() {
+        return "application/xml"
+    }
+    static get CONTENT_TYPE_APP_XSLT() {
         return "application/xslt+xml"
     }
-    static get CONTENT_TYPE_JSON() {
+    static get CONTENT_TYPE_APP_JSON() {
         return "application/json"
     }
 
@@ -973,10 +979,12 @@ class Storage {
      *         HTTP/1.0 201 Resource Created
      * - Response can be status 201 if the storage was newly created
      *         HTTP/1.0 204 No Content
-     * - Response can be status 204 if the storage already exists#
+     * - Response can be status 204 if the storage already exists
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
      * - XPath is missing or malformed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      *         HTTP/1.0 507 Insufficient Storage
      * - Response can be status 507 if the storage is full
      */
@@ -1034,6 +1042,8 @@ class Storage {
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      *
      * In addition, OPTIONS can also be used as an alternative to CONNECT,
      * because CONNECT is not an HTTP standard. For this purpose OPTIONS
@@ -1076,7 +1086,9 @@ class Storage {
      *         HTTP/1.0 201 Resource Created
      * - Response can be status 201 if the storage was newly created
      *         HTTP/1.0 204 No Content
-     * - Response can be status 204 if the storage already exists#
+     * - Response can be status 204 if the storage already exists
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      *         HTTP/1.0 507 Insufficient Storage
      * - Response can be status 507 if the storage is full
      */
@@ -1174,6 +1186,8 @@ class Storage {
      * - XPath is missing or malformed
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      */
     doGet() {
 
@@ -1272,6 +1286,8 @@ class Storage {
      * - Attribute request without Content-Type text/plain
      *         HTTP/1.0 422 Unprocessable Entity
      * - Data in the request body cannot be processed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      */
     doPost() {
 
@@ -1281,7 +1297,7 @@ class Storage {
 
         // POST always expects an valid XSLT template for transformation.
         let media = (this.request.headers["content-type"] || "").toLowerCase()
-        if (media !== Storage.CONTENT_TYPE_XML)
+        if (media !== Storage.CONTENT_TYPE_APP_XSLT)
             this.quit(415, "Unsupported Media Type")
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
@@ -1356,7 +1372,7 @@ class Storage {
                     || method === "")
                 if (this.options.includes("json"))
                     output = new DOMParser().parseFromString(output)
-                else header["Content-Type"] = Storage.CONTENT_TYPE_XML
+                else header["Content-Type"] = Storage.CONTENT_TYPE_APP_XML
             else if (method === "html")
                 header["Content-Type"] = Storage.CONTENT_TYPE_HTML
         }
@@ -1461,6 +1477,8 @@ class Storage {
      * - Attribute request without Content-Type text/plain
      *         HTTP/1.0 422 Unprocessable Entity
      * - Data in the request body cannot be processed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      */
     doPut() {
 
@@ -1909,6 +1927,8 @@ class Storage {
      * - Attribute request without Content-Type text/plain
      *         HTTP/1.0 422 Unprocessable Entity
      * - Data in the request body cannot be processed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      */
     doPatch() {
 
@@ -2017,6 +2037,8 @@ class Storage {
      * - XPath without addressing a target is responded with status 204
      *         HTTP/1.0 404 Resource Not Found
      * - Storage does not exist
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
      */
     doDelete() {
 
@@ -2287,11 +2309,11 @@ class Storage {
                 && data !== "") {
             if (!media) {
                 if (this.options.includes("json")) {
-                    media = Storage.CONTENT_TYPE_JSON
+                    media = Storage.CONTENT_TYPE_APP_JSON
                     data = JSON.stringify(data)
                 } else {
                     if (Object.getClassName(data) === "Document") {
-                        media = Storage.CONTENT_TYPE_XML
+                        media = Storage.CONTENT_TYPE_APP_XML
                         data = this.serialize(data)
                     } else media = Storage.CONTENT_TYPE_TEXT
                 }
