@@ -65,7 +65,7 @@ client.test("unittest", function() {
 # - books element with text and without further elements
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <book title="A2">
   <comment></comment>
@@ -82,7 +82,7 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d80fc9c308eb49006700b00458f12a98");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0e47a6bc347522d87cfde8dfa34588bb");
 });
 %}
 
@@ -318,7 +318,7 @@ client.test("unittest", function() {
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}
 Accept-Effects: ALL
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <chapter title="Chapter-X-A">
   <text title="Text X1"/>
@@ -338,7 +338,7 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "28896acb10e2436a26547285ca2e0361");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d04499f88253bb739fe6c62c590d1290");
 });
 %}
 

@@ -20,7 +20,7 @@ client.test("unittest", function() {
 # - Storage-Effects: 10x UID-A 1x UID-M
 PUT {{service}}/snake%5Bnot(players)%5D%5Bnot(board)%5D::last HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <players timeout="5000">
   <a color="#000000" touch=""/>
@@ -36,7 +36,7 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "df3d8a9970fa47de67338ff91592dde2");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "abd6d292d9ecc62d767d7d2d82d5e404");
 });
 %}
 
@@ -61,7 +61,7 @@ client.test("unittest", function() {
 # - Status code 404 Resource Not Found
 PUT {{service}}/snake%5Bnot(players)%5D%5Bnot(board)%5D::last HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <players timeout="5000">
   <a color="#000000" touch=""/>
@@ -77,7 +77,7 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7f375188fe4ae455ff28a0b352ad7b18");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4091470983cec6b2662bb75ecba7945e");
 });
 %}
 
@@ -209,13 +209,13 @@ client.test("unittest", function() {
 # - URI: //players[not(//field[@id=1])]//a
 PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d315d295d2f2f61 HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <field id="11" player="a"/><field id="12" player="a"/><field id="13" player="a"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e1664f20517fcfe9181b282fad2dc6a7");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f9a819b821a82ec8fef8bf7832245cef");
 });
 %}
 
@@ -227,13 +227,13 @@ client.test("unittest", function() {
 # - URI: //players[not(//field[@id=1])]//b
 PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d315d295d2f2f62 HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <field id="21" player="b"/><field id="22" player="b"/><field id="23" player="b"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c597b867150917ed5a26364709f3ec5d");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "36ae5868a25ff85cc27ad8c09099daea");
 });
 %}
 
@@ -312,13 +312,13 @@ client.test("unittest", function() {
 # - URI: /snake[not(//field/@id=11)]//h
 PATCH  {{service}}0x2f736e616b655b6e6f74282f2f6669656c642f4069643d3131295d2f2f68 HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <field id="11" player="h"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3749ab13894c240d66b6610aaa81c715");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8ee3e35afce80ab3e7e49372fc15df31");
 });
 %}
 
@@ -331,13 +331,13 @@ client.test("unittest", function() {
 # - URI: //players[not(//field[@id=14])]//a
 PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d31345d295d2f2f61 HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <field id="12" player="a"/><field id="13" player="a"/><field id="14" player="a"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b9a248c2c85d3ba39a110517e49327b5");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ea749f11239ba09206d102a4ea4199f9");
 });
 %}
 
@@ -350,13 +350,13 @@ client.test("unittest", function() {
 # - URI: /snake[not(//field/@id=11)]//h
 PATCH  {{service}}0x2f736e616b655b6e6f74282f2f6669656c642f4069643d3131295d2f2f68 HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <field id="11" player="h"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "52b6ee3f1c430231e556665adb494118");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "63b91e44d676c1d6adccb723583fa050");
 });
 %}
 
@@ -368,13 +368,13 @@ client.test("unittest", function() {
 # - URI: //players[not(//field[@id=14])]//b
 PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d31345d295d2f2f62 HTTP/1.0
 Storage: {{storage_snake}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <field id="22" player="b"/><field id="23" player="b"/><field id="14" player="b"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "927dee191063148e6670c1e8dcec0c65");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "84eed8e2879bffa3742211ab83279eda");
 });
 %}
 

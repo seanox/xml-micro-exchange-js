@@ -14,7 +14,7 @@ client.test("unittest", function() {
 ###
 PUT {{service}}/table%5Bnot(guests)%5D::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <guests>
   <persons/>
@@ -23,20 +23,20 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4a0f6d2eb3ae6e9cda9810092ad147d3");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d8408525270baba2abb8e374e7ab6d2b");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/persons::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <person name="John Doe" mail="john.doe@example.local"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "19dad6736f3592a1767557762eb81961");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d6c6147ce56904d7c2f002fa264f7275");
 });
 %}
 
@@ -53,7 +53,7 @@ client.test("unittest", function() {
 ###
 PUT {{service}}/table%5Bnot(guests)%5D::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <guests>
   <persons/>
@@ -62,46 +62,46 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fcff2890fbd9bc719967d6dc97c6f9a0");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "27b741e92b34f5783b47043dd8d50967");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/persons::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <person name="Jane Doe" mail="jane.doe@example.local"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d27714034fd77f00cacb7a8c187dfff3");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f22708f42a4fca3b9e64a2c87c373cd8");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/persons::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <person name="Mike Ross" mail="mike.ross@example.local"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9b45f4d1ce63cb978e17aff34e0d8ba0");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fa44de41ada84c44b8d108c4b500fb52");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/persons::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <person name="Dan Star" mail="dan.star@example.local"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "56622b8a3b1ed4b2d444ed8a16c7e2d1");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "da25e8e80134bbe9c271166c9e9792c4");
 });
 %}
 
@@ -128,98 +128,98 @@ client.test("unittest", function() {
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="dan.star@example.local">
     Where do you come from?</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1468b8fb6f2c2be656e66744b4ebdf48");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "bfafef3448aff766f0d33be4a3d7ecee");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="john.doe@example.local">
     I'm from Hempstead and have a small bookstore.</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c7641bee40d67177dfeb6bab49248de1");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1a1b436b679180581ecc276ec577acf7");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="jane.doe@example.local">
     I live in Long Island and have an antique store.</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9c11e27395c21406aa02fec24c540061");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "529c92197ad3598e37d21bd8c1b4e10f");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="mike.ross@example.local">
     I live in Queens, work for a shipping company on a cargo ship.</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "775c63da4dcce13b36e77a9050d16eb5");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7f3f04c4777ad1c782879931e57f9388");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="dan.star@example.local">
     I work and live in Yonkers as a gardener.</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "48614aa79065f5b6612453fbe5481b55");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fda42e03b981e228e23e744bdc1064ba");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="dan.star@example.local">
     In this beautiful weather I arrived with my scooter.</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "980491d72c5b79d4ab4204eb61cbca75");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "066a773cb38561414a4b7f64a8733d3f");
 });
 %}
 
 ###
 PUT {{service}}/table/guests/conversation::last HTTP/1.0
 Storage: {{storage_getting_started}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <message from="dan.star@example.local">
     I like to look at the city.</message>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9984e87db3123efc420e5604bb7e15c6");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "26c12c94822938d2a1943c87be9c3325");
 });
 %}
 
@@ -241,7 +241,7 @@ Storage: {{storage_getting_started}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4c7e2b29d3f7f3fbd977fc85867e9284");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "702e9bcc4f805b2bd7d8ff29652314a8");
 });
 %}
 
@@ -252,7 +252,7 @@ Storage: {{storage_getting_started}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "df09ffaa5bdb966b9990be4b736195e1");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "59b8c47f22623594442c77a46a7d6922");
 });
 %}
 

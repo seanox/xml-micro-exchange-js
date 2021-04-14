@@ -74,7 +74,7 @@ client.test("unittest", function() {
 # - Storage-Effects: 39x UID-A 1x UID-M
 PUT {{service}}/books HTTP/1.0
 Storage: {{storage_options}}
-Content-Type: application/xslt+xml
+Content-Type: application/xml
 
 <book title="A1">
   <chapter title="Chapter A1-1">
@@ -130,7 +130,7 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7407fb811d10657effabb233e70b2005");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fe99808c8296a1c67bf5c2cd6c13aaa0");
 });
 %}
 
