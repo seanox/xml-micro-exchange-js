@@ -22,7 +22,7 @@ If the XPath notation does not match the attributes, elements are assumed.
 Unlike the PUT method, no pseudo elements are supported for elements.
 
 The value of elements can be static (text), dynamic (XPath function) or be an
-XML structure. Also here the value is send with the request-body  and the type
+XML structure. Also here the value is send with the request-body and the type
 of processing is determined by the Content-Type:
 - `text/plain` Static text
 - `text/xpath` XPath function
