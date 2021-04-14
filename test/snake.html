@@ -114,7 +114,7 @@
                   var request = new XMLHttpRequest();
                   request.open("PUT", SnakeService.DATASOURCE_URL + "/snake[not(players)][not(board)]::last", false);
                   request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
-                  request.setRequestHeader("Content-Type", "application/xslt+xml");
+                  request.setRequestHeader("Content-Type", "application/xml");
                   request.send(""
                           + "<players timeout=\"" + SnakeService.PLAYERS_TIMEOUT + "\">"
                           + "  <a color=\"#000000\" touch=\"\"/>"
@@ -203,7 +203,7 @@
                       var request = new XMLHttpRequest();
                       request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players[not(//field[@id=" + SnakeService.points[0] + "])]//" + SnakeService.player.alias).encodeHex(), false);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
-                      request.setRequestHeader("Content-Type", "application/xslt+xml");
+                      request.setRequestHeader("Content-Type", "application/xml");
                       request.send(update);
                       if (request.status == 404) {
                           var last = SnakeService.points[1];
@@ -214,7 +214,7 @@
                           update = "<field id=\"" + last + "\" player=\"" + SnakeService.player.alias + "\"/>";
                           request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players//" + SnakeService.player.alias).encodeHex(), false);
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
-                          request.setRequestHeader("Content-Type", "application/xslt+xml");
+                          request.setRequestHeader("Content-Type", "application/xml");
                           request.send(update);
 
                           window.setTimeout((position) => {
@@ -350,7 +350,7 @@
                           var request = new XMLHttpRequest();
                           request.open("PATCH", SnakeService.DATASOURCE_URL + ("/snake[not(//field/@id='" + center + "')]//" + SnakeService.player.alias).encodeHex(), false);
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
-                          request.setRequestHeader("Content-Type", "application/xslt+xml");
+                          request.setRequestHeader("Content-Type", "application/xml");
                           request.send(patch);
                           if (request.status == 404) {
                               window.setTimeout(start, SnakeService.WAIT);
