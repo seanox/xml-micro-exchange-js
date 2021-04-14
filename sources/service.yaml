@@ -151,11 +151,11 @@ paths:
           <h3>Example</h3>
           <pre>
           OPTIONS / HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+          Storage: BookReview
           </pre>
           <pre>
           OPTIONS / HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
 
           <h2>Response</h2>
@@ -185,7 +185,7 @@ paths:
           HTTP/1.0 201 Resource Created<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 0<br>
           Storage-Space: 262144/87 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -211,7 +211,7 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
               <br>
               Special case CORS.<br>
               The request header Storage is normally always required. However,
@@ -221,7 +221,7 @@ paths:
           required: false
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
       responses:
         200:
           description: "CORS Access-Control preflight request."
@@ -277,7 +277,7 @@ paths:
           <h3>Example</h3>
           <pre>
           OPTIONS /xmex!/books/book HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
 
           <h2>Response</h2>
@@ -299,7 +299,7 @@ paths:
           Access-Control-Allow-Origin: *<br>
           Storage-Effects: KHDCPS0013C2:0 KHDCPS0013C2:13 KHDCPS0013C2:26<br>
           Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -324,12 +324,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station
+              <b>Example:</b> BookReview / BookReview books
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -338,14 +338,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       responses:
         204:
           description: "Request was successfully executed."
@@ -448,7 +448,7 @@ paths:
           <h3>Example</h3>
           <pre>
           PUT /xmex!/books/attribute::genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: text/plain<br>
           Content-Length: 5<br>
           <br>
@@ -456,7 +456,7 @@ paths:
           </pre>
           <pre>
           PUT /xmex!/books/@genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: text/xpath<br>
           Content-Length: 25<br>
           <br>
@@ -464,7 +464,7 @@ paths:
           </pre>
           <pre>
           PUT /xmex!/books HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: application/xml<br>
           Content-Length: 70<br>
           <br>
@@ -491,7 +491,7 @@ paths:
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Storage-Effects: KHDCPS0018U4:0 KHDCPS0018U2:0 KHDCPS0018U4:1 KHDCPS0018U4:2<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -516,12 +516,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -660,7 +660,7 @@ paths:
           <h3>Example</h3>
           <pre>
           PATCH /xmex!/books/attribute::genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: text/plain<br>
           Content-Length: 5<br>
           <br>
@@ -668,7 +668,7 @@ paths:
           </pre>
           <pre>
           PATCH /xmex!/books/@genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: text/xpath<br>
           Content-Length: 25<br>
           <br>
@@ -676,7 +676,7 @@ paths:
           </pre>
           <pre>
           PATCH /xmex!/books HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: application/xml<br>
           Content-Length: 70<br>
           <br>
@@ -703,7 +703,7 @@ paths:
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Storage-Effects: KHDCPS0018U4:0 KHDCPS0018U2:0 KHDCPS0018U4:1 KHDCPS0018U4:2<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -728,12 +728,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -742,14 +742,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       requestBody:
         description: "TODO"
         content:
@@ -824,15 +824,15 @@ paths:
           <h3>Example</h3>
           <pre>
           GET /xmex!/books/attribute::genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
           <pre>
           GET /xmex!/books/@genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
           <pre>
           GET /xmex!count(/books/book) HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
 
           <h2>Response</h2>
@@ -854,7 +854,7 @@ paths:
           HTTP/1.0 200 Success<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -871,7 +871,7 @@ paths:
           HTTP/1.0 200 Success<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -900,12 +900,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -914,14 +914,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       responses:
         200:
           description: "Request was successfully executed."
@@ -981,7 +981,7 @@ paths:
           <h3>Example</h3>
           <pre>
           POST /xmex!/ HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: application/xslt+xml<br>
           Content-Length: 212<br>
           <br>
@@ -1012,7 +1012,7 @@ paths:
           HTTP/1.0 200 Success<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -1042,12 +1042,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -1056,14 +1056,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       requestBody:
         description: "TODO"
         content:
@@ -1157,7 +1157,7 @@ paths:
           <h3>Example</h3>
           <pre>
           DELETE /books/book[1] HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
 
           <h2>Response</h2>
@@ -1179,7 +1179,7 @@ paths:
           Server: Apache/2.4.43 (Unix)<br>
           Access-Control-Allow-Origin: *<br>
           Storage-Effects: KHDCPS001E7C:9:D KHDCPS001DDS:0:M<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -1204,12 +1204,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -1218,14 +1218,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       responses:
         204:
           description: "
@@ -1272,15 +1272,15 @@ paths:
           <h3>Example</h3>
           <pre>
           GET /xmex!/books/attribute::genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
           <pre>
           GET /xmex!/books/@genre HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
           <pre>
           GET /xmex!count(/books/book) HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books
+          Storage: BookReview books
           </pre>
 
           <h2>Response</h2>
@@ -1302,7 +1302,7 @@ paths:
           HTTP/1.0 200 Success<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -1319,7 +1319,7 @@ paths:
           HTTP/1.0 200 Success<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -1348,12 +1348,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -1362,14 +1362,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       responses:
         200:
           description: "Request was successfully executed."
@@ -1429,7 +1429,7 @@ paths:
           <h3>Example</h3>
           <pre>
           POST /xmex!/ HTTP/1.0<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ books<br>
+          Storage: BookReview books<br>
           Content-Type: application/xslt+xml<br>
           Content-Length: 212<br>
           <br>
@@ -1460,7 +1460,7 @@ paths:
           HTTP/1.0 200 Success<br>
           Date: Wed, 11 Nov 2020 12:00:00 GMT<br>
           Access-Control-Allow-Origin: *<br>
-          Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          Storage: BookReview<br>
           Storage-Revision: 123<br>
           Storage-Space: 262144/1363 bytes<br>
           Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000<br>
@@ -1490,12 +1490,12 @@ paths:
               <br>
               <b>Pattern:</b> ^(\\w{1,64})(?:\\s+(\\w+))?$<br>
               <br>
-              <b>Example:</b> WEATHER_STATION / WEATHER_STATION station<br>
+              <b>Example:</b> BookReview / BookReview books<br>
             "
           required: true
           schema:
             type: string
-            example: WEATHER_STATION station
+            example: BookReview books
         - name: xpath
           in: path
           description: "
@@ -1504,14 +1504,14 @@ paths:
               Functions can then also use axes and axes can then also use functions.
               <dir>Example:</dir>
               <pre>
-              count(//sensors/*)<br>
-              //sensors/nox/data/record[position()>count(//record)-5]
+              count(/books/*)<br>
+              /books/book[position()>count(//book)-5]
               </pre>
             "
           required: true
           schema:
             type: string
-            example: //sensors/nox/data/record
+            example: /books
       requestBody:
         description: "TODO"
         content:
