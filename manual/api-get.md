@@ -10,8 +10,8 @@ an XPath function, different Content-Type are used for the response.
 
 ## Contents Overview
 
-* [XPath axis](#xpath-axis)
-* [XPath function](#xpath-function)
+* [application/xml](#applicationxml)
+* [text/plain](#textplain)
 * [Request](#request)
   * [Example](#example)
 * [Response](#response)
@@ -23,22 +23,16 @@ an XPath function, different Content-Type are used for the response.
   * [HTTP/1.0 500 Internal Server Error](#http10-500-internal-server-error)
 
 
-## XPath axis
-
-Content-Type: `application/xslt+xml`  
+## `application/xml`
 When the XPath axis addresses one target, the addressed target is the root
 element of the returned XML structure. If the XPath addresses multiple targets,
 their XML structure is combined in the root element collection.
 
-Content-Type: `text/plain`  
+
+## `text/plain`
 If the XPath addresses only one attribute, the value is returned as plain text.
-
-
-## XPath function
-
-Content-Type: `text/xpath`  
-The result of XPath functions is returned as plain text. Decimal results use
-float, booleans the values true and false.
+Also the result of XPath functions is returned as plain text. Decimal results
+use float, booleans the values true and false.
 
 The XPath processing is strict and does not accept unnecessary spaces.
 
