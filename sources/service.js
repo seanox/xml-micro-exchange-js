@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210410
+ * Service 1.3.0 20210415
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210410
+ * @version 1.3.0 20210415
  */
 const http = require("http")
 const https = require("https")
@@ -2641,6 +2641,27 @@ class ServerFactory {
 
             let dataLimit = Number.parseBytes(module.request["data-limit"])
             request.on("data", (data) => {
+
+                // Loading RequestBody is limited to the methods PATH/PUT/POST.
+                // It does not cause HTTP error status, the data is ignored.
+                let method = request.method.toUpperCase()
+                if (!["PATCH", "POST", "PUT"].includes(method))
+                    return
+
+                // It must be a valid storage, existence will be checked later.
+                // It does not cause HTTP error status, the data is ignored.
+                let storage
+                if (request.headers.storage)
+                    storage = request.headers.storage
+                if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
+                    return;
+
+                // Loading RequestBody is limited to the API only.
+                // It does not cause HTTP error status, the data is ignored.
+                let context = Object.exists(module.connection.context) ? module.connection.context : ""
+                if (!decodeURI(request.url).startsWith(context))
+                    return;
+
                 if (!Object.exists(request.data))
                     request.data = ""
                 if (Object.exists(request.error))

@@ -544,6 +544,91 @@ client.test("unittest", function() {
 %}
 
 ###
+# Unwanted RequestBody (without context path in the URL) should be ignored
+# Expectations:
+# - Status code 404 Not Found
+# - Request data cache is not filled
+POST {{origin}}/invalid HTTP/1.0
+Content-Type: text/plain
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c34200e18836ed440b3452357a85ece6");
+});
+%}
+
+###
+# Unwanted RequestBody (without context path in the URL) should be ignored
+# Expectations:
+# - Status code 404 Not Found
+# - Request data cache is not filled
+POST {{origin}}/invalid HTTP/1.0
+Storage: {{storage_request}}
+Content-Type: text/plain
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b32e6a8894fb9965cc2d17433cab80eb");
+});
+%}
+
+###
+# Unwanted RequestBody (not with PATCH, PUT, POST) should be ignored
+# Expectations:
+# - Status code 404 Not Found
+# - Request data cache is not filled
+GET {{origin}}/invalid HTTP/1.0
+Content-Type: text/plain
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "685fc25c1460487fd9d33ba157928140");
+});
+%}
+
+###
+# Unwanted RequestBody (not with PATCH, PUT, POST) should be ignored
+# Expectations:
+# - Status code 404 Not Found
+# - Request data cache is not filled
+GET {{origin}}/invalid HTTP/1.0
+Storage: {{storage_request}}
+Content-Type: text/plain
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "dde174ca80129a06c730f5de06c23d07");
+});
+%}
+
+###
+# Unwanted RequestBody (not with PATCH, PUT, POST) should be ignored
+# Expectations:
+# - Status code 200 Success
+# - Content-Type: application/xml
+# - Content-Length: 611
+# - Request data cache is not filled
+GET {{service}}/books HTTP/1.0
+Storage: {{storage_request}}
+Content-Type: text/plain
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3fdd59b3af6e95d5ac37b8c6d9044a31");
+});
+%}
+
+###
 # The Base64 encoding from XPath must work.
 # TODO: Not supported test case
 # The REST HTTP client interprets the colon after Base64 as a control

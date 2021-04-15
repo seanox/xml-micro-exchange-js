@@ -8,6 +8,12 @@
       Fragments (PUT/PATCH) uses application/xml
       XML output uses application/xml
       XSLT input (POST) uses application/xslt+xml
+  CR: Service: Restriction on reading/using the RequestBody
+      The RequestBody is only read/used:
+      - if PATCH/PUT/POST methods are used
+      - if URL addresses the API
+      - if a valid storage is present in the request header
+      Otherwise the data is ignored.
 
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling

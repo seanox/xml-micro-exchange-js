@@ -8,6 +8,7 @@
 # Storage is not establish 
 # Expectations:
 # - Status code 404 Resource Not Found
+# - Request data cache is not filled
 DELETE {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_delete_attribute}}
 Content-Type: text/plain
@@ -16,7 +17,7 @@ test
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b4f99fde4022739cabc80627335a6de5");
+    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2fe25634ffb6ecad024060331eb7d296");
 });
 %}
 
