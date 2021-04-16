@@ -105,7 +105,7 @@ Message                    Detailed error message with status 400 / 422
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 externalDocs:
-  description: Find out more about Seanox XMEX
+  description: Find out more about Seanox XMEX (incl. Manual and Getting Started)
   url: https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/README.md
 servers:
   - url: https://xmex.seanox.com
@@ -379,12 +379,7 @@ paths:
           &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
               <code>&lt;XPath&gt;/@&lt;attribute&gt;</code> or <code>&lt;XPath&gt;/attribute::&lt;attribute&gt;</code><br>
           The attribute values can be static (text) and dynamic (XPath function). Values
-          are send as request-body. Whether they are used as text or XPath function is
-          decided by the Content-Type header of the request:
-          <ul>
-            <li><code>text/plain</code> Static text</li>
-            <li><code>text/xpath</code> XPath function</li>
-          </ul>
+          are send as request-body.<br>
           <br>
           If the XPath notation does not match the attributes, elements are assumed. For
           elements, the notation for pseudo elements is supported:<br>
@@ -393,13 +388,7 @@ paths:
           Pseudo elements are a relative position specification to the selected element.<br>
           <br>
           The value of elements can be static (text), dynamic (XPath function) or be an
-          XML structure. Also here the value is send with the request-body  and the type
-          of processing is determined by the Content-Type:
-          <ul>
-            <li><code>text/plain</code> Static text</li>
-            <li><code>text/xpath</code> XPath function</li>
-            <li><code>application/xml</code> XML structure</li>
-          </ul>
+          XML structure. Also here the value is send with the request-body.<br>
           <br>
           The PUT method works resolutely and inserts or overwrites existing data. The
           XPath processing is strict and does not accept unnecessary spaces. The
@@ -537,9 +526,26 @@ paths:
           required: true
           schema:
             type: string
-            example: "TODO:"
+            example: "/books"
       requestBody:
-        description: "TODO"
+        description: "
+            The attribute values can be static (text) and dynamic (XPath function). Values
+            are send as request-body. Whether they are used as text or XPath function is
+            decided by the Content-Type header of the request:
+            <ul>
+              <li><code>text/plain</code> Static text</li>
+              <li><code>text/xpath</code> XPath function</li>
+            </ul>
+            <br>
+            The value of elements can be static (text), dynamic (XPath function) or be an
+            XML structure. Also here the value is send with the request-body and the type
+            of processing is determined by the Content-Type:
+            <ul>
+              <li><code>text/plain</code> Static text</li>
+              <li><code>text/xpath</code> XPath function</li>
+              <li><code>application/xml</code> XML structure</li>
+            </ul>
+          "
         content:
           application/xml:
             schema:
@@ -596,24 +602,13 @@ paths:
           &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;
               <code>&lt;XPath&gt;/@&lt;attribute&gt;</code> or <code>&lt;XPath&gt;/attribute::&lt;attribute&gt;</code><br>
           The attribute values can be static (text) and dynamic (XPath function). Values are send as
-          request-body. Whether they are used as text or XPath function is decided by the Content-Type
-          header of the request:
-          <ul>
-            <li><code>text/plain</code> Static text</li>
-            <li><code>text/xpath</code> XPath function</li>
-          </ul>
+          request-body.<br>
           <br>
           If the XPath notation does not match the attributes, elements are assumed.
           Unlike the PUT method, no pseudo elements are supported for elements.<br>
           <br>
           The value of elements can be static (text), dynamic (XPath function) or be an
-          XML structure. Also here the value is send with the request-body  and the type
-          of processing is determined by the Content-Type:
-          <ul>
-            <li><code>text/plain</code> Static text</li>
-            <li><code>text/xpath</code> XPath function</li>
-            <li><code>application/xml</code> XML structure</li>
-          </ul>
+          XML structure. Also here the value is send with the request-body.<br>
           <br>
           The PATCH method works resolutely and  overwrites existing data. The XPath processing is
           strict and does not accept unnecessary spaces. The attributes <code>___rev</code> / <code>___uid</code> used
@@ -751,7 +746,24 @@ paths:
             type: string
             example: /books
       requestBody:
-        description: "TODO"
+        description: "
+            The attribute values can be static (text) and dynamic (XPath function). Values are send as
+            request-body. Whether they are used as text or XPath function is decided by the Content-Type
+            header of the request:
+            <ul>
+              <li><code>text/plain</code> Static text</li>
+              <li><code>text/xpath</code> XPath function</li>
+            </ul>
+            <br>
+            The value of elements can be static (text), dynamic (XPath function) or be an
+            XML structure. Also here the value is send with the request-body and the type
+            of processing is determined by the Content-Type:
+            <ul>
+              <li><code>text/plain</code> Static text</li>
+              <li><code>text/xpath</code> XPath function</li>
+              <li><code>application/xml</code> XML structure</li>
+            </ul>
+          "
         content:
           application/xml:
             schema:
@@ -1065,7 +1077,6 @@ paths:
             type: string
             example: /books
       requestBody:
-        description: "TODO"
         content:
           application/xslt+xml:
             schema:
@@ -1513,7 +1524,6 @@ paths:
             type: string
             example: /books
       requestBody:
-        description: "TODO"
         content:
           application/xslt+xml:
             schema:
