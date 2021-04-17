@@ -190,6 +190,7 @@ const DOMImplementation = require("xmldom").DOMImplementation
 const XPath = require("xpath")
 const XMLSerializer = require("common-xml-features").XMLSerializer
 const Codec = require("he")
+const Mime = require("mime-types")
 
 // A different XMLSerializer is used because the &gt; is not encoded correctly
 // in the XMLSerializer of xmldom.
@@ -482,6 +483,7 @@ module.init = function() {
     module["cors"] = meta.cors
     module["request"] = meta.request
     module["storage"] = meta.storage
+    module["content"] = meta.content
     module["logging"] = meta.logging
 
     module.connection.options = undefined
@@ -762,7 +764,7 @@ class Storage {
     static share(meta) {
 
         if (!(meta.storage || "").match(Storage.PATTERN_HEADER_STORAGE))
-            (new Storage(meta)).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
+            (new Storage(meta)).quit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
         meta.root = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
         meta.storage = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
@@ -979,7 +981,7 @@ class Storage {
     doConnect() {
 
         if (this.xpath)
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
         let response = [201, "Created"]
         if (!this.exists()) {
@@ -1095,22 +1097,22 @@ class Storage {
 
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath))
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
-        let headers = {"Allow": "OPTIONS, GET, POST, PUT, PATCH, DELETE"}
+        let headers = {Allow: "OPTIONS, GET, POST, PUT, PATCH, DELETE"}
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
             let result = XPath.select(this.xpath, this.xml)
             if (result instanceof Error) {
                 let message = "Invalid XPath function (" + result.message + ")"
-                this.quit(400, "Bad Request", {"Message": message})
+                this.quit(400, "Bad Request", {Message: message})
             }
             headers["Allow"] = "OPTIONS, GET, POST"
         } else {
             let targets = XPath.select(this.xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + targets.message + ")"
-                this.quit(400, "Bad Request", {"Message": message})
+                this.quit(400, "Bad Request", {Message: message})
             }
             if (Object.exists(targets) && targets.length > 0) {
                 let serials = []
@@ -1184,7 +1186,7 @@ class Storage {
 
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath))
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
         let result = XPath.select(this.xpath, this.xml)
         if (result instanceof Error) {
@@ -1192,7 +1194,7 @@ class Storage {
             if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION))
                 message = "Invalid XPath function"
             message += " (" + result.message + ")"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
         if (!this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)
                 && (!Object.exists(result) || result.length <= 0))
@@ -1289,12 +1291,12 @@ class Storage {
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
             let message = "Invalid XPath (Functions are not supported)"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         // POST always expects an valid XSLT template for transformation.
         if (this.request.data.trim().length <= 0)
-            this.quit(422, "Unprocessable Entity", {"Message": "Unprocessable Entity"})
+            this.quit(422, "Unprocessable Entity", {Message: "Unprocessable Entity"})
 
         let xml = this.xml
         if (this.xpath !== "") {
@@ -1302,7 +1304,7 @@ class Storage {
             let targets = XPath.select(this.xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + targets.message + ")"
-                this.quit(400, "Bad Request", {"Message": message})
+                this.quit(400, "Bad Request", {Message: message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
                 this.quit(204, "No Content")
@@ -1328,7 +1330,7 @@ class Storage {
             let message = "Invalid XSLT stylesheet"
             if (xml instanceof Error)
                 message += " (" + xml.message + ")"
-            this.quit(422, "Unprocessable Entity", {"Message": message})
+            this.quit(422, "Unprocessable Entity", {Message: message})
         }
 
         let tempStyle = this.createTempFile()
@@ -1345,7 +1347,7 @@ class Storage {
             message = message.replace(/\s*(file\s+)?___temp_[\w\:]+\s*/ig, " ").trim()
             message = message.replace(/\s+(?=:)/g, "")
             message = "Transformation failed (" + message.trim() + ")"
-            this.quit(422, "Unprocessable Entity", {"Message": message})
+            this.quit(422, "Unprocessable Entity", {Message: message})
         }
 
         let header = {}
@@ -1476,7 +1478,7 @@ class Storage {
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath)
                 || this.xpath === "")
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
@@ -1490,7 +1492,7 @@ class Storage {
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
             let message = "Invalid XPath (Functions are not supported)"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         let headers = {}
@@ -1535,7 +1537,7 @@ class Storage {
             if (media.toLowerCase() === Storage.CONTENT_TYPE_XPATH) {
                 if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
                     let message = "Invalid XPath (Axes are not supported)"
-                    this.quit(422, "Unprocessable Entity", {"Message": message})
+                    this.quit(422, "Unprocessable Entity", {Message: message})
                 }
                 input = XPath.select(input, this.xml)
                 if (!Object.exists(input)
@@ -1543,7 +1545,7 @@ class Storage {
                     let message = "Invalid XPath function"
                     if (input instanceof Error)
                         message += " (" + input.message + ")"
-                    this.quit(422, "Unprocessable Entity", {"Message": message})
+                    this.quit(422, "Unprocessable Entity", {Message: message})
                 }
             }
 
@@ -1555,7 +1557,7 @@ class Storage {
             let targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + targets.message + ")"
-                this.quit(400, "Bad Request", {"Message": message})
+                this.quit(400, "Bad Request", {Message: message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
                 this.quit(204, "No Content")
@@ -1598,7 +1600,7 @@ class Storage {
         // If this is not the case, the request is responded with status 400.
         matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
         if (!matches)
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath axis"})
 
         let xpath = matches[1]
         let pseudo = (matches[2] || "").toLowerCase()
@@ -1628,7 +1630,7 @@ class Storage {
             if (media === Storage.CONTENT_TYPE_XPATH) {
                 if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
                     let message = "Invalid XPath (Axes are not supported)"
-                    this.quit(422, "Unprocessable Entity", {"Message": message})
+                    this.quit(422, "Unprocessable Entity", {Message: message})
                 }
                 input = XPath.select(input, this.xml)
                 if (!Object.exists(input)
@@ -1636,7 +1638,7 @@ class Storage {
                     let message = "Invalid XPath function"
                     if (input instanceof Error)
                         message += " (" + input.message + ")"
-                    this.quit(422, "Unprocessable Entity", {"Message": message})
+                    this.quit(422, "Unprocessable Entity", {Message: message})
                 }
             }
 
@@ -1644,7 +1646,7 @@ class Storage {
             let targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + input.message + ")"
-                this.quit(400, "Bad Request", {"Message": message})
+                this.quit(400, "Bad Request", {Message: message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
                 this.quit(204, "No Content")
@@ -1699,7 +1701,7 @@ class Storage {
             let message = "Invalid XML document"
             if (xml instanceof Error)
                 message += " (" + xml.message + ")"
-            this.quit(422, "Unprocessable Entity", {"Message": message})
+            this.quit(422, "Unprocessable Entity", {Message: message})
         }
 
         // The attributes ___rev and ___uid are essential for the internal
@@ -1721,7 +1723,7 @@ class Storage {
             let targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + targets.message + ")"
-                this.quit(400, "Bad Request", {"Message": message})
+                this.quit(400, "Bad Request", {Message: message})
             }
             if (!Object.exists(targets) || targets.length <= 0)
                 this.quit(204, "No Content")
@@ -1779,7 +1781,7 @@ class Storage {
                     inserts.forEach((insert) => {
                         target.appendChild(insert)
                     })
-                } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"})
+                } else this.quit(400, "Bad Request", {Message: "Invalid XPath axis (Unsupported pseudo syntax found)"})
             })
         }
 
@@ -1932,7 +1934,7 @@ class Storage {
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath)
                 || this.xpath === "")
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
@@ -1946,19 +1948,19 @@ class Storage {
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
             let message = "Invalid XPath (Functions are not supported)"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         let targets = XPath.select(this.xpath, this.xml)
         if (targets instanceof Error) {
             let message = "Invalid XPath axis (" + targets.message + ")"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         if (!this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)
                 && this.xpath.match(/::((\w+)*\)*)?((?:!+\w*){0,})$/)) {
             let message = "Invalid XPath axis"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         if (!Object.exists(targets) || targets.length <= 0)
@@ -2036,11 +2038,11 @@ class Storage {
         // In any case an XPath is required for a valid request.
         if (!Object.exists(this.xpath)
                 || this.xpath === "")
-            this.quit(400, "Bad Request", {"Message": "Invalid XPath"})
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
             let message = "Invalid XPath (Functions are not supported)"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         let xpath = this.xpath
@@ -2050,7 +2052,7 @@ class Storage {
             // If this is not the case, the request is responded with status 400.
             let matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
             if (!matches)
-                this.quit(400, "Bad Request", {"Message": "Invalid XPath axis"})
+                this.quit(400, "Bad Request", {Message: "Invalid XPath axis"})
             xpath = matches[1]
             pseudo = (matches[2] || "").toLowerCase()
         }
@@ -2058,7 +2060,7 @@ class Storage {
         let targets = XPath.select(xpath, this.xml)
         if (targets instanceof Error) {
             let message = "Invalid XPath axis (" + targets.message + ")"
-            this.quit(400, "Bad Request", {"Message": message})
+            this.quit(400, "Bad Request", {Message: message})
         }
 
         if (!Object.exists(targets) || targets.length <= 0)
@@ -2091,7 +2093,7 @@ class Storage {
             } else if (pseudo === "last") {
                 targets = targets.map(target => target.lastChild)
                 targets = targets.filter(Object.exists)
-            } else this.quit(400, "Bad Request", {"Message": "Invalid XPath axis (Unsupported pseudo syntax found)"})
+            } else this.quit(400, "Bad Request", {Message: "Invalid XPath axis (Unsupported pseudo syntax found)"})
         }
 
         let serials = []
@@ -2180,7 +2182,7 @@ class Storage {
                     return
                 if (remove)
                     delete headers[key]
-                result = {"name":key, "value":value}
+                result = {name: key, value: value}
             })
             return result
         }
@@ -2676,11 +2678,89 @@ class ServerFactory {
 
                     let context = Object.exists(module.connection.context) ? module.connection.context : ""
 
-                    // The API should always use a context path so that the separation
-                    // between URI and XPath is also visually recognizable.
-                    // Other requests will be answered with status 404.
-                    if (!decodeURI(request.url).startsWith(context))
-                        (new Storage({request, response})).quit(404, "Resource Not Found")
+                    // The API should always use a context path so that the
+                    // separation between URI and XPath is also visually
+                    // recognizable. For all requests outside of the API path
+                    // are alternatively considered as a request to web
+                    // content. If content has been configured, it will be used
+                    // like a normal HTTP server. Otherwise the requests are
+                    // answered with status 404.
+
+                    if (!decodeURI(request.url).startsWith(context)) {
+
+                        // Very simple/rudimentary implemented web server.
+                        // Supported are the methods OPTIONS/HEAD/GET.
+                        // This way, content can be provided outside the URL of
+                        // the API, e.g. for documentation.
+
+                        let method = request.method.toUpperCase()
+
+                        if (method === "OPTIONS")
+                            return (new Storage({request, response})).quit(200, "Success", {Allow: "OPTIONS, HEAD, GET"})
+
+                        if (Object.exists(module.content)
+                                && Object.exists(module.content.redirect)
+                                && module.content.redirect.length > 0) {
+                            let location = module.content.redirect
+                            if (location.match(/\.{3,}$/))
+                                location = location.replace(/\.{3,}$/, request.url)
+                            return (new Storage({request, response})).quit(301, "Moved Permanently", {Location: location})
+                        }
+
+                        if (!Object.exists(module.content)
+                                || !Object.exists(module.content.directory))
+                            return (new Storage({request, response})).quit(404, "Resource Not Found")
+                        let target = path.normalize(decodeURI(request.url).trim()).replace(/\\+/g, "/")
+                        target = module.content.directory + "/" + target
+                        target = target.replace(/\/{2,}/g, "/")
+                        if (!fs.existsSync(target))
+                            return (new Storage({request, response})).quit(404, "Resource Not Found")
+                        if (!fs.lstatSync(target).isFile()
+                                && !fs.lstatSync(target).isDirectory())
+                            return (new Storage({request, response})).quit(404, "Resource Not Found")
+
+                        if (fs.lstatSync(target).isDirectory()) {
+                            if (Object.exists(module.content)
+                                    && Object.exists(module.content.default)) {
+                                let files = module.content.default.split(/\s+/)
+                                while (files.length > 0) {
+                                    if (!files[0].includes("/")
+                                            && !files[0].includes("\\")
+                                            && fs.existsSync(target + "/" + files[0])
+                                            && fs.lstatSync(target + "/" + files[0]).isFile())
+                                        break
+                                    files.shift()
+                                }
+                                if (files.length <= 0)
+                                    return (new Storage({request, response})).quit(403, "Forbidden")
+                                target += files[0]
+                            } else return (new Storage({request, response})).quit(403, "Forbidden")
+                        }
+
+                        if (!["OPTIONS", "HEAD", "GET"].includes(method))
+                            return (new Storage({request, response})).quit(405, "Method Not Allowed", {Allow: "OPTIONS, HEAD, GET"})
+
+                        target = fs.realpathSync(target)
+                        let state = fs.lstatSync(target)
+                        let headers = {}
+                        headers["Content-Length"] = state.size
+                        headers["Content-Type"]   = Mime.contentType(target)
+                        headers["Last-Modified"]  = new Date(state.mtimeMs).toUTCString()
+                        if (method === "HEAD")
+                            return (new Storage({request, response})).quit(200, "Success", headers)
+                        let file = fs.openSync(target, "r")
+                        try {
+                            response.writeHead(200, "Success", headers)
+                            response.contentLength = state.size
+                            var buffer = Buffer.alloc(65535)
+                            for (let size = 0; size = fs.readSync(file, buffer) > 0;)
+                                response.write(buffer.toString("binary"), "binary")
+                            response.end()
+                        } finally {
+                            fs.closeSync(file)
+                        }
+                        throw Object.getPrototypeOf(Storage).quit
+                    }
 
                     // Request method is determined
                     let method = request.method.toUpperCase()
@@ -2695,7 +2775,7 @@ class ServerFactory {
                     if (request.headers.storage)
                         storage = request.headers.storage
                     if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                        (new Storage({request, response})).quit(400, "Bad Request", {"Message": "Invalid storage identifier"})
+                        (new Storage({request, response})).quit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
                     // The XPath is determined from REQUEST_URI.
                     // The XPath starts directly after the context path. To improve visual
@@ -2740,7 +2820,7 @@ class ServerFactory {
                             case "DELETE":
                                 storage.doDelete()
                             default:
-                                storage.quit(405, "Method Not Allowed", {"Allow": "OPTIONS, GET, POST, PUT, PATCH, DELETE"})
+                                storage.quit(405, "Method Not Allowed", {Allow: "OPTIONS, GET, POST, PUT, PATCH, DELETE"})
                         }
                     } finally {
                         storage.close()

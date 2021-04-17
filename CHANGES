@@ -17,6 +17,8 @@
   CR: Service: ACME optional redirect of paths outside the ACME challenge
       Supports static and dynamic redirects.
       Dynamic means that beginning from the path of the requested URL is appended to the redirect.
+  CR: Service: Added optional redirect of paths outside the API path
+  CR: Service: Added web server functionality outside the API path
 
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling
