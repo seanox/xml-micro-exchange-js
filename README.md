@@ -151,8 +151,8 @@ https://hub.docker.com/repository/docker/seanox/xmex
 __Please do not get confused, the API is online.  
 Requests without storage identifier (see [manual](manual/README.md#manual))
 are responded with status 400.__  
-see also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml)
-or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml)
+See also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml)
+or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml).
 
 
 
