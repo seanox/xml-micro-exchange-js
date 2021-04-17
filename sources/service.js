@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210415
+ * Service 1.3.0 20210417
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210415
+ * @version 1.3.0 20210417
  */
 const http = require("http")
 const https = require("https")
@@ -504,22 +504,13 @@ module.init = function() {
     }
 
     if (Object.exists(meta.connection.acme)) {
-        let acme = meta.connection.acme.trim()
-        acme = acme.split(/<+/)
-        if (acme.length > 1) {
-            module.connection.acme = {
-                challenge: {
-                    context: acme[0].trim(),
-                    response: acme[1].trim()
-                }
-            }
-        }
+        let acme = meta.connection.acme.match(/^\s*(.*?)(?:\s*<(.*?)(?:\s*!\s*(.*))?)?\s*$/)
+        if (acme && acme.length >= 4
+                && Object.exists(acme[1]) && acme[1].length > 0
+                && Object.exists(acme[2]) && acme[2].length > 0) {
+            meta.connection.acme = {context: acme[1], response: acme[2], redirect: acme[3]}
+        } else delete meta.connection.acme
     }
-
-    if (Object.exists(meta.connection.acme)
-            && Object.exists(meta.connection.acme.challenge))
-        meta.connection.acme = meta.connection.acme.challenge
-    else delete meta.connection.acme
 
     let parseOutputPhrase = (phrase) => {
         let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*)?$/)
@@ -2654,13 +2645,13 @@ class ServerFactory {
                 if (request.headers.storage)
                     storage = request.headers.storage
                 if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                    return;
+                    return
 
                 // Loading RequestBody is limited to the API only.
                 // It does not cause HTTP error status, the data is ignored.
                 let context = Object.exists(module.connection.context) ? module.connection.context : ""
                 if (!decodeURI(request.url).startsWith(context))
-                    return;
+                    return
 
                 if (!Object.exists(request.data))
                     request.data = ""
@@ -2825,7 +2816,7 @@ class ServerFactory {
                         }
 
                         if ((module.logging.access.format || "").toLowerCase() === "off")
-                            return;
+                            return
                         let date = new Date()
                         let logging = formatter(module.logging.access.format || "", date)
                         if (module.logging.access.file) {
@@ -2942,7 +2933,13 @@ if (module.connection.port !== "80"
                 response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
                 response.end(module.connection.acme.response)
             } else {
-                response.writeHead(404, "Resource Not Found")
+                if (Object.exists(module.connection.acme.redirect)
+                        && module.connection.acme.redirect.length > 0) {
+                    let location = module.connection.acme.redirect
+                    if (location.match(/\.{3,}$/))
+                        location = location.replace(/\.{3,}$/, request.url)
+                    response.writeHead(301, "Moved Permanently", {Location: location})
+                } else response.writeHead(404, "Resource Not Found")
                 response.end()
             }
         } catch (error1) {
