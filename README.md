@@ -168,7 +168,7 @@ and double memory.
   * [Windows Distribution](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#windows-distribution)
   * [Linux](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#linux)
   * [Container](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/installation.md#container)
-* [Configuration](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md)
+* [Configuration](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/configuration.md)
 * [Terms](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/terms.md)
 * [Getting Started](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/getting-started.md)
 * [API](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/api.md)
