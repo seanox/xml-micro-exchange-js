@@ -321,6 +321,17 @@ XPath.select = function(...variable) {
     }
 }
 
+http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
+    this.writeHead(status, message, headers)
+    if (Object.exists(data))
+        this.contentLength = data.length
+    this.end(data)
+}
+http.ServerResponse.prototype.exit = function(status, message, headers = undefined, data = undefined) {
+    this.quit(status, message, headers, data)
+    throw this
+}
+
 // DOM serialization is implemented very differently.
 // So that the result is the same and all rules are known, the
 // serialization itself was implemented.
@@ -2487,11 +2498,8 @@ class Storage {
             fs.appendFileSync("trace.log", trace)
         }}}
 
-        if (!this.response.headersSent) {
-            this.response.writeHead(status, message, headers)
-            this.response.contentLength = data.length
-            this.response.end(data)
-        }
+        if (!this.response.headersSent)
+            this.response.quit(status, message, headers, data)
 
         // The function and the response are complete.
         // The storage can be closed and the requests can be terminated.
@@ -2613,24 +2621,10 @@ class ServerFactory {
                 request.unique = request.unique.toUpperCase()
             }
 
-            try {
-                if (module.connection.acme
-                        && module.connection.acme.context
-                        && decodeURI(request.url) === module.connection.acme.context) {
-                    response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
-                    response.end(module.connection.acme.response)
-                    return
-                }
-            } catch (error1) {
-                console.error("Service", "#" + request.unique, error1)
-                try {
-                    response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
-                    response.end()
-                } catch (error2) {
-                    console.error("Service", "#" + request.unique, error2)
-                }
-                return
-            }
+            if (module.connection.acme
+                    && module.connection.acme.context
+                    && decodeURI(request.url) === module.connection.acme.context)
+                response.exit(200, "Success", {"Content-Length": module.connection.acme.response.length}, module.connection.acme.response)
 
             let dataLimit = Number.parseBytes(module.request["data-limit"])
             request.on("data", (data) => {
@@ -2674,7 +2668,7 @@ class ServerFactory {
                     request.data = Object.exists(request.data) ? request.data : ""
 
                     if (Object.exists(request.error))
-                        (new Storage({request, response})).exit(...request.error)
+                        response.exit(...request.error)
 
                     let context = Object.exists(module.connection.context) ? module.connection.context : ""
 
@@ -2696,7 +2690,7 @@ class ServerFactory {
                         let method = request.method.toUpperCase()
 
                         if (method === "OPTIONS")
-                            return (new Storage({request, response})).exit(200, "Success", {Allow: "OPTIONS, HEAD, GET"})
+                            response.exit(200, "Success", {Allow: "OPTIONS, HEAD, GET"})
 
                         if (Object.exists(module.content)
                                 && Object.exists(module.content.redirect)
@@ -2704,20 +2698,20 @@ class ServerFactory {
                             let location = module.content.redirect
                             if (location.match(/\.{3,}$/))
                                 location = location.replace(/\.{3,}$/, request.url)
-                            return (new Storage({request, response})).exit(301, "Moved Permanently", {Location: location})
+                            response.exit(301, "Moved Permanently", {Location: location})
                         }
 
                         if (!Object.exists(module.content)
                                 || !Object.exists(module.content.directory))
-                            return (new Storage({request, response})).exit(404, "Resource Not Found")
+                            response.exit(404, "Resource Not Found")
                         let target = path.normalize(decodeURI(request.url).trim()).replace(/\\+/g, "/")
                         target = module.content.directory + "/" + target
                         target = target.replace(/\/{2,}/g, "/")
                         if (!fs.existsSync(target))
-                            return (new Storage({request, response})).exit(404, "Resource Not Found")
+                            response.exit(404, "Resource Not Found")
                         if (!fs.lstatSync(target).isFile()
                                 && !fs.lstatSync(target).isDirectory())
-                            return (new Storage({request, response})).exit(404, "Resource Not Found")
+                            response.exit(404, "Resource Not Found")
 
                         if (fs.lstatSync(target).isDirectory()) {
                             if (Object.exists(module.content)
@@ -2732,13 +2726,13 @@ class ServerFactory {
                                     files.shift()
                                 }
                                 if (files.length <= 0)
-                                    return (new Storage({request, response})).exit(403, "Forbidden")
+                                    response.exit(403, "Forbidden")
                                 target += files[0]
-                            } else return (new Storage({request, response})).exit(403, "Forbidden")
+                            } else response.exit(403, "Forbidden")
                         }
 
                         if (!["OPTIONS", "HEAD", "GET"].includes(method))
-                            return (new Storage({request, response})).exit(405, "Method Not Allowed", {Allow: "OPTIONS, HEAD, GET"})
+                            response.exit(405, "Method Not Allowed", {Allow: "OPTIONS, HEAD, GET"})
 
                         target = fs.realpathSync(target)
                         let state = fs.lstatSync(target)
@@ -2747,7 +2741,7 @@ class ServerFactory {
                         headers["Content-Type"]   = Mime.contentType(target)
                         headers["Last-Modified"]  = new Date(state.mtimeMs).toUTCString()
                         if (method === "HEAD")
-                            return (new Storage({request, response})).exit(200, "Success", headers)
+                            response.exit(200, "Success", headers)
                         let file = fs.openSync(target, "r")
                         try {
                             response.writeHead(200, "Success", headers)
@@ -2769,13 +2763,13 @@ class ServerFactory {
                     if (method.toUpperCase() === "OPTIONS"
                             && request.headers.origin
                             && !request.headers.storage)
-                        (new Storage({request, response})).exit(200, "Success")
+                        response.exit(200, "Success")
 
                     let storage
                     if (request.headers.storage)
                         storage = request.headers.storage
                     if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
-                        (new Storage({request, response})).exit(400, "Bad Request", {Message: "Invalid storage identifier"})
+                        response.exit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
                     // The XPath is determined from REQUEST_URI.
                     // The XPath starts directly after the context path. To improve visual
@@ -2826,15 +2820,12 @@ class ServerFactory {
                         storage.close()
                     }
                 } catch (error1) {
-                    if (error1 === Storage.prototype.exit)
+                    if (error1 === Storage.prototype.exit
+                            || error1 === http.ServerResponse.prototype.exit)
                         return
-                    let storage = (new Storage({request, response}))
                     console.error("Service", "#" + request.unique, error1)
-                    try {storage.exit(500, "Internal Server Error", {"Error": "#" + request.unique})
-                    } catch (error2) {
-                        if (error2 !== Storage.prototype.exit)
-                            console.error("Service", "#" + request.unique, error2)
-                    }
+                    if (!response.headersSent)
+                        response.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
                 } finally {
                     (async () => {
                         let formatter = (format, date) => {
@@ -3009,27 +3000,21 @@ if (module.connection.port !== "80"
         request.unique = request.unique.toUpperCase()
 
         try {
-            if (decodeURI(request.url) === module.connection.acme.context) {
-                response.writeHead(200, "Success", {"Content-Length": module.connection.acme.response.length})
-                response.end(module.connection.acme.response)
-            } else {
-                if (Object.exists(module.connection.acme.redirect)
-                        && module.connection.acme.redirect.length > 0) {
-                    let location = module.connection.acme.redirect
-                    if (location.match(/\.{3,}$/))
-                        location = location.replace(/\.{3,}$/, request.url)
-                    response.writeHead(301, "Moved Permanently", {Location: location})
-                } else response.writeHead(404, "Resource Not Found")
-                response.end()
-            }
+            if (decodeURI(request.url) === module.connection.acme.context)
+                response.exit(200, "Success", {"Content-Length": module.connection.acme.response.length}, module.connection.acme.response)
+            if (!Object.exists(module.connection.acme.redirect)
+                    || module.connection.acme.redirect.length <= 0)
+                response.exit(404, "Resource Not Found")
+            let location = module.connection.acme.redirect
+            if (location.match(/\.{3,}$/))
+                location = location.replace(/\.{3,}$/, request.url)
+            response.exit(301, "Moved Permanently", {Location: location})
         } catch (error1) {
+            if (error1 === http.ServerResponse.prototype.exit)
+                return
             console.error("Service", "#" + request.unique, error1)
-            try {
-                response.writeHead(500, "Internal Server Error", {"Error": "#" + request.unique})
-                response.end()
-            } catch (error2) {
-                console.error("Service", "#" + request.unique, error2)
-            }
+            if (!response.headersSent)
+                response.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
         }
     })
 
