@@ -322,6 +322,8 @@ XPath.select = function(...variable) {
 }
 
 http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
+    if (this.headersSent)
+        return
     this.writeHead(status, message, headers)
     if (Object.exists(data))
         this.contentLength = data.length
@@ -547,7 +549,7 @@ class Streams {
         if (!Object.exists(stream.write$))
             stream.write$ = stream.write
         if (Object.exists(stream.write$target)
-            && stream.write$target === target)
+                && stream.write$target === target)
             return
         stream.write$target = target
         if (Object.exists(stream.write$stream))
@@ -1099,7 +1101,7 @@ class Storage {
         // because CONNECT is no HTTP standard.
         // The function call is executed and the request is terminated.
         if (!Object.exists(this.xpath)
-                  || this.xpath === "")
+                || this.xpath === "")
             this.doConnect()
 
         // Without existing storage the request is not valid.
@@ -2498,13 +2500,12 @@ class Storage {
             fs.appendFileSync("trace.log", trace)
         }}}
 
-        if (!this.response.headersSent)
-            this.response.quit(status, message, headers, data)
-
-        // The function and the response are complete.
-        // The storage can be closed and the requests can be terminated.
-        this.close()
-        throw Storage.prototype.exit
+        try {this.response.exit(status, message, headers, data)
+        } finally {
+            // The function and the response are complete.
+            // The storage can be closed and the requests can be terminated.
+            this.close()
+        }
     }
 }
 
@@ -2753,7 +2754,7 @@ class ServerFactory {
                         } finally {
                             fs.closeSync(file)
                         }
-                        throw Storage.prototype.exit
+                        throw http.ServerResponse.prototype.exit
                     }
 
                     // Request method is determined
