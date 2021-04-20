@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210418
+ * Service 1.3.0 20210420
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210418
+ * @version 1.3.0 20210420
  */
 const http = require("http")
 const https = require("https")
@@ -331,7 +331,7 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
 }
 http.ServerResponse.prototype.exit = function(status, message, headers = undefined, data = undefined) {
     this.quit(status, message, headers, data)
-    throw this
+    throw http.ServerResponse.prototype.exit
 }
 
 // DOM serialization is implemented very differently.
@@ -2691,7 +2691,7 @@ class ServerFactory {
                         let method = request.method.toUpperCase()
 
                         if (method === "OPTIONS")
-                            response.exit(200, "Success", {Allow: "OPTIONS, HEAD, GET"})
+                            response.exit(204, "Success", {Allow: "OPTIONS, HEAD, GET"})
 
                         if (Object.exists(module.content)
                                 && Object.exists(module.content.redirect)
@@ -2764,7 +2764,7 @@ class ServerFactory {
                     if (method.toUpperCase() === "OPTIONS"
                             && request.headers.origin
                             && !request.headers.storage)
-                        response.exit(200, "Success")
+                        response.exit(204, "Success")
 
                     let storage
                     if (request.headers.storage)
