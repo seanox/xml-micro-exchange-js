@@ -982,7 +982,7 @@ c0ba3fc266af0aafeed1714fcc06e321
 	c4ca4238a0b923820dcc509a6f75849b Trace-Response-Body-Hash
 	82b3b35537b168bf13df5a9fae83e9a5 Trace-Storage-Hash
 	eece212c0cac6f4fd0bf1914f324c8e5 Trace-XPath-Hash
-	count(/statistic//districts) 
+	count(/statistic//districts)
 	81e4218e46baec3efdbcca2f4e4d5db8 Trace-Composite-Hash
 896d0830830fc3c00660959f69e83593
 	Request Method:GET XPath:name(/statistic) Length:0
@@ -1763,18 +1763,18 @@ ce45d35e5927332972ac2ada46f83e9a
 	a0721c16c96f044d5d405fef10a701de Trace-XPath-Hash
 	/books
 	ce45d35e5927332972ac2ada46f83e9a Trace-Composite-Hash
-5d11a93555860ffafb883d603c34e187
+0058c7a5b05c404d1c3ff22121aa26f3
 	Request Method:OPTIONS XPath: Length:0
-	Response Status:200 Length:0
+	Response Status:204 Length:0
 	9e52ab2b14083692d3c529ae4554ef60 Trace-Request-Header-Hash
 	{"Method":"OPTIONS","URI":"/xmex!","Storage":"","Content-Length":"","Content-Type":""}
 	d41d8cd98f00b204e9800998ecf8427e Trace-Request-Body-Hash
-	6a3bb8530269fbce3cce6a91cfe392d5 Trace-Response-Header-Hash
-	[200,"Content-Length: 0"]
+	274ad4786c3abca69fa097b85867d9a4 Trace-Response-Header-Hash
+	[204]
 	d41d8cd98f00b204e9800998ecf8427e Trace-Response-Body-Hash
 	d41d8cd98f00b204e9800998ecf8427e Trace-Storage-Hash
 	d41d8cd98f00b204e9800998ecf8427e Trace-XPath-Hash
-	5d11a93555860ffafb883d603c34e187 Trace-Composite-Hash
+	0058c7a5b05c404d1c3ff22121aa26f3 Trace-Composite-Hash
 55ab1f09349ea71d695464b039b23bf3
 	Request Method:OPTIONS XPath: Length:0
 	Response Status:201 Length:0
