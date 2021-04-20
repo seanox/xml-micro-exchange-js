@@ -527,7 +527,7 @@ module.init = function() {
         } else delete meta.connection.acme
     }
 
-    let parseOutputPhrase = (phrase) => {
+    const parseOutputPhrase = (phrase) => {
         let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*)?$/)
         if (!output || output.length < 2)
             return undefined
@@ -573,7 +573,7 @@ class Streams {
             return
         if (Object.exists(stream.write$rotate))
             global.clearInterval(stream.write$rotate)
-        let callback = (stream, target) => {
+        const callback = (stream, target) => {
             target = new Date().toTimestampString(target)
             if (!Object.exists(stream.write$rotate$target)
                     || stream.write$rotate$target !== target) {
@@ -2185,7 +2185,7 @@ class Storage {
         // This is implemented for scanning and modification of headers.
         // To remove, the headers are set before, so that standard headers like
         // Content-Type are also removed correctly.
-        let fetchHeader = (headers, name, remove = false) => {
+        const fetchHeader = (headers, name, remove = false) => {
             if (!Object.exists(headers))
                 return
             let result = undefined
@@ -2340,7 +2340,7 @@ class Storage {
             // Therefore the code may use computing time or the implementation may
             // not be perfect.
 
-            let cryptoMD5 = (text) => {
+            const cryptoMD5 = (text) => {
                 return crypto.createHash("MD5").update(text).digest("hex")
             }
 
@@ -2570,7 +2570,7 @@ const Statistic = {
 // Synchronization is not required here, because the interval is only
 // triggered after the end of the method.
 global.setInterval(() => {
-    let summarize = (statistic, hour = undefined) => {
+    const summarize = (statistic, hour = undefined) => {
         let data = {requests:0, time:0, inbound:0, outbound:0, errors:0}
         if (!hour) {
             statistic.data.forEach((record) => {
@@ -2602,8 +2602,8 @@ global.setInterval(() => {
 
 class ServerFactory {
     static newInstance(module) {
-        let context = Object.exists(module.connection.options) ? https : http
-        let server = context.createServer(module.connection.options, (request, response) => {
+        const context = Object.exists(module.connection.options) ? https : http
+        const server = context.createServer(module.connection.options, (request, response) => {
 
             if (!Object.exists(request.unique)) {
 
@@ -2829,7 +2829,7 @@ class ServerFactory {
                         response.quit(500, "Internal Server Error", {"Error": "#" + request.unique})
                 } finally {
                     (async () => {
-                        let formatter = (format, date) => {
+                        const formatter = (format, date) => {
 
                             date = date || new Date()
 
@@ -2985,7 +2985,7 @@ if (Object.exists(module.connection)
 
 if (module.connection.port !== "80"
         && Object.exists(module.connection.acme)) {
-    let server = http.createServer((request, response) => {
+    const server = http.createServer((request, response) => {
 
         // The method is based on time, network port and the assumption that a
         // port is not used more than once at the same time. On fast platforms,
