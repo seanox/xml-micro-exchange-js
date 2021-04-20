@@ -322,8 +322,215 @@ XPath.select = function(...variable) {
 }
 
 http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
+
     if (this.headersSent)
         return
+
+    {{{
+
+        // Trace is primarily intended to simplify the validation of requests,
+        // their impact on storage and responses during testing.
+        // Based on hash values the correct function can be checked.
+        // In the released versions the implementation is completely removed.
+        // Therefore the code may use computing time or the implementation may
+        // not be perfect.
+
+        let stack = []
+        stack.response = this
+        stack.push$ = stack.push;
+        stack.push = function(header, content = undefined, trace = undefined) {
+            const cryptoMD5 = (text = "") => {
+                return crypto.createHash("MD5").update(text).digest("hex")
+            }
+            this.response.setHeader(header, cryptoMD5(content))
+            let extract = this.filter(entry => entry.header !== header)
+            this.splice(0, this.length)
+            this.push$(...extract, {header: header, hash: cryptoMD5(content), trace: trace})
+        }
+        stack.join = function(separator = undefined) {
+            let result = []
+            this.forEach(entry => {
+                result.push(entry.hash + " " + entry.header)
+                if (Object.exists(entry.trace)) {
+                    if (entry.trace.trim().length > 0)
+                        result.push(entry.trace.trim())
+                }
+            })
+            return result.join(separator)
+        }
+
+        let request = this.trace.request
+
+        // Request-Header-Hash
+        let trace = JSON.stringify({
+            "Method": request.method.toUpperCase(),
+            "URI": decodeURI(request.url),
+            "Storage": (request.headers["storage"] || ""),
+            "Content-Length": (request.headers["content-length"] || "").toUpperCase(),
+            "Content-Type": (request.headers["content-type"] || "").toUpperCase()
+        })
+        stack.push("Trace-Request-Header-Hash", trace, trace)
+
+        // Request-Body-Hash
+        trace = request.data
+        trace = trace.replace(/((\r\n)|(\n\r)|\r)+/g, "\n")
+        trace = trace.replace(/\t/g, " ")
+        stack.push("Trace-Request-Body-Hash", trace)
+
+        // Response-Header-Hash
+        // Only the XMEX relevant headers are used.
+        let composite = combined = {...this.getHeaders(), ...(headers || {})};
+        Object.keys(composite).forEach((header) => {
+            if (!["storage", "storage-revision", "storage-space",
+                    "allow", "content-length", "content-type", "message"].includes(header.toLowerCase()))
+                delete composite[header]
+        })
+
+        const fetchHeader = (headers, name) => {
+            if (!Object.exists(headers))
+                return
+            name = name.toLowerCase()
+            for (let key of Object.keys(headers))
+                if (key.toLowerCase() === name.toLowerCase())
+                    return headers[key]
+        }
+
+        // Storage-Effects are never the same with UIDs.
+        // Therefore, the UIDs are normalized and the header is simplified to
+        // make it comparable. To do this, it is only determined how many
+        // uniques there are, in which order they are arranged and which
+        // serials each unique has.
+        let serials = fetchHeader(headers, "Storage-Effects") || ""
+        if (serials) {
+            let counter = [0, 0, 0, 0]
+            let effects = {}
+            serials.split(/\s+/).forEach((uid) => {
+                uid = uid.split(/:/)
+                if (!Object.exists(effects[uid[0]]))
+                    effects[uid[0]] = []
+                effects[uid[0]].push(uid[1])
+                if (uid.length < 3)
+                    counter[3]++
+                else if (uid[2] === "A")
+                    counter[0]++
+                else if (uid[2] === "M")
+                    counter[1]++
+                else if (uid[2] === "D")
+                    counter[2]++
+            })
+            let keys = [...Object.keys(effects)]
+            keys.sort()
+            keys.forEach((key) => {
+                let value = effects[key]
+                value.sort((v1, v2) => parseInt(v1) -parseInt(v2))
+                delete effects[key]
+                effects[key] = value.join(":")
+            })
+            composite["Storage-Effects"] = `${counter[0]}xA/${counter[1]}xM/${counter[2]}xD/${counter[3]}xN`
+                    + " #" + Object.values(effects).join(" #")
+        }
+
+        // Connection-Unique header is unique and only checked for presence.
+        if (fetchHeader(headers, "Connection-Unique"))
+            composite["Connection-Unique"] = ""
+        trace = []
+        Object.entries(composite).forEach((entry) => {
+            const [key, value] = entry
+            trace.push(Object.exists(value) && String(value).trim() !== "" ? key + ": " + value : key)
+        })
+
+        // Status Message should not be used because different hashes may be
+        // calculated for tests on different web servers.
+        trace.push(status)
+        trace.sort()
+        stack.push("Trace-Response-Header-Hash", trace.join("\n"), JSON.stringify(trace))
+
+        // Response-Body-Hash
+        trace = Object.exists(data) ? String(data) : ""
+        trace = trace.replace(/((\r\n)|(\n\r)|\r)+/g, "\n")
+        trace = trace.replace(/\t/g, " ")
+
+        // The UID is variable and must be normalized so that the hash can be
+        // compared later. Therefore the uniques of the UIDs are collected in
+        // an array. The index in the array is then the new unique.
+        let uniques = []
+        trace = trace.replace(/\b(___uid(?:(?:=)|(?:"\s*:\s*))")([A-Z\d]+)(:[A-Z\d]+")/ig, (matched, prefix, unique, serial) => {
+            if (!uniques.includes(unique))
+                uniques.push(unique)
+            unique = uniques.indexOf(unique)
+            return prefix + unique + serial
+        })
+        stack.push("Trace-Response-Body-Hash", trace)
+
+        let storage;
+        if (Object.exists(this.trace.storage))
+            storage = this.trace.storage
+
+        stack.push("Trace-Storage-Hash", undefined)
+        stack.push("Trace-XPath-Hash", undefined)
+
+        if (Object.exists(storage)) {
+
+            // Storage-Hash
+            // Also the storage cannot be compared directly, because here the UID's
+            // use a unique changeable prefix. Therefore the XML is reloaded and
+            // all ___uid attributes are normalized. For this purpose, the unique
+            // of the UIDs is determined, sorted and then replaced by the index
+            // during sorting.
+            trace = storage.xml ? storage.serialize() : ""
+            if (trace) {
+                let xml = new DOMParser().parseFromString(trace, Storage.CONTENT_TYPE_XML)
+                uniques = []
+                let targets = XPath.select("//*[@___uid]", xml)
+                targets.forEach((target) => {
+                    uniques.push(target.getAttribute("___uid"))
+                })
+                uniques.sort()
+                uniques.forEach((uid, index) => {
+                    let target = XPath.select("//*[@___uid=\"" + uid + "\"]", xml)[0]
+                    target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index))
+                })
+                trace = storage.serialize(xml)
+            }
+            trace = trace.replace(/\s+/gs, " ")
+            trace = trace.replace(/\s+(?=[<>])/gs, "")
+            trace = trace.trim()
+            stack.push("Trace-Storage-Hash", trace)
+
+            stack.push("Trace-XPath-Hash", storage.xpath || "", storage.xpath || "")
+        }
+
+        trace = [
+            this.getHeader("Trace-Request-Header-Hash"),
+            this.getHeader("Trace-Request-Body-Hash"),
+            this.getHeader("Trace-Response-Header-Hash"),
+            this.getHeader("Trace-Response-Body-Hash"),
+            this.getHeader("Trace-Storage-Hash"),
+            this.getHeader("Trace-XPath-Hash")
+        ]
+        stack.push("Trace-Composite-Hash", trace.join(" "))
+
+        let xpath;
+        if (Object.exists(storage))
+            xpath = storage.xpath
+
+        trace = "\t" + stack.join(EOL + "\t") + EOL
+        if (Object.exists(storage)
+                && Object.exists(storage.xml)
+                && Object.exists(storage.xml.documentElement))
+            trace = "\tStorage Identifier: " + storage.storage + " Revision:" + storage.xml.documentElement.getAttribute("___rev") + " Space:" + storage.getSize() + EOL + trace
+        trace = "\tResponse Status:" + status + " Length:" + (data || "").length + EOL + trace
+        trace = "\tRequest Method:" + request.method.toUpperCase() + " XPath:" + (xpath || "") + " Length:" + request.data.length + EOL + trace
+        trace = this.getHeader("Trace-Composite-Hash") + EOL + trace
+
+        if (fs.existsSync("trace.log")
+                && fs.statSync("trace.log").size > 0
+                && (new Date().getTime() -fs.lstatSync("trace.log").mtimeMs  > 1000))
+            fs.appendFileSync("trace.log", EOL)
+        fs.appendFileSync("trace.log", trace)
+
+    }}}
+
     this.writeHead(status, message, headers)
     if (Object.exists(data))
         this.contentLength = data.length
@@ -786,6 +993,12 @@ class Storage {
         if (!fs.existsSync(Storage.DIRECTORY))
             fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
         let storage = new Storage(meta)
+
+        {{{
+            if (Object.exists(storage.response)
+                    && Object.exists(storage.response.trace))
+                storage.response.trace.storage = storage
+        }}}
 
         if (storage.exists()) {
             storage.open(meta.exclusive)
@@ -2331,175 +2544,6 @@ class Storage {
 
         headers["Execution-Time"] = (new Date().getTime() -this.request.timing) + " ms"
 
-        {{{
-
-            // Trace is primarily intended to simplify the validation of requests,
-            // their impact on storage and responses during testing.
-            // Based on hash values the correct function can be checked.
-            // In the released versions the implementation is completely removed.
-            // Therefore the code may use computing time or the implementation may
-            // not be perfect.
-
-            const cryptoMD5 = (text) => {
-                return crypto.createHash("MD5").update(text).digest("hex")
-            }
-
-            let trace = []
-
-            // Request-Header-Hash
-            let hash = JSON.stringify({
-                "Method": this.request.method.toUpperCase(),
-                "URI": decodeURI(this.request.url),
-                "Storage": (this.request.headers["storage"] || ""),
-                "Content-Length": (this.request.headers["content-length"] || "").toUpperCase(),
-                "Content-Type": (this.request.headers["content-type"] || "").toUpperCase()
-            })
-            headers["Trace-Request-Header-Hash"] = cryptoMD5(hash)
-            trace.push(cryptoMD5(hash) + " Trace-Request-Header-Hash", hash)
-
-            // Request-Body-Hash
-            hash = this.request.data
-            hash = hash.replace(/((\r\n)|(\n\r)|\r)+/g, "\n")
-            hash = hash.replace(/\t/g, " ")
-            headers["Trace-Request-Body-Hash"] = cryptoMD5(hash)
-            trace.push(cryptoMD5(hash) + " Trace-Request-Body-Hash")
-
-            // Response-Header-Hash
-            // Only the XMEX relevant headers are used.
-            let composite = {...headers}
-            Object.keys(composite).forEach((header) => {
-                if (!["storage", "storage-revision", "storage-space",
-                        "allow", "content-length", "content-type", "message"].includes(header.toLowerCase()))
-                    delete composite[header]
-            })
-
-            // Storage-Effects are never the same with UIDs.
-            // Therefore, the UIDs are normalized and the header is simplified to
-            // make it comparable. To do this, it is only determined how many
-            // uniques there are, in which order they are arranged and which
-            // serials each unique has.
-            let serials = fetchHeader(headers, "Storage-Effects", false)
-            serials = serials ? serials.value : ""
-            if (serials) {
-                let counter = [0, 0, 0, 0]
-                let effects = {}
-                serials.split(/\s+/).forEach((uid) => {
-                    uid = uid.split(/:/)
-                    if (!Object.exists(effects[uid[0]]))
-                        effects[uid[0]] = []
-                    effects[uid[0]].push(uid[1])
-                    if (uid.length < 3)
-                        counter[3]++
-                    else if (uid[2] === "A")
-                        counter[0]++
-                    else if (uid[2] === "M")
-                        counter[1]++
-                    else if (uid[2] === "D")
-                        counter[2]++
-                })
-                let keys = [...Object.keys(effects)]
-                keys.sort()
-                keys.forEach((key) => {
-                    let value = effects[key]
-                    value.sort((v1, v2) => parseInt(v1) -parseInt(v2))
-                    delete effects[key]
-                    effects[key] = value.join(":")
-                })
-                composite["Storage-Effects"] = `${counter[0]}xA/${counter[1]}xM/${counter[2]}xD/${counter[3]}xN`
-                    + " #" + Object.values(effects).join(" #")
-            }
-
-            // Connection-Unique header is unique and only checked for presence.
-            Object.keys(headers).forEach((header) => {
-                if (header.toLowerCase() === "connection-unique")
-                    composite[header] = ""
-            })
-
-            hash = []
-            Object.entries(composite).forEach((entry) => {
-                const [key, value] = entry
-                hash.push(Object.exists(value) && String(value).trim() !== "" ? key + ": " + value : key)
-            })
-
-            // Status Message should not be used because different hashes may be
-            // calculated for tests on different web servers.
-            hash.push(status)
-            hash.sort()
-            headers["Trace-Response-Header-Hash"] = cryptoMD5(hash.join("\n"))
-            trace.push(cryptoMD5(hash.join("\n")) + " Trace-Response-Header-Hash", JSON.stringify(hash))
-
-            // Response-Body-Hash
-            hash = data.replace(/((\r\n)|(\n\r)|\r)+/g, "\n")
-            hash = hash.replace(/\t/g, " ")
-            // The UID is variable and must be normalized so that the hash can be
-            // compared later. Therefore the uniques of the UIDs are collected in
-            // an array. The index in the array is then the new unique.
-            let uniques = []
-            hash = hash.replace(/\b(___uid(?:(?:=)|(?:"\s*:\s*))")([A-Z\d]+)(:[A-Z\d]+")/ig, (matched, prefix, unique, serial) => {
-                if (!uniques.includes(unique))
-                    uniques.push(unique)
-                unique = uniques.indexOf(unique)
-                return prefix + unique + serial
-            })
-            headers["Trace-Response-Body-Hash"] = cryptoMD5(hash)
-            trace.push(cryptoMD5(hash) + " Trace-Response-Body-Hash")
-
-            // Storage-Hash
-            // Also the storage cannot be compared directly, because here the UID's
-            // use a unique changeable prefix. Therefore the XML is reloaded and
-            // all ___uid attributes are normalized. For this purpose, the unique
-            // of the UIDs is determined, sorted and then replaced by the index
-            // during sorting.
-            hash = this.xml ? this.serialize() : ""
-            if (hash) {
-                let xml = new DOMParser().parseFromString(hash, Storage.CONTENT_TYPE_XML)
-                uniques = []
-                let targets = XPath.select("//*[@___uid]", xml)
-                targets.forEach((target) => {
-                    uniques.push(target.getAttribute("___uid"))
-                })
-                uniques.sort()
-                uniques.forEach((uid, index) => {
-                    let target = XPath.select("//*[@___uid=\"" + uid + "\"]", xml)[0]
-                    target.setAttribute("___uid", uid.replace(/^.*(?=:)/, index))
-                })
-                hash = this.serialize(xml)
-            }
-            hash = hash.replace(/\s+/gs, " ")
-            hash = hash.replace(/\s+(?=[<>])/gs, "")
-            hash = hash.trim()
-            headers["Trace-Storage-Hash"] = cryptoMD5(hash)
-            trace.push(cryptoMD5(hash) + " Trace-Storage-Hash")
-
-            headers["Trace-XPath-Hash"] = cryptoMD5(this.xpath || "")
-            trace.push(cryptoMD5(this.xpath || "") + " Trace-XPath-Hash", this.xpath || "")
-
-            hash = [
-                headers["Trace-Request-Header-Hash"],
-                headers["Trace-Request-Body-Hash"],
-                headers["Trace-Response-Header-Hash"],
-                headers["Trace-Response-Body-Hash"],
-                headers["Trace-Storage-Hash"],
-                headers["Trace-XPath-Hash"]
-            ]
-            headers["Trace-Composite-Hash"] = cryptoMD5(hash.join(" "))
-            trace.push(cryptoMD5(hash.join(" ")) + " Trace-Composite-Hash")
-            trace = trace.filter(entry => Object.exists(entry) && entry.trim().length > 0)
-
-            trace = "\t" + trace.join(EOL + "\t") + EOL
-            if (this.xml && this.xml.documentElement)
-                trace = "\tStorage Identifier: " + this.storage + " Revision:" + this.xml.documentElement.getAttribute("___rev") + " Space:" + this.getSize() + EOL + trace
-            trace = "\tResponse Status:" + status + " Length:" + (data || "").length + EOL + trace
-            trace = "\tRequest Method:" + this.request.method.toUpperCase() + " XPath:" + this.xpath + " Length:" + this.request.data.length + EOL + trace
-            trace = cryptoMD5(hash.join(" ")) + EOL + trace
-
-            if (fs.existsSync("trace.log")
-                    && fs.statSync("trace.log").size > 0
-                    && (new Date().getTime() -fs.lstatSync("trace.log").mtimeMs  > 1000))
-                fs.appendFileSync("trace.log", EOL)
-            fs.appendFileSync("trace.log", trace)
-        }}}
-
         try {this.response.exit(status, message, headers, data)
         } finally {
             // The function and the response are complete.
@@ -2621,6 +2665,12 @@ class ServerFactory {
                 request.unique = new Date().getTime().toString(36) + request.unique
                 request.unique = request.unique.toUpperCase()
             }
+
+            {{{
+                response.trace = {
+                    request: request
+                }
+            }}}
 
             if (module.connection.acme
                     && module.connection.acme.context

@@ -20,6 +20,7 @@
   CR: Service: Added optional redirect of paths outside the API path
   CR: Service: Added web server functionality outside the API path
   CR: Service: OPTIONS responds with 204 instead of 200
+  CR: Service: Optimization of tracing
 
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling
