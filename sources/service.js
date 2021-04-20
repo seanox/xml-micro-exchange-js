@@ -2691,7 +2691,7 @@ class ServerFactory {
                         let method = request.method.toUpperCase()
 
                         if (method === "OPTIONS")
-                            response.exit(204, "Success", {Allow: "OPTIONS, HEAD, GET"})
+                            response.exit(204, "No Content", {Allow: "OPTIONS, HEAD, GET"})
 
                         if (Object.exists(module.content)
                                 && Object.exists(module.content.redirect)
@@ -2764,7 +2764,7 @@ class ServerFactory {
                     if (method.toUpperCase() === "OPTIONS"
                             && request.headers.origin
                             && !request.headers.storage)
-                        response.exit(204, "Success")
+                        response.exit(204, "No Content")
 
                     let storage
                     if (request.headers.storage)
