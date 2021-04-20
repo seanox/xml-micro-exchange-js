@@ -362,13 +362,18 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
         let request = this.trace.request
 
         // Request-Header-Hash
-        let trace = JSON.stringify({
-            "Method": request.method.toUpperCase(),
-            "URI": decodeURI(request.url),
-            "Storage": (request.headers["storage"] || ""),
-            "Content-Length": (request.headers["content-length"] || "").toUpperCase(),
-            "Content-Type": (request.headers["content-type"] || "").toUpperCase()
-        })
+        let trace = {}
+        if (Object.exists(request.method))
+            trace["Method"] = request.method.toUpperCase()
+        if (Object.exists(request.url))
+            trace["URI"] = decodeURI(request.url)
+        if (Object.exists(request.headers["storage"]))
+            trace["Storage"] = request.headers["storage"]
+        if (Object.exists(request.headers["content-length"]))
+            trace["Content-Length"] = request.headers["content-length"].toUpperCase()
+        if (Object.exists(request.headers["content-type"]))
+            trace["Content-Type"] = request.headers["content-type"].toUpperCase()
+        trace = JSON.stringify(trace)
         stack.push("Trace-Request-Header-Hash", trace, trace)
 
         // Request-Body-Hash
