@@ -223,12 +223,13 @@ paths:
             type: string
             example: BookReview books
       responses:
-        200:
-          description: "CORS Access-Control preflight request."
         201:
           description: "Storage was newly created."
         204:
-          description: "Storage already exists."
+          description: "
+              Storage already exists<br>
+              or CORS Access-Control preflight request .
+            "
         400:
           description: "
               Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
