@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210420
+ * Service 1.3.0 20210422
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210420
+ * @version 1.3.0 20210422
  */
 const http = require("http")
 const https = require("https")
@@ -337,7 +337,7 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
 
         let stack = []
         stack.response = this
-        stack.push$ = stack.push;
+        stack.push$ = stack.push
         stack.push = function(header, content = undefined, trace = undefined) {
             const cryptoMD5 = (text = "") => {
                 return crypto.createHash("MD5").update(text).digest("hex")
@@ -384,7 +384,7 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
 
         // Response-Header-Hash
         // Only the XMEX relevant headers are used.
-        let composite = combined = {...this.getHeaders(), ...(headers || {})};
+        let composite = combined = {...this.getHeaders(), ...(headers || {})}
         Object.keys(composite).forEach((header) => {
             if (!["storage", "storage-revision", "storage-space",
                     "allow", "content-length", "content-type", "message"].includes(header.toLowerCase()))
@@ -467,7 +467,7 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
         })
         stack.push("Trace-Response-Body-Hash", trace)
 
-        let storage;
+        let storage
         if (Object.exists(this.trace.storage))
             storage = this.trace.storage
 
@@ -477,11 +477,11 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
         if (Object.exists(storage)) {
 
             // Storage-Hash
-            // Also the storage cannot be compared directly, because here the UID's
-            // use a unique changeable prefix. Therefore the XML is reloaded and
-            // all ___uid attributes are normalized. For this purpose, the unique
-            // of the UIDs is determined, sorted and then replaced by the index
-            // during sorting.
+            // Also the storage cannot be compared directly, because here the
+            // UID's use a unique changeable prefix. Therefore the XML is
+            // reloaded and all ___uid attributes are normalized. For this
+            // purpose, the unique of the UIDs is determined, sorted and then
+            // replaced by the index during sorting.
             trace = storage.xml ? storage.serialize() : ""
             if (trace) {
                 let xml = new DOMParser().parseFromString(trace, Storage.CONTENT_TYPE_XML)
@@ -515,7 +515,7 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
         ]
         stack.push("Trace-Composite-Hash", trace.join(" "))
 
-        let xpath;
+        let xpath
         if (Object.exists(storage))
             xpath = storage.xpath
 
@@ -533,6 +533,78 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
                 && (new Date().getTime() -fs.lstatSync("trace.log").mtimeMs  > 1000))
             fs.appendFileSync("trace.log", EOL)
         fs.appendFileSync("trace.log", trace)
+
+        // The trace function is only part of the version for development and
+        // test. With the final release version the test is not possible.
+        // Therefore, a smoke test scenario for the release version is created
+        // here.
+
+        if (!Object.exists(request.headers["trace"])
+                || request.headers["trace"] !== "Replay") {
+
+            let socket  = request.socket
+            let address = socket.address()
+
+            trace = []
+            trace.push("###")
+            trace.push(`${request.method} http${socket.encrypted ? "s": ""}://${address.address}:${address.port}${request.url}`)
+            for (let header of ["Storage", "Content-Type", "Accept-Effects", "Origin"])
+                if (Object.exists(request.headers[header.toLowerCase()]))
+                    trace.push(header + ": " + request.headers[header.toLowerCase()])
+            trace.push("Trace: Replay")
+            if (request.data)
+                trace.push("", request.data)
+
+            const checksum = (text) => {
+                let sum = 0x12345678
+                for (let index = 0; index < text.length; index++)
+                    sum += text.charCodeAt(index) *(index +1)
+                return (sum & 0xFFFFFFFF).toString(36).toUpperCase()
+            }
+
+            let hash = []
+            hash.push("A:" + status)
+            if (Object.exists(fetchHeader(headers, "Connection-Unique")))
+                hash.push("B:" + "X")
+            if (Object.exists(fetchHeader(headers, "Storage")))
+                hash.push("C:" + checksum(fetchHeader(headers, "Storage")))
+            if (Object.exists(fetchHeader(headers, "Storage-Revision")))
+                hash.push("D:" + fetchHeader(headers, "Storage-Revision"))
+            if (Object.exists(fetchHeader(headers, "Storage-Space")))
+                hash.push("E:" + fetchHeader(headers, "Storage-Space").replace(/\s+\w+$/, ""))
+            if (Object.exists(fetchHeader(headers, "Storage-Effects"))) {
+                let x = fetchHeader(headers, "Storage-Effects").split(/\s+/)
+                let a = x.filter(effect => effect.match(/:A$/i))
+                let m = x.filter(effect => effect.match(/:M$/i))
+                let d = x.filter(effect => effect.match(/:D$/i))
+                let n = x.filter(effect => !effect.match(/:[AMD]$/i))
+                hash.push("F:" + "A:" + a.length + "/M" + m.length + "/D:" + d.length + "/N:" + n.length)
+            }
+            if (Object.exists(fetchHeader(headers, "Error")))
+                hash.push("G:" + "X")
+            if (Object.exists(fetchHeader(headers, "Message")))
+                hash.push("H:" + checksum(fetchHeader(headers, "Message")))
+            if (Object.exists(fetchHeader(headers, "Content-Length")))
+                hash.push("I:" + fetchHeader(headers, "Content-Length"))
+            if (Object.exists(fetchHeader(headers, "Content-Type")))
+                hash.push("J:" + fetchHeader(headers, "Content-Type"))
+
+            trace.push("", "> {%")
+            if (!fs.existsSync("trace-cumulate.http")
+                    || fs.statSync("trace-cumulate.http").size <= 0)
+                trace.push(fs.readFileSync("trace-cumulate.js"))
+            trace.push("client.test(\"unittest\", function() {")
+            trace.push("    var pattern = \"" + hash.join(" ") + "\"")
+            trace.push("    var trace = eval(client.global.get(\"trace\"))(response)")
+            trace.push("    client.assert(trace === pattern, \"\\r\\n\\t\" + pattern + \" (pattern)\\r\\n\\t\" + trace)")
+            trace.push("});")
+            trace.push("%}")
+
+            if (fs.existsSync("trace-cumulate.http")
+                    && fs.statSync("trace-cumulate.http").size > 0)
+                fs.appendFileSync("trace-cumulate.http", EOL)
+            fs.appendFileSync("trace-cumulate.http", trace.join(EOL) + EOL)
+        }
 
     }}}
 
