@@ -2290,7 +2290,7 @@ Messages:
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51VY61 D:13 E:262144/1309 I:619 J:text/plain"
+    var pattern = "A:200 C:51VY61 D:13 E:262144/1309 I:589 J:text/plain"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4148,7 +4148,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:642 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:640 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4179,7 +4179,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:399 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:397 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4208,7 +4208,7 @@ Quarters of district: <xsl:value-of select="/district/@name"/>
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:290 J:text/plain"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:277 J:text/plain"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4600,7 +4600,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:44 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:40 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4624,7 +4624,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:61 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:56 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4684,7 +4684,7 @@ Quarters of district: <xsl:value-of select="/district/@name"/>
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:316 J:application/json"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:290 J:application/json"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4716,7 +4716,7 @@ Quarters of district: <xsl:value-of select="/district/@name"/>
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:398 J:text/plain"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:373 J:text/plain"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4739,7 +4739,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:125 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:114 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4762,7 +4762,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:100 J:text/plain"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:91 J:text/plain"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4784,7 +4784,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:44 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:40 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4807,7 +4807,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:44 J:application/xml"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:40 J:application/xml"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4830,7 +4830,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:6 J:text/plain"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:5 J:text/plain"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4854,7 +4854,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:20 J:text/html"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:18 J:text/html"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4968,7 +4968,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:10 J:application/json"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:8 J:application/json"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
@@ -4992,7 +4992,7 @@ Trace: Replay
 
 > {%
 client.test("unittest", function() {
-    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:20 J:text/html"
+    var pattern = "A:200 C:51ULGW D:1 E:262144/14362 I:18 J:text/html"
     var trace = eval(client.global.get("trace"))(response)
     client.assert(trace === pattern, "\r\n\t" + pattern + " (pattern)\r\n\t" + trace)
 });
