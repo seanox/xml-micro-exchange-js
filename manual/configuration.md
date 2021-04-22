@@ -18,6 +18,7 @@ TODO:
   * [ACME](#acme)  
   * [CORS](#cors)
   * [REQUEST](#request)
+  * [CONTENT](#content)  
   * [STORAGE](#storage)
   * [LOGGING](#logging)
 
@@ -86,6 +87,36 @@ In this section the request are configured.
 | Key                                | Value   | Description                                                                                                             |
 | :--------------------------------- | :------ | :---------------------------------------------------------------------------------------------------------------------- |
 | `DATA-LIMIT`                       | `1024k` | Maximum data size of the request (for all HTTP methods).<br/>An overflow is answered with status 415 Payload Too Large. |
+
+### CONTENT
+
+For responding to requests outside the XMEX API path, the integrated web server
+can be used. The directory `./docs` is the document root. The web server
+implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`.
+Default files can be specified when calling directories. A listing of directory
+contents (Directory Index) is not implemented. Requests from directories
+without default are responded with status 403.  
+Alternatively, static or dynamic forwarding can be configured.
+
+The web server function is disabled by default and is configured in
+`service.ini` in section `CONTENT`. Without the web server function, requests
+outside the XMEX API path are responded to with status 404.
+
+| Key         | Value                              | Description                                                                                                             |
+| :---------- | :--------------------------------- | :---------------------------------------- |
+| `REDIRECT`  | `https://example.local`            | Example of static redirect                |
+| `REDIRECT`  | `https://example.local...`         | Example of dynamic redirect               |
+| `DIRECTORY` | `./docs`                           | Root directory from web content           |
+| `DEFAULT`   | `index.htm index.html index.xhtml` | Default files when requesting directories |
+
+A `REDIRECT` has a higher priority than a content directory. The redirection is
+used for all requests that do not match the API path. The redirection can be
+static or dynamic if ends with `...` . Dynamic means that beginning from the
+path of the requested URL is appended to the redirect.
+
+Without `REDIRECT` or `DIRECTORY`, requests outside the URL of the API are
+responded with status 404 (Not Found). With `DIRECTORY`, a rudimentary web
+server implementation is used for the specified directory.
 
 ### STORAGE
 

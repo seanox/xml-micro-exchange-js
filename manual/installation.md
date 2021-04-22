@@ -11,7 +11,6 @@ this chapter.__
 
 ## Contents Overview
 
-* [Windows](#windows)
   * [libxml2](#libxml2)
   * [Node.js](#nodejs)
   * [Service](#service)   
@@ -101,7 +100,18 @@ Easier is use of the [Windows Distribution](#windows-distribution).
 
 ## Web Server
 
-TODO:
+For responding to requests outside the XMEX API path, the integrated web server
+can be used. The directory `./docs` is the document root. The web server
+implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`.
+Default files can be specified when calling directories. A listing of directory
+contents (Directory Index) is not implemented. Requests from directories
+without default are responded with status 403.  
+Alternatively, static or dynamic forwarding can be configured.
+
+The web server function is disabled by default and is configured in
+`service.ini` in section `CONTENT`. Without the web server function, requests
+outside the XMEX API path are responded to with status 404.
+
 
 # Windows Distribution
 
@@ -177,7 +187,7 @@ After unpacking, the following directory structure should be available.
   + data
   + docs 
   + logs
-  + tmp  
+  + temp  
   - service.js
   - service.cmd 
 ```
@@ -268,7 +278,19 @@ Overview of available commands for the daemon:
 
 ## Web Server
 
-TODO:
+For responding to requests outside the XMEX API path, the integrated web server
+can be used. The directory `./docs` is the document root. The web server
+implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`.
+Default files can be specified when calling directories. A listing of directory
+contents (Directory Index) is not implemented. Requests from directories
+without default are responded with status 403.  
+Alternatively, static or dynamic forwarding can be configured.  
+The web server function is disabled by default and is configured in
+`service.ini` in section `CONTENT`.
+
+The web server function is disabled by default and is configured in
+`service.ini` in section `CONTENT`. Without the web server function, requests
+outside the XMEX API path are responded to with status 404.
 
 
 # Container
@@ -306,22 +328,20 @@ http://localhost:8000/xmex!
     - <date>-error.log
     - <date>-output.log
     - ...
-  + tmp
+  + temp
     - ...  
   - service.js
 ```
 The directories `/xmex/conf`, `/xmex/data`, `/xmex/docs`, `/xmex/logs` and
-`/xmex/tmp` can be mapped, binded to other places or be changed and
+`/xmex/temp` can be mapped, binded to other places or be changed and
 overwritten in their own images. For the configuration of the service
 `/xmex/conf/service.ini` is used.
 
-The directory `/xmex/tmp` is used as temporary storage for the XSLT processor.
-The directory must be mapped if the container is used with a read-only file
-system. Location and name of the directory are not configurable. XMEX uses
-`/xmex/tmp` or `/xmex/temp` if they exist. Otherwise the working directory is
-used. At startup, the application tries to create the temporary directory
-itself if it does not exist. Under Windows this is `./temp` otherwise `./tmp`
-will be created.
+The directories `./data` and `./temp` need read-write access in the fil
+system. The `./data` directory is used for storage files and the `./temp`
+directory is used by the XSLT processor as a temporary data store and is not
+configurable. Both directories must be mapped if the container is used with a
+read-only file system.
 
 The directory `/xmex/docs` is used as place of the files for the integrated web
 server. This is used for requests outside of the XMEX API path. This function
