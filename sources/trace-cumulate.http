@@ -4,6 +4,8 @@ Storage: UnitTest_Storage_DA books
 Content-Type: text/plain
 Trace: Replay
 
+test
+
 > {%
 client.global.set("trace", function(response) {
 
@@ -6948,6 +6950,8 @@ POST http://127.0.0.1:8000/invalid
 Content-Type: text/plain
 Trace: Replay
 
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
 > {%
 client.test("unittest", function() {
     var pattern = "A:404"
@@ -6962,6 +6966,8 @@ Storage: UnitTest_Storage_R0 books
 Content-Type: text/plain
 Trace: Replay
 
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
 > {%
 client.test("unittest", function() {
     var pattern = "A:404"
@@ -6974,6 +6980,8 @@ client.test("unittest", function() {
 GET http://127.0.0.1:8000/invalid
 Content-Type: text/plain
 Trace: Replay
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 > {%
 client.test("unittest", function() {
@@ -6988,6 +6996,8 @@ GET http://127.0.0.1:8000/invalid
 Storage: UnitTest_Storage_R0 books
 Content-Type: text/plain
 Trace: Replay
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 > {%
 client.test("unittest", function() {
@@ -7002,6 +7012,8 @@ GET http://127.0.0.1:8000/xmex!/books
 Storage: UnitTest_Storage_R0 books
 Content-Type: text/plain
 Trace: Replay
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 > {%
 client.test("unittest", function() {
