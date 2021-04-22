@@ -319,7 +319,9 @@ The directory `/xmex/tmp` is used as temporary storage for the XSLT processor.
 The directory must be mapped if the container is used with a read-only file
 system. Location and name of the directory are not configurable. XMEX uses
 `/xmex/tmp` or `/xmex/temp` if they exist. Otherwise the working directory is
-used.
+used. At startup, the application tries to create the temporary directory
+itself if it does not exist. Under Windows this is `./temp` otherwise `./tmp`
+will be created.
 
 The directory `/xmex/docs` is used as place of the files for the integrated web
 server. This is used for requests outside of the XMEX API path. This function
