@@ -15,23 +15,26 @@ this chapter.__
   * [libxml2](#libxml2)
   * [Node.js](#nodejs)
   * [Service](#service)   
+  * [Web Server](#web-server)
 * [Windows Distribution](#windows-distribution)
 * [Linux](#linux)
   * [libxml2](#libxml2-1)
   * [Node.js](#nodejs-1)
   * [Daemon](#daemon)
+  * [Web Server](#web-server-1)
 * [Container](#container)
 
 
 # Windows
 
-The setup for Windows is described here in an installation-free version.  
+The setup for Windows is described here in an installation-free version.
 Therefore the location in the file system is relative and can be freely chosen
 and so the following directory structure is only an example.
 
 ```
 + xmex
   + data 
+  + docs
   + libxml2
     - libxml2-2.dll
     - libxslt-1.dll
@@ -44,6 +47,7 @@ and so the following directory structure is only an example.
   + nssm
     - nssm.exe
     - ...
+  + temp  
   - service.js
   - service.cmd 
 ```
@@ -85,6 +89,7 @@ directory as follows.
 ./node/node service.js 
 ```
 
+
 ## Service
 
 Using Seanox XMEX as a Windows service is completely optional. Here the use
@@ -94,6 +99,9 @@ For installation, follow the instructions on the manufacturer's page.
 
 Easier is use of the [Windows Distribution](#windows-distribution).
 
+## Web Server
+
+TODO:
 
 # Windows Distribution
 
@@ -115,7 +123,7 @@ rights required for the program directory are set during installation.
 The parameters to configure the service have been bundled in the batch file and
 are easily accessible.
 
-To install the service, the batch file `service.cmd` is used.  
+To install the service, the batch file `service.cmd` is used. 
 To do this, open the console (shell/prompt) as administrator and change to the
 application directory and call the batch file with the desired function.
 
@@ -166,8 +174,10 @@ After unpacking, the following directory structure should be available.
 
 ```
 + xmex
-  + data 
-  + logs  
+  + data
+  + docs 
+  + logs
+  + tmp  
   - service.js
   - service.cmd 
 ```
@@ -256,6 +266,10 @@ Overview of available commands for the daemon:
 | `sudo systemctl daemon-reload` | Reconfigures the daemon.         |
 | `journalctl -u xmex`           | Shows the logging of the daemon. |
 
+## Web Server
+
+TODO:
+
 
 # Container
 
@@ -285,16 +299,31 @@ http://localhost:8000/xmex!
   + data
     - <storage>.xml
     - ...
+  + docs
+    - ...  
   + logs
     - <date>-<host>-access.log
     - <date>-error.log
     - <date>-output.log
     - ...
+  + tmp
+    - ...  
   - service.js
 ```
-The directories `/xmex/conf`, `/xmex/data`, `/xmex/logs` can be mapped, binded
-to other places or be changed and overwritten in their own images. For the
-configuration of the service `/xmex/conf/service.ini` is used.  
+The directories `/xmex/conf`, `/xmex/data`, `/xmex/docs`, `/xmex/logs` and
+`/xmex/tmp` can be mapped, binded to other places or be changed and
+overwritten in their own images. For the configuration of the service
+`/xmex/conf/service.ini` is used.
+
+The directory `/xmex/tmp` is used as temporary storage for the XSLT processor.
+The directory must be mapped if the container is used with a read-only file
+system. Location and name of the directory are not configurable. XMEX uses
+`/xmex/tmp` or `/xmex/temp` if they exist. Otherwise the working directory is
+used.
+
+The directory `/xmex/docs` is used as place of the files for the integrated web
+server. This is used for requests outside of the XMEX API path. This function
+must be enabled and configured in the `service.ini` section `CONTENT`.
 
 
 
