@@ -13,9 +13,12 @@ ARG WORKDIR=/xmex
 ARG USER=nobody
 
 WORKDIR $WORKDIR
-RUN chown -R $USER $WORKDIR
 COPY ./sources/service-build.js ./service.js
-COPY ./sources/service.ini      ./conf/
+COPY ./sources/service.ini      ./conf/service.ini
+RUN mkdir ./data
+RUN mkdir ./docs
+RUN mkdir ./temp
+RUN chown -R $USER $WORKDIR
 
 USER $USER
 EXPOSE 8000

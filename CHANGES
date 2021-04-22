@@ -8,6 +8,10 @@
       Fragments (PUT/PATCH) uses application/xml
       XML output uses application/xml
       XSLT input (POST) uses application/xslt+xml
+  BF: Docker: Initial creation of all subdirectories
+      ./conf, ./data, ./docs, ./temp
+  BF: Docker: Use of the subdirectory ./temp for the XSLT processor
+      This is important if the container uses a read-only file system.
   CR: Service: Restriction on reading/using the RequestBody
       The RequestBody is only read/used:
       - if PATCH/PUT/POST methods are used
