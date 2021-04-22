@@ -552,8 +552,8 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
                 if (Object.exists(request.headers[header.toLowerCase()]))
                     trace.push(header + ": " + request.headers[header.toLowerCase()])
             trace.push("Trace: Replay")
-            if (request.data)
-                trace.push("", request.data)
+            if (this.trace.data)
+                trace.push("", this.trace.data)
 
             const checksum = (text) => {
                 let sum = 0x12345678
@@ -823,6 +823,9 @@ module.init = function() {
         meta.logging.error = parseOutputPhrase(meta.logging.error)
     if (Object.exists(meta.logging.access))
         meta.logging.access = parseOutputPhrase(meta.logging.access)
+
+    if (!fs.existsSync(Storage.TEMP))
+        fs.mkdirSync(Storage.TEMP, {recursive:true, mode:0o755})
 }
 
 module.init()
@@ -903,6 +906,10 @@ class Storage {
      */
     static get CORS() {
         return module.cors || {}
+    }
+
+    static get TEMP() {
+        return "./temp/"
     }
 
     /**
@@ -1174,7 +1181,10 @@ class Storage {
 
         if (!Object.exists(this.request.temp))
             this.request.temp = []
-        let unique = "___temp_" + this.unique + "_" + (++this.serial)
+        let temp = ""
+        if (fs.existsSync(Storage.TEMP))
+            temp = Storage.TEMP
+        let unique = temp + "___temp_" + this.unique + "_" + (++this.serial)
         this.request.temp.push(unique)
         return unique
     }
@@ -1647,7 +1657,7 @@ class Storage {
         let output = child.spawnSyncExt(XsltProc, [tempStyle, tempXml], Storage.XML.ENCODING)
         if (output instanceof Error) {
             let message = output.message.split(/[\r\n]+/)[0]
-            message = message.replace(/\s*(file\s+)?___temp_[\w\:]+\s*/ig, " ").trim()
+            message = message.replace(/\s*(file\s+)?([\.\/\w]+\/)?___temp_[\w\:]+\s*/ig, " ").trim()
             message = message.replace(/\s+(?=:)/g, "")
             message = "Transformation failed (" + message.trim() + ")"
             this.exit(422, "Unprocessable Entity", {Message: message})
@@ -2653,27 +2663,24 @@ console.log("Seanox XML-Micro-Exchange [Version #[ant:release-version] #[ant:rel
 console.log("Copyright (C) #[ant:release-year] Seanox Software Solutions")
 
 const XsltProc = (() => {
-    var locate
-    var output
-    locate = "./libxml2/xsltproc"
-    output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
-    if (Object.exists(output)
-            && !(output instanceof Error))
-        return locate
-    locate = "./libxml/xsltproc"
-    output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
-    if (Object.exists(output)
-            && !(output instanceof Error))
-        return locate
-    if (process.env.LIBXML_HOME || process.env.LIBXML2_HOME || process.env.XSLTPROC_HOME) {
-        locate = (process.env.LIBXML_HOME || process.env.LIBXML2_HOME || process.env.XSLTPROC_HOME) + "/xsltproc"
-        output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+
+    for (let locate of ["./libxml2/xsltproc", "./libxml/xsltproc"]) {
+        let output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
         if (Object.exists(output)
                 && !(output instanceof Error))
             return locate
     }
-    locate = "xsltproc"
-    output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+
+    if (process.env.LIBXML_HOME || process.env.LIBXML2_HOME || process.env.XSLTPROC_HOME) {
+        let locate = (process.env.LIBXML_HOME || process.env.LIBXML2_HOME || process.env.XSLTPROC_HOME) + "/xsltproc"
+        let output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
+        if (Object.exists(output)
+                && !(output instanceof Error))
+            return locate
+    }
+
+    let locate = "xsltproc"
+    let output = child.spawnSyncExt(locate, ["--version"], Storage.XML.ENCODING)
     if (Object.exists(output)
             && !(output instanceof Error))
         return locate
@@ -2756,6 +2763,12 @@ class ServerFactory {
 
             let dataLimit = Number.parseBytes(module.request["data-limit"])
             request.on("data", (data) => {
+
+                {{{
+                    if (!Object.exists(response.trace.data))
+                        response.trace.data = ""
+                    response.trace.data += data
+                }}}
 
                 // Loading RequestBody is limited to the methods PATH/PUT/POST.
                 // It does not cause HTTP error status, the data is ignored.

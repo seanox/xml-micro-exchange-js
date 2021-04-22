@@ -25,6 +25,8 @@
   CR: Service: Added web server functionality outside the API path
   CR: Service: OPTIONS responds with 204 instead of 200
   CR: Service: Optimization of tracing
+  CR: Service: Moving the temporary data from XLST process to ./temp
+  CR: Service: Added creation from ./temp directory at startup
 
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling
