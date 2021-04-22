@@ -1,7 +1,7 @@
 # The Dockerfile uses multi-stages and targets for different environments
 #     Usage:
 # docker build -t xmex:test --target test .
-# docker build -t xmex:integration --target integration .
+# docker build -t xmex:review --target review .
 # docker build -t xmex:release --target release .
 
 FROM node:lts-alpine AS release
@@ -23,18 +23,21 @@ CMD node service.js ./conf/service.ini
 
 
 
-# Integration is the release version with test mode enabled.
-# This is used for the final integration test before a release.
+# Review is the release version with test mode enabled.
+# This is used for the review before a release.
+# Review uses the release build with trace outputs.
+# In addition, it creates trace-cumulate.http for the final smoke test.
 
-# docker kill xmex-integration
-# docker build -t xmex:integration --target integration .
-# docker run -d -p 8000:8000/tcp --rm --name xmex-integration xmex:integration
+# docker kill xmex-review
+# docker build -t xmex:review --target review .
+# docker run -d -p 8000:8000/tcp --rm --name xmex-review xmex:review
 #     after that manual start of ./test/cumulated.http in IntelliJ / WebStorm
-# docker exec -it xmex-integration sh
-# docker logs xmex-integration
-# docker cp xmex-integration:/xmex/trace.log ./sources/trace-docker.log
-# docker kill xmex-integration
-FROM node:lts-alpine AS integration
+# docker exec -it xmex-review sh
+# docker logs xmex-review
+# docker cp xmex-review:/xmex/trace.log ./sources/trace-docker.log
+# docker cp xmex-review:/xmex/trace-cumulate.http ./sources/trace-cumulate.http
+# docker kill xmex-review
+FROM node:lts-alpine AS review
 RUN apk update
 RUN apk add libxml2
 RUN apk add libxslt
@@ -43,9 +46,10 @@ ARG WORKDIR=/xmex
 ARG USER=nobody
 
 WORKDIR $WORKDIR
-RUN chown -R $USER $WORKDIR
 COPY ./sources/service-build-test.js ./service.js
+COPY ./sources/trace-cumulate.js     ./trace-cumulate.js
 COPY ./sources/service.ini           ./conf/
+RUN chown -R $USER $WORKDIR
 
 USER $USER
 EXPOSE 8000
