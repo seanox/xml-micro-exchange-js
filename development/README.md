@@ -12,27 +12,47 @@
   `cd /test`  
   `node cumulate.js`
 ---
+
+
 - Clear all Docker imgaes  
   `docker system prune -a`
 - Execute `ant release`  
 ---
+
+
 - Start the service locally  
   `cd /sources`  
   `node service.js`
 - Execute `./test/cumulate.http` (local)
 - Compare `./sources/trace.log` with the version in GitHub
 ---
-- Start the integration test  
-  Start `ant docker-integration` 
+
+
+- Start the release review  
+  Start `ant docker-review` 
 - Execute `./test/cumulate.http` (local Docker)
 - Update trace-docker.log  
-  `docker cp xmex-integration:/xmex/trace.log ../sources/trace-docker.log` 
+  `docker cp xmex-review:/xmex/trace.log ../sources/trace-docker.log`  
+  `docker cp xmex-review:/xmex/trace-cumulate.http ../sources/trace-cumulate.http`
 - Compare `./sources/trace-docker.log` with the version in GitHub  
   Ignore the test results, only the comparison of the trace files is relevant.
   The tests may differ due to the different operating systems and components
   e.g. line endings causing the hash values to differ. However, it is
   considered in the trace.
 ---
+
+
+- Start the release   
+  Start `ant docker-release`
+- Emtpty `./sources/trace.log`  
+- Execute `./sources/trace-cumulate.http` (local Docker)
+- Update trace-docker.log  
+  `docker cp xmex-review:/xmex/trace.log ../sources/trace-docker.log`  
+- Compare `./sources/trace-docker.log` with the version in GitHub  
+  __Unlike trace-cumulate.http, no errors should occur here.__
+---
+
+
 - Install seanox-xmex-win-latest.zip  
   e.g. unzip into C:\Temp\xmex
 - Add Node.js in to ./xmex/node  
@@ -53,12 +73,16 @@
   `service.cmd uninstall`
 - Remove the installation  
 ---
+
+
 - Finalize the version in CHANGES  
 - Execute `ant release`
 - Check the ./xml-micro-exchange-js/.credentials
   The properties are needed for the Docker image release!
 - Execute `ant docker-push-release`  
 ---
+
+
 - Add new version (zip) to SCM
 - Commit with comment `Release x.x.x`
 - Git Create tag `x.x.x` (comment: x.x.x)
