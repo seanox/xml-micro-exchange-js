@@ -98,7 +98,7 @@ Message                    Detailed error message with status 400 / 422
 </ol>
 <br>
   "
-  termsOfService: "https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/TERMS%20OF%20SERVICE"
+  termsOfService: "https://xmex.seanox.com/terms.html"
   contact:
     email: "xmex@seanox.com"
   license:

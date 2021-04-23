@@ -24,6 +24,7 @@
       }
       button {
         width: 25px;
+        height: 30px;
       }
       button[id] {
         width: 50px;
@@ -125,8 +126,7 @@
                           + "</players>\n"
                           + "<board rows=\"" + SnakeService.BOARD_ROWS + "\" cols=\"" + SnakeService.BOARD_COLS + "\"/>"
                   );
-                  if (request.status != 204
-                          && request.status != 404)
+                  if (request.status != 204)
                       throw {message: "Service storage failed", request: request};
               },
 
@@ -202,7 +202,8 @@
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "application/xml");
                       request.send(update);
-                      if (request.status == 404) {
+                      if (request.status == 204
+                              && !(request.getResponseHeader("Storage-Effects") || "")) {
                           var last = SnakeService.points[1];
                           SnakeService.points = null;
                           SnakeService.direction = null;
@@ -326,7 +327,8 @@
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "text/plain");
                       request.send(SnakeService.getTime());
-                      if (request.status == 404) {
+                      if (request.status == 204
+                              && !(request.getResponseHeader("Storage-Effects") || "")) {
                           window.setTimeout(join, SnakeService.WAIT, timeout);
                           return;
                       }
@@ -349,7 +351,8 @@
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                           request.setRequestHeader("Content-Type", "application/xml");
                           request.send(patch);
-                          if (request.status == 404) {
+                          if (request.status == 204
+                                  && !(request.getResponseHeader("Storage-Effects") || "")) {
                               window.setTimeout(start, SnakeService.WAIT);
                               return;
                           }

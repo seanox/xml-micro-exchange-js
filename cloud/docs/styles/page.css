@@ -7,3 +7,11 @@ body {
 a[href] {
     color: #6495ED;
 }
+
+h1 a + a,
+h2 a + a,
+h3 a + a,
+h4 a + a,
+h5 a + a {
+    margin-left: 0.5em;
+}
