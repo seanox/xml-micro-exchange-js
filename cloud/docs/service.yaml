@@ -3,8 +3,8 @@ info:
   title: "Seanox XMEX - XML-Micro-Exchange"
   version: "1.3.0"
   description: "
-XML-Micro-Exchange is a volatile NoSQL stateless micro datasource for the
-Internet. It is designed for easy communication and data exchange of
+XML-Micro-Exchange is a RESTful volatile NoSQL stateless micro datasource for
+the Internet. It is designed for easy communication and data exchange of
 web-applications and for IoT or for other Internet-based modules and
 components. The XML based datasource is volatile and lives through continuous
 use and expires through inactivity. They are designed for active and near
@@ -40,8 +40,8 @@ https://xmex.seanox.com/xmex!Base64:Y291bnQoLy9pdGVtc1tAaWQ8MF0p<br>
 The request supports the following additional headers:
 
 <pre>
-Storage                   Storage identifier optional with name of the root element<br>
-Accept-Effects            Controls the content of Storage Effects header<br>
+Storage                    Storage identifier optional with name of the root element<br>
+Accept-Effects             Controls the content of Storage Effects header<br>
 </pre>
 
 Also the reponse has additional headers:
@@ -68,32 +68,40 @@ Message                    Detailed error message with status 400 / 422
 <h2>Usage</h2>
 <ol>
   <li>
-    The storage must be opened by OPTIONS.<br>
-    This can be done by any client, even if the storage already exists. The
-    response then contains the header <code>Connection-Unique</code>. This is unique
-    across all storages and can be used by the client to identify its own data
-    in the storage. But this is optional and <code>Connection-Unique</code> is neither
-    assigned to the client nor to the connection, it is just a unique value.
+    <p>
+      The storage must be opened by OPTIONS.<br>
+      This can be done by any client, even if the storage already exists. The
+      response then contains the header <code>Connection-Unique</code>. This is unique
+      across all storages and can be used by the client to identify its own data
+      in the storage. But this is optional and <code>Connection-Unique</code> is neither
+      assigned to the client nor to the connection, it is just a unique value.
+    </p>
   </li>
   <li>
-    The client should always proceed as if it were using storage alone and
-    created the schema it needs.<br>
-    The creation of the schema is done with PUT. Relative and conditional axes
-    should be used as targets. This ensures that no duplicates are created or
-    data is overwritten.<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        e.g. <code>PUT /books[not(book[@title='A Modern Utopia'])]::last</code><br>
-    This approach made transactions unnecessary.
+    <p>
+      The client should always proceed as if it were using storage alone and
+      created the schema it needs.<br>
+      The creation of the schema is done with PUT. Relative and conditional axes
+      should be used as targets. This ensures that no duplicates are created or
+      data is overwritten.<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          e.g. <code>PUT /books[not(book[@title='A Modern Utopia'])]::last</code><br>
+      This approach made transactions unnecessary.
+    </p>
   </li>
   <li>
-    Now the client can use the storage.
+    <p>
+      Now the client can use the storage.
+    </p>
   </li>
   <li>
-    Closing or terminating the storage is not possible and required.<br>
-    The storage expires automatically due to inactivity. The duration of use
-    and expiration time of the storage is contained in the response in the
-    headers <code>Storage-Last-Modified</code>, <code>Storage-Expiration</code>,
-    <code>Storage-Expiration-Time</code>.
+    <p>
+      Closing or terminating the storage is not possible and required.<br>
+      The storage expires automatically due to inactivity. The duration of use
+      and expiration time of the storage is contained in the response in the
+      headers <code>Storage-Last-Modified</code>, <code>Storage-Expiration</code>,
+      <code>Storage-Expiration-Time</code>.
+    </p>
   </li>
 </ol>
 <br>

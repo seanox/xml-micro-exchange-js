@@ -7,11 +7,7 @@ body {
 a[href] {
     color: #6495ED;
 }
-
-h1 a + a,
-h2 a + a,
-h3 a + a,
-h4 a + a,
-h5 a + a {
-    margin-left: 0.5em;
+h3 {
+  border-bottom: 1px solid #DDDDDD;
+  padding-bottom: 0.25em;
 }

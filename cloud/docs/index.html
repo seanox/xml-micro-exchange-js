@@ -35,19 +35,146 @@
       <strong>No one is a server or master, all are equal and no one has to know the other.</strong><br>
       <strong>All meet without obligation.</strong></p>
 
-    <h3><a href="terms.html">Terms of Service</a></h3>
+    <h3>API</h3>
+    <p>
+      HTTP is used. The URI typically contains a noticeable separator to divide
+      it into context path and XPath. For the API only the XPath is relevant.
+    </p>
+    <pre>
+https://xmex.seanox.com/xmex!xpath(-function)
+<-------------------------->|<-------------->
+        Context Path              XPath
+    </pre>
+    <p>
+      In some cases, the XPath syntax may not be supported as a URI by the
+      client or provider. In these cases, the XPath can alternatively be used
+      as a query string or hexadecimal or Base64 encoded.
+    </p>
+    <pre>
+https://xmex.seanox.com/xmex!count(//items[@id<0])
+https://xmex.seanox.com/xmex!count(%2F%2Fitems[@id<0])
+https://xmex.seanox.com/xmex!0x636F756E74282F2F6974656D735B4069643C305D29
+https://xmex.seanox.com/xmex!Base64:Y291bnQoLy9pdGVtc1tAaWQ8MF0p
+    </pre>
+    <p>
+      The request supports the following additional headers:
+    </p>
+    <pre>
+Storage                    Storage identifier optional with name of the root element
+Accept-Effects             Controls the content of Storage Effects header
+    </pre>
+    <p>
+      Also the reponse has additional headers:
+    </p>
+    <pre>
+Connection-Unique          Unique ID created by the API to mark client owner data
+Storage                    Storage identifier without the name of the root element
+Storage-Revision           Current revision of the storage
+Storage-Space              Capacity of the storage (total/used in bytes)
+Storage-Last-Modified      Timestamp (RFC822) of the last access
+Storage-Expiration         Timestamp (RFC822) when the storage will expire
+Storage-Expiration-Time    Idle time in milliseconds until storage expires
+Storage-Effects            For PUT/PATCH/DELETE, UUIDs directly affected by the request
+Execution-Time             Duration of request processing in milliseconds
+Error                      Unique error number from the logging with status 500
+Message                    Detailed error message with status 400 / 422
+    </pre>
+    <p>
+      <strong>
+        Notice about response code 404: This always refers to the storage, but never
+        to an addressed target in the storage.<br>
+        If a target does not exist, requests are responded to with code 204.
+      </strong>
+    </p>
 
-    <h3><a href="privacy.html">Privacy Policy</a></h3>
+    <h3>Usage</h3>
+    <ol>
+      <li>
+        <p>
+          The storage must be opened by OPTIONS.<br>
+          This can be done by any client, even if the storage already exists. The
+          response then contains the header <code>Connection-Unique</code>. This is unique
+          across all storages and can be used by the client to identify its own data
+          in the storage. But this is optional and <code>Connection-Unique</code> is neither
+          assigned to the client nor to the connection, it is just a unique value.
+        </p>
+      </li>
+      <li>
+        <p>
+          The client should always proceed as if it were using storage alone and
+          created the schema it needs.<br>
+          The creation of the schema is done with PUT. Relative and conditional axes
+          should be used as targets. This ensures that no duplicates are created or
+          data is overwritten.<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          e.g. <code>PUT /books[not(book[@title='A Modern Utopia'])]::last</code><br>
+          This approach made transactions unnecessary.
+        </p>
+      </li>
+      <li>
+        <p>
+          Now the client can use the storage.
+        </p>
+      </li>
+      <li>
+        <p>
+          Closing or terminating the storage is not possible and required.<br>
+          The storage expires automatically due to inactivity. The duration of use
+          and expiration time of the storage is contained in the response in the
+          headers <code>Storage-Last-Modified</code>, <code>Storage-Expiration</code>,
+          <code>Storage-Expiration-Time</code>.
+        </p>
+      </li>
+    </ol>
 
-    <h3><a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/README.md" target="_extern">Manual</a></h3>
-    <h5><a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/getting-started.md" target="_extern">Getting Started</a></h5>
-    <h5>
+    <h3>Free XML-Micro-Exchange</h3>
+    <p>
+      <strong>
+        Before using, you must read, understand and agree to
+        <a href="terms.html" target="_extern">Terms of Service</a> and
+        <a href="privacy.html" target="_extern">Privacy Policy</a>.
+      </strong>
+    </p>
+    <p>
+      <a href="https://xmex.seanox.com/xmex!" rel="nofollow">https://xmex.seanox.com/xmex!</a>
+    </p>
+    <p>
+      65536 Storages x 64 kB<br>
+      <strong>Please do not get confused, the API is online.<br>
+      Requests without storage identifier are responded with status 400.</strong>
+    </p>
+    <p>
+      It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter -- but apparently enough.<br>
+      <strong>Sponsors are always welcome.</strong><br>
+      The project needs <del>a good and simple domain</del> and if possible more power.<br>
+      It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores
+      and double memory.
+    </p>
+
+    <h3>Documentation</h3>
+    <p>
+      <a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/README.md" target="_extern">Manual</a>
+    </p>
+    <p>
+      <a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/getting-started.md" target="_extern">Getting Started</a>
+    </p>
+    <p>
       <a href="https://editor.swagger.io/?url=https://xmex.seanox.com/service.yaml" target="_extern">OpenAPI Specification (GUI)</a>
+    </p>
+    <p>
       <a href="service.yaml" target="_extern">YAML</a>
-    </h5>
-    <h5>
+    </p>
+
+    <h3>Examples</h3>
+    <p>
       <a href="snake.html" target="_extern">Example Multiplayer Snake (Online)</a>
+    </p>
+    <p>
       <a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/test/snake.html" target="_extern">Sources</a></h5>
-    <h3><a href="https://github.com/seanox/xml-micro-exchange-js" target="_extern">Project on GitHub</a></h3>
+    </p>
+    <h3>Open Source</h3>
+    <p>
+      <a href="https://github.com/seanox/xml-micro-exchange-js" target="_extern">Project on GitHub</a>
+    </p>
   </body>
 </html>
