@@ -37,6 +37,14 @@ Origin: {{origin}}
 
 > {%
 client.test("unittest", function() {
+
+    Object.exists = function(object) {
+        return object !== undefined && object !== null
+    }
+    client.assert(Object.exists(response.headers.valueOf("Access-Control-Allow-Origin")))
+    client.assert(Object.exists(response.headers.valueOf("Access-Control-Allow-Credentials")))
+    client.assert(Object.exists(response.headers.valueOf("Access-Control-Max-Age")))
+    client.assert(Object.exists(response.headers.valueOf("Access-Control-Expose-Headers")))
     client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4fd2e5fb62c0de107edabc8f582fabe1");
 });
 %}
