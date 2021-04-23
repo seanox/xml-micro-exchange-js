@@ -190,7 +190,7 @@ const DOMImplementation = require("xmldom").DOMImplementation
 const XPath = require("xpath")
 const XMLSerializer = require("common-xml-features").XMLSerializer
 const Codec = require("he")
-const Mime = require("mime-types")
+const Mime = require("mime")
 
 // A different XMLSerializer is used because the &gt; is not encoded correctly
 // in the XMLSerializer of xmldom.
@@ -207,6 +207,8 @@ const XML_DOCUMENT_NODE               = 9
 const XML_DOCUMENT_TYPE_NODE          = 10
 const XML_DOCUMENT_FRAGMENT_NODE      = 11
 const XML_NOTATION_NODE               = 12
+
+const TEMP = "./temp/"
 
 process.on("uncaughtException", function(error) {
     console.error(error.stack || error)
@@ -824,8 +826,8 @@ module.init = function() {
     if (Object.exists(meta.logging.access))
         meta.logging.access = parseOutputPhrase(meta.logging.access)
 
-    if (!fs.existsSync(Storage.TEMP))
-        fs.mkdirSync(Storage.TEMP, {recursive:true, mode:0o755})
+    if (!fs.existsSync(TEMP))
+        fs.mkdirSync(TEMP, {recursive:true, mode:0o755})
 }
 
 module.init()
@@ -906,10 +908,6 @@ class Storage {
      */
     static get CORS() {
         return module.cors || {}
-    }
-
-    static get TEMP() {
-        return "./temp/"
     }
 
     /**
@@ -1182,8 +1180,8 @@ class Storage {
         if (!Object.exists(this.request.temp))
             this.request.temp = []
         let temp = ""
-        if (fs.existsSync(Storage.TEMP))
-            temp = Storage.TEMP
+        if (fs.existsSync(TEMP))
+            temp = TEMP
         let unique = temp + "___temp_" + this.unique + "_" + (++this.serial)
         this.request.temp.push(unique)
         return unique
@@ -2879,7 +2877,7 @@ class ServerFactory {
                         let state = fs.lstatSync(target)
                         let headers = {}
                         headers["Content-Length"] = state.size
-                        headers["Content-Type"]   = Mime.contentType(target)
+                        headers["Content-Type"]   = Mime.getType(target)
                         headers["Last-Modified"]  = new Date(state.mtimeMs).toUTCString()
                         if (method === "HEAD")
                             response.exit(200, "Success", headers)
