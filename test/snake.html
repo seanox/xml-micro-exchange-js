@@ -24,6 +24,7 @@
       }
       button {
         width: 25px;
+        height: 30px;
       }
       button[id] {
         width: 50px;
@@ -57,11 +58,8 @@
 
           SnakeService = {
 
-           // DATASOURCE_URL: "http://127.0.0.1:8000/xmex!",
-           // DATASOURCE_URL: "http://192.168.10.10:8000/xmex!",
-
               DATASOURCE_URL: "http://127.0.0.1:8000/xmex!",
-              DATASOURCE_STORAGE : "Example_of_Snake snake",
+              DATASOURCE_STORAGE: "Example_of_Snake snake",
               BOARD_ROWS: 31,
               BOARD_COLS: 41,
               PLAYERS_TIMEOUT: 5000,
@@ -128,8 +126,7 @@
                           + "</players>\n"
                           + "<board rows=\"" + SnakeService.BOARD_ROWS + "\" cols=\"" + SnakeService.BOARD_COLS + "\"/>"
                   );
-                  if (request.status != 204
-                          && request.status != 404)
+                  if (request.status != 204)
                       throw {message: "Service storage failed", request: request};
               },
 
@@ -205,7 +202,8 @@
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "application/xml");
                       request.send(update);
-                      if (request.status == 404) {
+                      if (request.status == 204
+                              && !(request.getResponseHeader("Storage-Effects") || "")) {
                           var last = SnakeService.points[1];
                           SnakeService.points = null;
                           SnakeService.direction = null;
@@ -329,7 +327,8 @@
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "text/plain");
                       request.send(SnakeService.getTime());
-                      if (request.status == 404) {
+                      if (request.status == 204
+                              && !(request.getResponseHeader("Storage-Effects") || "")) {
                           window.setTimeout(join, SnakeService.WAIT, timeout);
                           return;
                       }
@@ -352,7 +351,8 @@
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                           request.setRequestHeader("Content-Type", "application/xml");
                           request.send(patch);
-                          if (request.status == 404) {
+                          if (request.status == 204
+                                  && !(request.getResponseHeader("Storage-Effects") || "")) {
                               window.setTimeout(start, SnakeService.WAIT);
                               return;
                           }
