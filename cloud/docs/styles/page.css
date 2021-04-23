@@ -7,6 +7,9 @@ body {
 a[href] {
     color: #6495ED;
 }
+code, pre {
+    font-size: 1.25em;
+}
 h3 {
   border-bottom: 1px solid #DDDDDD;
   padding-bottom: 0.25em;

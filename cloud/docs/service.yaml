@@ -117,7 +117,6 @@ externalDocs:
   url: https://github.com/seanox/xml-micro-exchange-js/blob/main/manual/README.md
 servers:
   - url: https://xmex.seanox.com
-  - url: http://127.0.0.1:8000
 tags:
   - name: "API"
 paths:

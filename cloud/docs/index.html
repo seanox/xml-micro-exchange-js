@@ -8,32 +8,50 @@
   </head>
   <body>
     <h1>Seanox XMEX - XML-Micro-Exchange (Free Web Service)</h1>
-    <p>The origin of the project is the desire for an easily accessible place for data
-      exchange on the Internet.<br>
-      Inspired by JSON-Storages the idea of a feature-rich equivalent based on XML,
-      XPath and XSLT was born.<br>
-      The focus should be on a public, volatile and short-term data exchange for
-      (static) web-applications and IoT.</p>
-    <p><strong>Just exchange data without an own server landscape.</strong><br>
-      <strong>Just exchange data without knowing and managing all clients.</strong></p>
-    <p>XML-Micro-Exchange is a RESTful volatile NoSQL stateless micro datasource for
-      the Internet. It is designed for easy communication and data exchange of
-      web-applications and for IoT or for other Internet-based modules and
-      components.<br>
-      The XML based datasource is volatile and lives through continuous use and
-      expires through inactivity. They are designed for active and near real-time data
-      exchange but not as a real-time capable long-term storage.<br>
-      Compared to a JSON storage, this datasource supports more dynamics, partial data
-      access, data transformation, and volatile short-term storage.</p>
-    <p><strong>Why all this?</strong></p>
-    <p>Static web-applications on different clients want to communicate with each
-      other, e.g. for games, chats and collaboration.</p>
-    <p>Smart sensors want to share their data and smart devices want to access this
-      data and also exchange data with each other.</p>
-    <p>Clients can establish dynamically volatile networks.</p>
-    <p><strong>In this communication are all participants.</strong><br>
-      <strong>No one is a server or master, all are equal and no one has to know the other.</strong><br>
-      <strong>All meet without obligation.</strong></p>
+    <p>
+      The origin of the project is the desire for an easily accessible place
+      for data exchange on the Internet.Inspired by JSON-Storages the idea of a
+      feature-rich equivalent based on XML, XPath and XSLT was born. The focus
+      should be on a public, volatile and short-term data exchange for (static)
+      web-applications and IoT.
+    </p>
+    <p>
+      <strong>
+        Just exchange data without an own server landscape.<br>
+        Just exchange data without knowing and managing all clients.
+      </strong>
+    </p>
+    <p>
+      XML-Micro-Exchange is a RESTful volatile NoSQL stateless micro datasource
+      for the Internet. It is designed for easy communication and data exchange
+      of web-applications and for IoT or for other Internet-based modules and
+      components. The XML based datasource is volatile and lives through
+      continuous use and expires through inactivity. They are designed for
+      active and near real-time data exchange but not as a real-time capable
+      long-term storage. Compared to a JSON storage, this datasource supports
+      more dynamics, partial data access, data transformation, and volatile
+      short-term storage.</p>
+    <p>
+      <strong>Why all this?</strong>
+    </p>
+    <p>
+      Static web-applications on different clients want to communicate with
+      each other, e.g. for games, chats and collaboration.
+    </p>
+    <p>
+      Smart sensors want to share their data and smart devices want to access
+      this data and also exchange data with each other.
+    </p>
+    <p>
+      Clients can establish dynamically volatile networks.
+    </p>
+    <p>
+      <strong>
+        In this communication are all participants.<br>
+        No one is a server or master, all are equal and no one has to know the other.<br>
+        All meet without obligation.
+      </strong>
+    </p>
 
     <h3>API</h3>
     <p>
@@ -92,20 +110,21 @@ Message                    Detailed error message with status 400 / 422
       <li>
         <p>
           The storage must be opened by OPTIONS.<br>
-          This can be done by any client, even if the storage already exists. The
-          response then contains the header <code>Connection-Unique</code>. This is unique
-          across all storages and can be used by the client to identify its own data
-          in the storage. But this is optional and <code>Connection-Unique</code> is neither
-          assigned to the client nor to the connection, it is just a unique value.
+          This can be done by any client, even if the storage already exists.
+          The response then contains the header <code>Connection-Unique</code>.
+          This is unique across all storages and can be used by the client to
+          identify its own data in the storage. But this is optional and
+          <code>Connection-Unique</code> is neither assigned to the client nor
+          to the connection, it is just a unique value.
         </p>
       </li>
       <li>
         <p>
-          The client should always proceed as if it were using storage alone and
-          created the schema it needs.<br>
-          The creation of the schema is done with PUT. Relative and conditional axes
-          should be used as targets. This ensures that no duplicates are created or
-          data is overwritten.<br>
+          The client should always proceed as if it were using storage alone
+          and created the schema it needs.<br>
+          The creation of the schema is done with PUT. Relative and conditional
+          axes should be used as targets. This ensures that no duplicates are
+          created or data is overwritten.<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           e.g. <code>PUT /books[not(book[@title='A Modern Utopia'])]::last</code><br>
           This approach made transactions unnecessary.
@@ -119,10 +138,10 @@ Message                    Detailed error message with status 400 / 422
       <li>
         <p>
           Closing or terminating the storage is not possible and required.<br>
-          The storage expires automatically due to inactivity. The duration of use
-          and expiration time of the storage is contained in the response in the
-          headers <code>Storage-Last-Modified</code>, <code>Storage-Expiration</code>,
-          <code>Storage-Expiration-Time</code>.
+          The storage expires automatically due to inactivity. The duration of
+          use and expiration time of the storage is contained in the response
+          in the headers <code>Storage-Last-Modified</code>,
+          <code>Storage-Expiration</code>, <code>Storage-Expiration-Time</code>.
         </p>
       </li>
     </ol>
@@ -144,9 +163,10 @@ Message                    Detailed error message with status 400 / 422
       Requests without storage identifier are responded with status 400.</strong>
     </p>
     <p>
-      It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter -- but apparently enough.<br>
+      It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter --
+      but apparently enough.<br>
       <strong>Sponsors are always welcome.</strong><br>
-      The project needs <del>a good and simple domain</del> and if possible more power.<br>
+      The project needs <del>a good and simple domain and</del> if possible more power.<br>
       It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores
       and double memory.
     </p>
@@ -170,7 +190,7 @@ Message                    Detailed error message with status 400 / 422
       <a href="snake.html" target="_extern">Example Multiplayer Snake (Online)</a>
     </p>
     <p>
-      <a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/test/snake.html" target="_extern">Sources</a></h5>
+      <a href="https://github.com/seanox/xml-micro-exchange-js/blob/main/test/snake.html" target="_extern">Sources</a>
     </p>
     <h3>Open Source</h3>
     <p>
