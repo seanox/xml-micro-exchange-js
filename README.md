@@ -14,24 +14,22 @@
 
 # Description
 The origin of the project is the desire for an easily accessible place for data
-exchange on the Internet.  
-Inspired by JSON-Storages the idea of a feature-rich equivalent based on XML,
-XPath and XSLT was born.  
-The focus should be on a public, volatile and short-term data exchange for
-(static) web-applications and IoT.
+exchange on the Internet. Inspired by JSON-Storages the idea of a feature-rich
+equivalent based on XML, XPath and XSLT was born. The focus should be on a
+public, volatile and short-term data exchange for (static) web-applications and
+IoT.
 
 __Just exchange data without an own server landscape.__  
 __Just exchange data without knowing and managing all clients.__
 
-XML-Micro-Exchange is a volatile NoSQL stateless micro datasource for the
-Internet. It is designed for easy communication and data exchange of
-web-applications and for IoT or for other Internet-based modules and
-components.  
-The XML based datasource is volatile and lives through continuous use and
-expires through inactivity. They are designed for active and near real-time data
-exchange but not as a real-time capable long-term storage.  
-Compared to a JSON storage, this datasource supports more dynamics, partial data
-access, data transformation, and volatile short-term storage. 
+XML-Micro-Exchange is a RESTful volatile NoSQL stateless micro datasource for
+the Internet. It is designed for easy communication and data exchange of
+web-applications and for IoT or for other Internet-based modules and 
+components. The XML based datasource is volatile and lives through continuous
+use and expires through inactivity. They are designed for active and near
+real-time data exchange but not as a real-time capable long-term storage.
+Compared to a JSON storage, this datasource supports more dynamics, partial
+data access, data transformation, and volatile short-term storage. 
 
 __Why all this?__
 
@@ -51,7 +49,7 @@ __All meet without obligation.__
 # Features
 
 ## RESTful
-The REST API supports the HTTP methods OPTIONS, GET, POST, PUT, PATCH, DELETE.  
+The REST API supports the HTTP methods OPTIONS, GET, POST, PUT, PATCH, DELETE.
 
 ## XPath
 XPath axes and functions are used for access, navigation and addressing of
@@ -73,9 +71,8 @@ function and responded with the result as text.
 Thus XPath provides a dynamic syntax for queries.
 
 ## Data Transformation
-The POST method supports data transformation via XSLT.  
-Similar to GET, data can be queried and then transformed with an XSLT template
-transmitted via POST.
+The POST method supports data transformation via XSLT. Similar to GET, data can
+be queried and then transformed with an XSLT template transmitted via POST.
 
 ## JSON Support
 All requests can be responded by the service in JSON format.
@@ -83,8 +80,8 @@ All requests can be responded by the service in JSON format.
 ## Security
 This aspect was deliberately considered and implemented here only in a very
 rudimentary form. The storage(-key) with a length of 1 - 64 characters and the
-individual root element can be regarded as secret.  
-In addition, HTTPS is supported but without client certificate authorization.
+individual root element can be regarded as secret. In addition, HTTPS is
+supported but without client certificate authorization.
 
 ## ACME Challenge Support
 Support of ACME HTTP-01 challenge for automated certificate management e.g.
@@ -124,7 +121,7 @@ specific language governing permissions and limitations under the License.
 
 # System Requirement
 - [Node.js](https://nodejs.org/en/download/) 14.x or higher
-- [libxml2](http://www.xmlsoft.org/downloads.html) 2.9.x or higher  
+- [libxml2](http://www.xmlsoft.org/downloads.html) 2.9.x or higher
 
 
 # Downloads
@@ -144,9 +141,11 @@ https://hub.docker.com/repository/docker/seanox/xmex
 
 
 # Free XML-Micro-Exchange
-[TERMS OF SERVICE](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/TERMS%20OF%20SERVICE)
+__Before using, you must read, understand and agree to__
+__[Terms of Service](https://xmex.seanox.com/terms.html) and__
+__[Privacy Policy](https://xmex.seanox.com/privacy.html).__
 
-[https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)    
+[https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)   
 65536 Storages x 64 kB  
 __Please do not get confused, the API is online.  
 Requests without storage identifier (see [manual](manual/README.md#manual))
@@ -158,7 +157,7 @@ or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githu
 
 It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter -- but apparently enough.  
 __Sponsors are always welcome.__  
-The project needs ~~a good and simple domain~~ and if possible more power.  
+The project needs ~~a good and simple domain and~~ if possible more power.  
 It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores
 and double memory.
 
@@ -189,16 +188,20 @@ and double memory.
 
 
 # Changes (Change Log)
-## 1.2.0 20210327 (summary of the current version)  
-BF: Service: Optimization of xsltproc error handling  
-BF: Build: Correction of libxml2-2.9.3_win_x64.zip  
-CR: Service: Added an access statistic for StdOut  
-CR: Service: Added Request Data Limit (for all HTTP methods)  
-CR: Service: Added optional ACME challenge function  
-CR: Service: Added the support of the XSLT processor as a subdirectory of the application directory  
-CR: Service: Added support of system environment variable LIBXML_HOME, LIBXML2_HOME or XSLTPROC_HOME  
-CR: Service: Check of the availability of the XSLT process with the start of the service  
-CR: Build: Added the creation of a package for Windows  
+## 1.3.0 2021xxxx (summary of the next version)  
+BF: Service: Uniform use of status 204 for 202 / 404  
+BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)  
+BF: Service: Optimization/harmonization of content types for XML  
+BF: Docker: Initial creation of all subdirectories  
+BF: Docker: Use of the subdirectory ./temp for the XSLT processor  
+CR: Service: Restriction on reading/using the RequestBody  
+CR: Service: ACME optional redirect of paths outside the ACME challenge  
+CR: Service: Added optional redirect of paths outside the API path  
+CR: Service: Added web server functionality outside the API path  
+CR: Service: OPTIONS responds with 204 instead of 200  
+CR: Service: Optimization of tracing  
+CR: Service: Moving the temporary data from XLST process to ./temp  
+CR: Service: Added creation of ./temp directory at startup  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 
