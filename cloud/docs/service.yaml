@@ -560,13 +560,18 @@ paths:
               type: object
               xml:
                 name: "comment"
-              example: "<!-- XML fragments are expected, see examples in description -->"
+              example: "
+                  <!-- XML fragments are expected, see examples in description -->\n
+                  <book title=\"Book A\"/>\n
+                  <book title=\"Book B\"/>\n
+                  <book title=\"Book C\"/>
+                "
           text/plain:
             schema:
-              example: "TODO:"
+              example: "Value"
           text/xpath:
             schema:
-              example: "TODO:"
+              example: "concat(name(/*), \"-Test\")"
       responses:
         204:
           description: "
@@ -778,13 +783,18 @@ paths:
               type: object
               xml:
                 name: "comment"
-              example: "<!-- XML fragments are expected, see examples in description -->"
-          "text/plain":
+              example: "
+                  <!-- XML fragments are expected, see examples in description -->\n
+                  <book title=\"Book A\"/>\n
+                  <book title=\"Book B\"/>\n
+                  <book title=\"Book C\"/>
+                "
+          text/plain:
             schema:
-              example: "TODO:"
-          "text/xpath":
+              example: "Value"
+          text/xpath:
             schema:
-              example: "TODO:"
+              example: "concat(name(/*), \"-Test\")"
       responses:
         204:
           description: "
@@ -865,7 +875,7 @@ paths:
           Storage-Expiration: Timestamp (RFC822)<br>
           Storage-Expiration-Time: Timeout (milliseconds)<br>
           Content-Length: (bytes)<br>
-          &nbsp;&nbps;&nbsp;&nbsp;Response-Body:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Response-Body:<br>
           The result of the XPath request
           </pre>
 
@@ -953,9 +963,9 @@ paths:
             text/plain:
               schema:
                 type: string
-                example: "TODO:"
+                example: "Text output, see examples in description"
         204:
-          description: "TODO:"
+          description: "Request was successfully executed but without content."
         400:
           description: "
               Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
@@ -1103,13 +1113,13 @@ paths:
             text/plain:
               schema:
                 type: string
-                example: "TODO:"
+                example: "Text output, see examples in description"
             text/html:
               schema:
                 type: object
                 example: "TODO:"
         204:
-          description: "TODO:"
+          description: "Request was successfully executed but without content."
         400:
           description: "
               Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
@@ -1312,7 +1322,7 @@ paths:
           Storage-Expiration: Timestamp (RFC822)<br>
           Storage-Expiration-Time: Timeout (milliseconds)<br>
           Content-Length: (bytes)<br>
-          &nbsp;&nbps;&nbsp;&nbsp;Response-Body:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Response-Body:<br>
           The result of the XPath request
           </pre>
 
@@ -1398,7 +1408,7 @@ paths:
                 type: string
                 example: "TODO:"
         204:
-          description: "TODO:"
+          description: "Request was successfully executed but without content."
         400:
           description: "
               Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
@@ -1552,7 +1562,7 @@ paths:
                 type: string
                 example: "TODO:"
         204:
-          description: "TODO:"
+          description: "Request was successfully executed but without content."
         400:
           description: "
               Storage header is invalid, 1 - 64 characters (0-9A-Z_) are expected<br>
