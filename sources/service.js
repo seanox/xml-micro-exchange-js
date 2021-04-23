@@ -2876,6 +2876,8 @@ class ServerFactory {
                         target = fs.realpathSync(target)
                         let state = fs.lstatSync(target)
                         let headers = {}
+                        if (typeof Storage.CORS === "object")
+                            headers = {...Storage.CORS}
                         headers["Content-Length"] = state.size
                         headers["Content-Type"]   = Mime.getType(target)
                         headers["Last-Modified"]  = new Date(state.mtimeMs).toUTCString()
