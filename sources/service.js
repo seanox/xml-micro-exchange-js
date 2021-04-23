@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210422
+ * Service 1.3.0 20210423
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210422
+ * @version 1.3.0 20210423
  */
 const http = require("http")
 const https = require("https")
@@ -327,6 +327,13 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
 
     if (this.headersSent)
         return
+
+    // Directly set headers (e.g. for CORS) are read
+    // Names are converted to camel case, pure cosmetics -- Node.js uses only lower case
+    if (typeof headers !== "object")
+        headers = {}
+    for (const [header, value] of Object.entries(this.getHeaders()))
+        headers[header.replace(/\b[a-z]/g, match => match.toUpperCase())] = value
 
     {{{
 
@@ -2480,6 +2487,9 @@ class Storage {
             throw Storage.prototype.exit
         }
 
+        if (typeof headers !== "object")
+            headers = {}
+
         // This is implemented for scanning and modification of headers.
         // To remove, the headers are set before, so that standard headers like
         // Content-Type are also removed correctly.
@@ -2496,19 +2506,6 @@ class Storage {
                 result = {name: key, value: value}
             })
             return result
-        }
-
-        if (typeof headers !== "object")
-            headers = {}
-        if (typeof Storage.CORS === "object")
-            headers = {...headers, ...Storage.CORS}
-
-        // Access-Control headers are received during preflight OPTIONS request
-        if (this.request.method.toUpperCase() === "OPTIONS") {
-            if (this.request.headers["access-control-request-method"])
-                headers["Access-Control-Allow-Methods"] = "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-            if (this.request.headers["access-control-request-headers"])
-                headers["Access-Control-Allow-Headers"] = this.request.headers["access-control-request-headers"]
         }
 
         // For status class 2xx the storage headers are added.
@@ -2811,6 +2808,19 @@ class ServerFactory {
 
                     let context = Object.exists(module.connection.context) ? module.connection.context : ""
 
+                    // CORS headers are added obligatorily
+                    if (typeof Storage.CORS === "object")
+                        for (const [header, value] of Object.entries(Storage.CORS))
+                            response.setHeader(header, value)
+
+                    // Access-Control headers are received during preflight OPTIONS request
+                    if (request.method.toUpperCase() === "OPTIONS") {
+                        if (request.headers["access-control-request-method"])
+                            response.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, PATCH, DELETE")
+                        if (request.headers["access-control-request-headers"])
+                            response.setHeader("Access-Control-Allow-Headers", request.headers["access-control-request-headers"])
+                    }
+
                     // The API should always use a context path so that the
                     // separation between URI and XPath is also visually
                     // recognizable. For all requests outside of the API path
@@ -2876,8 +2886,6 @@ class ServerFactory {
                         target = fs.realpathSync(target)
                         let state = fs.lstatSync(target)
                         let headers = {}
-                        if (typeof Storage.CORS === "object")
-                            headers = {...Storage.CORS}
                         headers["Content-Length"] = state.size
                         headers["Content-Type"]   = Mime.getType(target)
                         headers["Last-Modified"]  = new Date(state.mtimeMs).toUTCString()
