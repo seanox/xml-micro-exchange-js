@@ -1,0 +1,9 @@
+body {
+    font-family: sans-serif;
+    color: #474F40;
+    margin: 0px;
+    padding: 3% 25% 15% 25%;
+}
+a[href] {
+    color: #6495ED;
+}
