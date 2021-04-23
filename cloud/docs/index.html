@@ -53,6 +53,24 @@
       </strong>
     </p>
 
+    <h3>Features</h3>
+    <strong>RESTful</strong><br>
+    <p>The REST API supports the HTTP methods OPTIONS, GET, POST, PUT, PATCH, DELETE.</p>
+    <strong>XPath</strong><br>
+    <p>XPath axes and functions are used for access, navigation and addressing of targets in the data source and it is an integral part of the URI with dynamic and functional effects.</p>
+    <strong>Multible axes and targets</strong><br>
+    <p>An XPath axis can address several elements and attributes simultaneously, which can be changed with one call.</p>
+    <strong>XPath Functions</strong><br>
+    <p>PUT and PATCH support XML structures and static values (text), as well as XPath functions that allow dynamic values.</p>
+    <strong>Data Query</strong><br>
+    <p>Data can be queried in the form of XML structure or substructure if the XPath notation represents an axis, otherwise the XPath is interpreted as an XPath function and responded with the result as text. Thus XPath provides a dynamic syntax for queries.</p>
+    <strong>Data Transformation</strong><br>
+    <p>The POST method supports data transformation via XSLT. Similar to GET, data can be queried and then transformed with an XSLT template transmitted via POST.</p>
+    <strong>JSON Support</strong><br>
+    <p>All requests can be responded by the service in JSON format.</p>
+    <strong>Security</strong><br>
+    <p>This aspect was deliberately considered and implemented here only in a very rudimentary form. The storage(-key) with a length of 1 - 64 characters and the individual root element can be regarded as secret. In addition, HTTPS is supported but without client certificate authorization.</p>
+
     <h3>API</h3>
     <p>
       HTTP is used. The URI typically contains a noticeable separator to divide
