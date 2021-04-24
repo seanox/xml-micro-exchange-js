@@ -69,9 +69,7 @@
 
               initDatasource() {
                   SnakeService.showMessage("Creating storage", true);
-
-                  // Small delay after loading the page.
-                  // With iOS, a network error usually occurs at the first request.
+                  // With iOS, a network error usually occurs at the first request(s).
                   // The cause is still unknown.
                   while (true) {
                       try {
@@ -79,13 +77,14 @@
                           request.open("OPTIONS", SnakeService.DATASOURCE_URL, false);
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                           request.send();
+                          if (request.status === 201
+                                  || request.status === 204)
+                              return;
                           break;
                       } catch (exception) {
                       }
                   }
-                  if (request.status !== 201
-                          && request.status !== 204)
-                      throw {message: "Datasource not available", request: request};
+                  throw {message: "Datasource not available", request: request};
               },
 
               showMessage(message, append) {
