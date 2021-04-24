@@ -12,6 +12,10 @@
       ./conf, ./data, ./docs, ./temp
   BF: Docker: Use of the subdirectory ./temp for the XSLT processor
       This is important if the container uses a read-only file system.
+  BF: Service: Correction of symbol %r for access log
+      Uses "%m %U%Q %H" from now on.
+  BF: Service: Correction of symbol %q for access log
+      URL without QueryString incorrectly used the path.
   CR: Service: Restriction on reading/using the RequestBody
       The RequestBody is only read/used:
       - if PATCH/PUT/POST methods are used
@@ -27,6 +31,8 @@
   CR: Service: Optimization of tracing
   CR: Service: Moving the temporary data from XLST process to ./temp
   CR: Service: Added creation of ./temp directory at startup
+  CR: Service: Added symbol %Q for access log
+      QueryString with ? at the beginning
 
 1.2.0 20210327
   BF: Service: Optimization of xsltproc error handling

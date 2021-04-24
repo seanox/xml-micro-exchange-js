@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210423
+ * Service 1.3.0 20210424
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210423
+ * @version 1.3.0 20210424
  */
 const http = require("http")
 const https = require("https")
@@ -2997,7 +2997,7 @@ class ServerFactory {
 
                             let dates = date.toString().split(/\s+|(?=[\+\-])/)
 
-                            format = format.replace(/%r/g, "%m %U%q %H")
+                            format = format.replace(/%r/g, "%m %U%Q %H")
                             format = format.replace(/(%\{[\w-]*\})|(%[a-z%](?::[a-z])?)/ig, (symbol) => {
                                 if (symbol.match(/%\{[\w-]*\}/i))
                                     return request.headers[symbol.replace(/%\{([\w-]*)\}/i, "$1").toLowerCase()] || ""
@@ -3023,7 +3023,9 @@ class ServerFactory {
                                     case "%U":
                                         return (request.url || "").replace(/\?.*$/, "")
                                     case "%q":
-                                        return (request.url || "").replace(/^.*\?/, "")
+                                        return (request.url || "").replace(/^.*?(\?(.*))?$/, "$2")
+                                    case "%Q":
+                                        return (request.url || "").replace(/^.*?(\?(.*))?$/, "$1")
                                     case "%H":
                                         return request.httpVersion ? "HTTP/" + request.httpVersion : ""
                                     case "%t":
