@@ -1,0 +1,15 @@
+# Test sequence for the web server component.
+
+# TODO: Direcory Index inactive => 403
+# TODO: Direcory Index active without defaults => 403
+# TODO: Direcory Index active without defaults, but without default file => 403
+# TODO: Direcory Index active without defaults, with default file => 200
+# TODO: Redirection statisch
+# TODO: Redirection dynamisch
+# TODO: OPTIONS with content
+# TODO: HEAD with content
+# TODO: GET with content
+# TODO: Other HTTP methods => 405
+# TODO: GET/HEAD/OPTIONS with quer string => query string is ignored and it works as without
+# TODO: GET Break out of the doc-root with wild ../../... attempts (see Devwex)
+# TODO: GET request URL encoded paths, should work

@@ -2853,7 +2853,7 @@ class ServerFactory {
                         if (!Object.exists(module.content)
                                 || !Object.exists(module.content.directory))
                             response.exit(404, "Resource Not Found")
-                        let target = path.normalize(decodeURI(request.url).trim()).replace(/\\+/g, "/")
+                        let target = path.normalize(decodeURI(request.url.replace(/\?.*$/, "")).trim()).replace(/\\+/g, "/")
                         target = module.content.directory + "/" + target
                         target = target.replace(/\/{2,}/g, "/")
                         if (!fs.existsSync(target))
