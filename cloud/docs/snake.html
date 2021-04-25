@@ -49,6 +49,13 @@
           //             http://192.168.10.10:8000/snake.html
           //             https://xmex.seanox.com/snake.html
 
+          String.prototype.encodeHex = function() {
+              let result = "0x";
+              for (let loop = 0; loop < this.length; loop++)
+                  result += this.charCodeAt(loop).toString(16);
+              return result;
+          }
+
           const SnakeService = {
 
               DATASOURCE_URL: "https://xmex.seanox.com/xmex!",
@@ -138,7 +145,7 @@
                       if (!SnakeService.player)
                           return;
                       const request = new XMLHttpRequest();
-                      request.open("PATCH", SnakeService.DATASOURCE_URL + "//" + SnakeService.player.alias + "/@touch", true);
+                      request.open("PATCH", SnakeService.DATASOURCE_URL + ("//" + SnakeService.player.alias + "/@touch").encodeHex(), true);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "text/plain");
                       request.send(SnakeService.getTime());
@@ -195,7 +202,7 @@
                           update += "<field id=\"" + SnakeService.points[loop] + "\" player=\"" + SnakeService.player.alias + "\"/>";
 
                       const request = new XMLHttpRequest();
-                      request.open("PATCH", SnakeService.DATASOURCE_URL + "//players[not(//field[@id=" + SnakeService.points[0] + "])]//" + SnakeService.player.alias, false);
+                      request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players[not(//field[@id=" + SnakeService.points[0] + "])]//" + SnakeService.player.alias).encodeHex(), false);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "application/xml");
                       request.send(update);
@@ -207,7 +214,7 @@
                           SnakeService.ticks = 0;
 
                           update = "<field id=\"" + last + "\" player=\"" + SnakeService.player.alias + "\"/>";
-                          request.open("PATCH", SnakeService.DATASOURCE_URL + "//players//" + SnakeService.player.alias, false);
+                          request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players//" + SnakeService.player.alias).encodeHex(), false);
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                           request.setRequestHeader("Content-Type", "application/xml");
                           request.send(update);
@@ -225,7 +232,7 @@
                   window.setInterval(() => {
                       const request = new XMLHttpRequest();
                       request.overrideMimeType("application/json");
-                      request.open("GET", SnakeService.DATASOURCE_URL + "//players//field!json", false);
+                      request.open("GET", SnakeService.DATASOURCE_URL + ("//players//field!json").encodeHex(), false);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.send();
                       if (request.status !== 200)
@@ -259,12 +266,12 @@
                   window.setInterval(() => {
                       const timeout = SnakeService.getTime() -SnakeService.PLAYERS_TIMEOUT;
                       const request = new XMLHttpRequest();
-                      request.open("PATCH", SnakeService.DATASOURCE_URL + "//players/*[@touch<" + timeout + "]|//players/*[@touch='']", true);
+                      request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players/*[@touch<" + timeout + "]|//players/*[@touch='']").encodeHex(), true);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "text/plain");
                       request.send("");
 
-                      request.open("PATCH", SnakeService.DATASOURCE_URL + "//players/*[@touch<" + timeout + "]/@touch", true);
+                      request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players/*[@touch<" + timeout + "]/@touch").encodeHex(), true);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "text/plain");
                       request.send("");
@@ -318,7 +325,7 @@
                       if (new Date().getTime() > timeout)
                           throw "No free player place found."
                       const request = new XMLHttpRequest();
-                      request.open("PATCH", SnakeService.DATASOURCE_URL + "//players/*[@touch=''][1]/@touch", false);
+                      request.open("PATCH", SnakeService.DATASOURCE_URL + ("//players/*[@touch=''][1]/@touch").encodeHex(), false);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                       request.setRequestHeader("Content-Type", "text/plain");
                       request.send(SnakeService.getTime());
@@ -342,7 +349,7 @@
                           const center = Math.ceil(SnakeService.board.rows *SnakeService.board.cols /2);
                           const patch = "<field id=\"" + center + "\" player=\"" + SnakeService.player.alias + "\"/>";
                           const request = new XMLHttpRequest();
-                          request.open("PATCH", SnakeService.DATASOURCE_URL + "/snake[not(//field/@id='" + center + "')]//" + SnakeService.player.alias, false);
+                          request.open("PATCH", SnakeService.DATASOURCE_URL + ("/snake[not(//field/@id='" + center + "')]//" + SnakeService.player.alias).encodeHex(), false);
                           request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                           request.setRequestHeader("Content-Type", "application/xml");
                           request.send(patch);
