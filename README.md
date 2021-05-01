@@ -92,12 +92,6 @@ with [Let's Encrypt](https://letsencrypt.org/) +
 XML-Micro-Exchange is also available as a container image on Docker Hub:
 https://hub.docker.com/repository/docker/seanox/xmex
 
-## Differences to the PHP version
-- XPath as query string is not supported
-- HTTP method CONNECT is not supported
-- Processing of XPath may differ in detail due to the use of different libraries
-- Transformation (XSLT) may differ in detail due to the use of different libraries
-
 
 # Licence Agreement
 LIZENZBEDINGUNGEN - Seanox Software Solutions ist ein Open-Source-Projekt, im
@@ -194,6 +188,8 @@ BF: Service: Uniform use of status 204 for 404 in relation to targets in the sto
 BF: Service: Optimization/harmonization of content types for XML  
 BF: Docker: Initial creation of all subdirectories  
 BF: Docker: Use of the subdirectory ./temp for the XSLT processor  
+BF: Service: Correction of symbol %r for access log  
+BF: Service: Correction of symbol %q for access log  
 CR: Service: Restriction on reading/using the RequestBody  
 CR: Service: ACME optional redirect of paths outside the ACME challenge  
 CR: Service: Added optional redirect of paths outside the API path  
@@ -202,6 +198,7 @@ CR: Service: OPTIONS responds with 204 instead of 200
 CR: Service: Optimization of tracing  
 CR: Service: Moving the temporary data from XLST process to ./temp  
 CR: Service: Added creation of ./temp directory at startup  
+CR: Service: Added symbol %Q for access log  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 
