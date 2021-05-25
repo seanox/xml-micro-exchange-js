@@ -28,14 +28,15 @@
 ---
 
 
-- Start the release review  
-  Start `ant docker-review` 
+- Start the integration test  
+  Start `ant docker-integration` 
 - Execute `./test/cumulate.http` (local Docker)
-- Update trace-docker.log  
-  `docker cp xmex-review:/xmex/trace.log ../sources/trace-docker.log`  
-  `docker cp xmex-review:/xmex/trace-cumulate.http ../sources/trace-cumulate.http`
-- Compare `./sources/trace-docker.log` with the version in GitHub  
   Ignore the test results, only the comparison of the trace files is relevant.
+- Update trace-docker.log  
+  `docker cp xmex-integration:/xmex/trace.log ../sources/trace-docker.log`  
+  `docker cp xmex-integration:/xmex/trace-cumulate.http ../sources/trace-cumulate.http`
+  Replace in `./sources/trace-cumulate.http` 172.*** with 127.0.0.1
+- Compare `./sources/trace-docker.log` with the version in GitHub  
   The tests may differ due to the different operating systems and components
   e.g. line endings causing the hash values to differ. However, it is
   considered in the trace.
@@ -44,11 +45,7 @@
 
 - Start the release   
   Start `ant docker-release`
-- Emtpty `./sources/trace.log`  
 - Execute `./sources/trace-cumulate.http` (local Docker)
-- Update trace-docker.log  
-  `docker cp xmex-review:/xmex/trace.log ../sources/trace-docker.log`  
-- Compare `./sources/trace-docker.log` with the version in GitHub  
   __Unlike trace-cumulate.http, no errors should occur here.__
 ---
 
@@ -57,7 +54,7 @@
   e.g. unzip into C:\Temp\xmex
 - Add Node.js in to ./xmex/node  
 - Open the console (shell/prompt) as administrator
-- Install the service    
+- Install the service (if .\xmex\node is empty, add it)  
   `cd /D C:\Temp\xmex`  
   `service.cmd install`
 - Test of `snake.html`

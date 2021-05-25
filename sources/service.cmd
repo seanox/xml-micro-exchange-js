@@ -27,7 +27,6 @@
   if "%1" == "stop"      goto stop
 
 :usage
-  echo.
   echo usage: %~nx0 [command]
   echo.
   echo    install
@@ -79,13 +78,13 @@
   "%nssm%" set %service_name% Start         SERVICE_AUTO_START
   "%nssm%" set %service_name% ObjectName    %service_account%
 
-  if not "%lastError%" == "%errorLevel%" == "0" goto error
+  if not "%lastError%" == "%errorLevel%" goto error
 
   echo %label%: Successfully completed
 
   echo %label%: Service will be started
   net start %service_name% 2>%~n0.log
-  if not "%lastError%" == "%errorLevel%" == "0" goto error
+  if not "%lastError%" == "%errorLevel%" goto error
 
   goto exit
 
