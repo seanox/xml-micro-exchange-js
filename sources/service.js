@@ -2895,7 +2895,7 @@ class ServerFactory {
                         try {
                             response.writeHead(200, "Success", headers)
                             response.contentLength = state.size
-                            var buffer = Buffer.alloc(65535)
+                            const buffer = Buffer.alloc(65535)
                             for (let size = 0; size = fs.readSync(file, buffer) > 0;)
                                 response.write(buffer.toString("binary"), "binary")
                             response.end()
