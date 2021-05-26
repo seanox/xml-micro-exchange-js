@@ -84,7 +84,7 @@
 - Commit with comment `Release x.x.x`
 - Git Create tag `x.x.x` (comment: x.x.x)
 - Git Push + tags
-- Go to GitHub -> Project -> Tags ->  Create Release (... to the right of the tag)   
+- Go to GitHub -> Project -> Tags -> Create Release (... to the right of the tag)   
   Title: Version x.x.x 20xxxxxx  
   Content: Short version of CHANGES  
   Attach files...
