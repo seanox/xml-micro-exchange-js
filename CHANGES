@@ -1,4 +1,4 @@
-1.3.0 2021xxxx
+1.3.0 20210525
   BF: Service: Uniform use of status 204 for 202 / 404
       Status 404 always refers storage and not entities/addressed targets in the storage.
   BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)

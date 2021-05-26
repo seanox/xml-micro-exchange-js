@@ -119,14 +119,14 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XML-Micro-Exchange 1.2.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.2.0.zip)  
+[Seanox XML-Micro-Exchange 1.3.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.3.0.zip)  
 [Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip)  
 
 # Distributions for Microsoft Windows
 
 Complete package without Node.js to use as a Windows service.
 
-[Seanox XML-Micro-Exchange 1.2.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.2.0-win.zip)  
+[Seanox XML-Micro-Exchange 1.3.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.3.0-win.zip)  
 [Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-win-latest.zip)
 
 
@@ -182,7 +182,7 @@ and double memory.
 
 
 # Changes (Change Log)
-## 1.3.0 2021xxxx (summary of the next version)  
+## 1.3.0 20210525 (summary of the current version)  
 BF: Service: Uniform use of status 204 for 202 / 404  
 BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)  
 BF: Service: Optimization/harmonization of content types for XML  
