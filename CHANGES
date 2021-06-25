@@ -1,3 +1,8 @@
+1.4.0 2021xxxx
+  CR: Service: ACME Revision of the logic and configuration
+      Configuration now uses its own section and the forced redirection has its own key.
+      Multiple challenges are supported.
+
 1.3.0 20210525
   BF: Service: Uniform use of status 204 for 202 / 404
       Status 404 always refers storage and not entities/addressed targets in the storage.
