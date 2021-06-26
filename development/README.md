@@ -23,18 +23,18 @@
 - Start the service locally  
   `cd /sources`  
   `node service.js`
-- Execute `./test/cumulate.http` (local)
+- Execute `./test/cumulate.http` (local) -- last pass: 25 sec
 - Compare `./sources/trace.log` with the version in GitHub
 ---
 
 
 - Start the integration test  
   Start `ant docker-integration` 
-- Execute `./test/cumulate.http` (local Docker)
-  Ignore the test results, only the comparison of the trace files is relevant.
+- Execute `./test/cumulate.http` (local Docker) -- last pass: 19 sec  
+  __Ignore the test results, only the comparison of the trace files is relevant.__
 - Update trace-docker.log  
   `docker cp xmex-integration:/xmex/trace.log ../sources/trace-docker.log`  
-  `docker cp xmex-integration:/xmex/trace-cumulate.http ../sources/trace-cumulate.http`
+  `docker cp xmex-integration:/xmex/trace-cumulate.http ../sources/trace-cumulate.http`  
   Replace in `./sources/trace-cumulate.http` 172.*** with 127.0.0.1
 - Compare `./sources/trace-docker.log` with the version in GitHub  
   The tests may differ due to the different operating systems and components
@@ -45,7 +45,7 @@
 
 - Start the release   
   Start `ant docker-release`
-- Execute `./sources/trace-cumulate.http` (local Docker)
+- Execute `./sources/trace-cumulate.http` (local Docker) -- last pass: 43 sec  
   __Unlike trace-cumulate.http, no errors should occur here.__
 ---
 
