@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.3.0 20210424
+ * Service 1.4.0 20210626
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.3.0 20210424
+ * @version 1.4.0 20210626
  */
 const http = require("http")
 const https = require("https")
@@ -384,6 +384,8 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
             trace["Content-Type"] = request.headers["content-type"].toUpperCase()
         trace = JSON.stringify(trace)
         stack.push("Trace-Request-Header-Hash", trace, trace)
+
+        request.data = request.data || ""
 
         // Request-Body-Hash
         trace = request.data
@@ -769,7 +771,7 @@ module.init = function() {
             || !fs.lstatSync(file).isFile())
         throw "Configuration file " + file + " not found"
 
-    let meta = {connection:{}, cors:{}, request:{}, storage:{}, logging:{}}
+    let meta = {connection:{}, acme:{}, cors:{}, request:{}, storage:{}, logging:{}}
     let sections = require("ini").parse(fs.readFileSync(file, "ascii"))
     Object.keys(sections).forEach((section) => {
         let entries = sections[section]
@@ -811,14 +813,18 @@ module.init = function() {
         }
     }
 
-    if (Object.exists(meta.connection.acme)) {
-        let acme = meta.connection.acme.match(/^\s*(.*?)(?:\s*<(.*?)(?:\s*!\s*(.*))?)?\s*$/)
-        if (acme && acme.length >= 4
-                && Object.exists(acme[1]) && acme[1].length > 0
-                && Object.exists(acme[2]) && acme[2].length > 0) {
-            meta.connection.acme = {context: acme[1], response: acme[2], redirect: acme[3]}
-        } else delete meta.connection.acme
-    }
+    module["acme"] = {}
+    if (Object.keys(meta.acme))
+        Object.keys(meta.acme).forEach((key) => {
+            if (!key.startsWith("/"))
+                return
+            if (!Object.exists(module["acme"]["endpoints"]))
+                module["acme"]["endpoints"] = []
+            module["acme"]["endpoints"].push({url:key, response:meta.acme[key]})
+        })
+    if (Object.exists(module["acme"]["endpoints"]))
+        if (Object.exists(meta.acme.redirect))
+            module["acme"]["redirect"] = meta.acme.redirect
 
     const parseOutputPhrase = (phrase) => {
         let output = String(phrase).trim().match(/^\s*(.*?)\s*(?:>\s*(.*)\s*)?$/)
@@ -2751,11 +2757,6 @@ class ServerFactory {
                 }
             }}}
 
-            if (module.connection.acme
-                    && module.connection.acme.context
-                    && decodeURI(request.url) === module.connection.acme.context)
-                response.exit(200, "Success", {"Content-Length": module.connection.acme.response.length}, module.connection.acme.response)
-
             let dataLimit = Number.parseBytes(module.request["data-limit"])
             request.on("data", (data) => {
 
@@ -2805,6 +2806,14 @@ class ServerFactory {
 
                     if (Object.exists(request.error))
                         response.exit(...request.error)
+
+                    if (module.acme.endpoints) {
+                        const pattern = decodeURI(request.url)
+                        module.acme.endpoints.forEach(endpoint => {
+                        if (pattern === endpoint.url)
+                            response.exit(200, "Success", {"Content-Length":endpoint.response.length}, endpoint.response)
+                        })
+                    }
 
                     let context = Object.exists(module.connection.context) ? module.connection.context : ""
 
@@ -3094,7 +3103,7 @@ class ServerFactory {
             let options = []
             if (module.connection.options)
                 options.push("secure")
-            if (module.connection.acme
+            if (module.acme.endpoints
                     && module.connection.port === "80")
                 options.push("ACME")
             console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? ' (' + options.join(" + ") + ')' : ''}`)
@@ -3108,7 +3117,7 @@ let server = ServerFactory.newInstance(module)
 if (Object.exists(module.connection)
         && Object.exists(module.connection.options)
         && Object.exists(module.connection.secure)
-        && Object.exists(module.connection.acme)) {
+        && Object.exists(module.acme.endpoints)) {
     let monitor = {
         file: module.connection.secure.split(/\s+/)[0],
         lastModified: 0,
@@ -3123,6 +3132,7 @@ if (Object.exists(module.connection)
             }
         }
     }
+    monitor.update()
     global.setInterval((monitor) => {
         if (!monitor.update())
             return
@@ -3134,7 +3144,7 @@ if (Object.exists(module.connection)
 }
 
 if (module.connection.port !== "80"
-        && Object.exists(module.connection.acme)) {
+        && Object.exists(module.acme.endpoints)) {
     const server = http.createServer((request, response) => {
 
         // The method is based on time, network port and the assumption that a
@@ -3150,13 +3160,22 @@ if (module.connection.port !== "80"
         request.unique = new Date().getTime().toString(36) + request.unique
         request.unique = request.unique.toUpperCase()
 
+        {{{
+            response.trace = {
+                request: request
+            }
+        }}}
+
         try {
-            if (decodeURI(request.url) === module.connection.acme.context)
-                response.exit(200, "Success", {"Content-Length": module.connection.acme.response.length}, module.connection.acme.response)
-            if (!Object.exists(module.connection.acme.redirect)
-                    || module.connection.acme.redirect.length <= 0)
+            const pattern = decodeURI(request.url)
+            module.acme.endpoints.forEach(endpoint => {
+                if (pattern === endpoint.url)
+                    response.exit(200, "Success", {"Content-Length":endpoint.response.length}, endpoint.response)
+            })
+            if (!Object.exists(module.acme.redirect)
+                    || module.acme.redirect.length <= 0)
                 response.exit(404, "Resource Not Found")
-            let location = module.connection.acme.redirect
+            let location = module.acme.redirect
             if (location.match(/\.{3,}$/))
                 location = location.replace(/\.{3,}$/, request.url)
             response.exit(301, "Moved Permanently", {Location: location})
