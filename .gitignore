@@ -1,13 +1,11 @@
 /.idea/
-/.credentials
 /node_modules/
-/package-lock.json
 /release/trace/
 /release/xmex/
 /sources/data/
 /sources/libxml*/
 /sources/logs/
 /sources/*-build*.js
-/sources/*.pem
 /test/cumulate.http
-
+/.credentials
+/package-lock.json
