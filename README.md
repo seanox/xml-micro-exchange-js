@@ -119,14 +119,14 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XML-Micro-Exchange 1.3.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.3.0.zip)  
+[Seanox XML-Micro-Exchange 1.4.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.4.0.zip)  
 [Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip)  
 
 # Distributions for Microsoft Windows
 
 Complete package without Node.js to use as a Windows service.
 
-[Seanox XML-Micro-Exchange 1.3.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.3.0-win.zip)  
+[Seanox XML-Micro-Exchange 1.4.0](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-1.4.0-win.zip)  
 [Seanox XML-Micro-Exchange latest](https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-win-latest.zip)
 
 
@@ -182,23 +182,11 @@ and double memory.
 
 
 # Changes (Change Log)
-## 1.3.0 20210525 (summary of the current version)  
-BF: Service: Uniform use of status 204 for 202 / 404  
-BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)  
-BF: Service: Optimization/harmonization of content types for XML  
-BF: Docker: Initial creation of all subdirectories  
-BF: Docker: Use of the subdirectory ./temp for the XSLT processor  
-BF: Service: Correction of symbol %r for access log  
-BF: Service: Correction of symbol %q for access log  
-CR: Service: Restriction on reading/using the RequestBody  
-CR: Service: ACME optional redirect of paths outside the ACME challenge  
-CR: Service: Added optional redirect of paths outside the API path  
-CR: Service: Added web server functionality outside the API path  
-CR: Service: OPTIONS responds with 204 instead of 200  
-CR: Service: Optimization of tracing  
-CR: Service: Moving the temporary data from XLST process to ./temp  
-CR: Service: Added creation of ./temp directory at startup  
-CR: Service: Added symbol %Q for access log  
+## 1.4.0 20210925 (summary of the current version)  
+BF: Service: Correction of automatic restart when updating certificates  
+BF: Build: Update of the version in package.json  
+CR: ACME: Revision of the logic and configuration  
+CR: Build: Updating dependencies  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 
