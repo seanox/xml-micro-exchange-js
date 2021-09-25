@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.4.0 20210626
+ * Service 1.4.0 20210925
  * Copyright (C) 2021 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.4.0 20210626
+ * @version 1.4.0 20210925
  */
 const http = require("http")
 const https = require("https")
@@ -2810,8 +2810,8 @@ class ServerFactory {
                     if (module.acme.endpoints) {
                         const pattern = decodeURI(request.url)
                         module.acme.endpoints.forEach(endpoint => {
-                        if (pattern === endpoint.url)
-                            response.exit(200, "Success", {"Content-Length":endpoint.response.length}, endpoint.response)
+                            if (pattern.toLowerCase() === endpoint.url.toLowerCase())
+                                response.exit(200, "Success", {"Content-Length":endpoint.response.length}, endpoint.response)
                         })
                     }
 
@@ -3169,7 +3169,7 @@ if (module.connection.port !== "80"
         try {
             const pattern = decodeURI(request.url)
             module.acme.endpoints.forEach(endpoint => {
-                if (pattern === endpoint.url)
+                if (pattern.toLowerCase() === endpoint.url.toLowerCase())
                     response.exit(200, "Success", {"Content-Length":endpoint.response.length}, endpoint.response)
             })
             if (!Object.exists(module.acme.redirect)
