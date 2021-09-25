@@ -46,7 +46,7 @@
 - Start the release   
   Start `ant docker-release`
 - Execute `./sources/trace-cumulate.http` (local Docker) -- last pass: 43 sec  
-  __Unlike trace-cumulate.http, no errors should occur here.__
+  __Unlike trace-cumulate.http before, no errors should occur here.__
 ---
 
 
