@@ -50,16 +50,22 @@ In this section the servers and HTTP are configured.
 
 Automated Certificate Management Environment (ACME) is used for automatic
 verification of Internet domain ownership and simplified automated certificates
-for TLS encryption, which allows services like Let's Encrypt to be used.  
-For ACME HTTP-01, the procedure is based on an ACME HTTP challenge.  
+for TLS encryption, which allows services like Let's Encrypt to be used.
+
+For ACME HTTP-01, the procedure is based on an ACME HTTP challenge.
+
 In Seanox XMEX, the ACME HTTP challenge is started automatically when the key
-`ACME` is enabled by a value in the section `CONNECTION`.  
-If a certificate is present and the key `SECURE` is also activated in the
-section `CONNECTION`, the service also starts a monitor that checks for a new
-certificate about every 15 minutes. If a new certificate was provided, the
-active HTTPS server is terminated and started with the new certificate.  
+`ACME` is enabled by a value in the section `ACME`. If a certificate is present
+and the key `SECURE` is also activated in the  section `CONNECTION`, the
+service also starts a monitor that checks for a new certificate about every 15
+minutes. If a new certificate was provided, the active HTTPS server is
+terminated and started with the new certificate.
+
 Why 15 minutes? Not because the certificate is changed so often, but so that
 there is a timely effect for initiated changes.
+
+When using multi-domain (SAN) certificates, it may happen that ACME consists of
+several challenges. This is also supported by Seanox XMEX.
 
 With the automatism Seanox XMEX is ready for automated ACME management e.g. by
 certbot.
