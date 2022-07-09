@@ -7,7 +7,9 @@
     <echo>                       and Docker images for the distribution.                  </echo>
     <echo>                                                                                </echo>
     <echo>clean                  Cleanup of temporary directories and files from the      </echo>
-    <echo>                       relase task.                                             </echo>
+    <echo>                       release task.                                            </echo>
+    <echo>                                                                                </echo>
+    <echo>clean-test             Cleanup of temporary directories and files for tests.    </echo>
     <echo>                                                                                </echo>
     <echo>changes                Synchronizes README.md with CHANGES.                     </echo>
     <echo>                                                                                </echo>
@@ -365,5 +367,14 @@
     <delete dir="${workspace}/sources/logs"/>
     <delete file="${workspace}/sources/service-build.js"/>
     <delete file="${workspace}/sources/service-build-test.js"/>
+  </target>
+
+  <target name="clean-test">
+    <delete dir="${workspace}/sources/data"/>
+    <delete dir="${workspace}/sources/temp"/>
+    <delete file="${workspace}/sources/trace.log"/>
+    <touch file="${workspace}/sources/trace.log"/>
+    <delete file="${workspace}/sources/trace-docker.log"/>
+    <touch file="${workspace}/sources/trace-docker.log"/>
   </target>
 </project>

@@ -1,5 +1,6 @@
 1.4.1 2022xxxx
   CR: Build: Updated dependencies
+  CR: Test: Added Ant task clean-test to clean up temporary test data
 
 1.4.0 20210925
   BF: Service: Correction of automatic restart when updating certificates
