@@ -1,3 +1,6 @@
+1.4.1 2022xxxx
+  CR: Build: Updated dependencies
+
 1.4.0 20210925
   BF: Service: Correction of automatic restart when updating certificates
       Certificate update shortly after startup was not detected.
