@@ -2,7 +2,14 @@
 
 
 ## Contents Overview
+* [Preparation of the project for development](#preparation-of-the-project-for-development)
 * [How to create a release?](#how-to-create-a-release)
+
+
+# Preparation of the project for development
+- Start `ant libxml` in the directory `./development`  
+  then you can start the development with Windows
+- For Linux/Unix/MacOS: libxml2 is needed as subdirectory in the source directory
 
 
 ## How to create a release?
@@ -14,7 +21,7 @@
 ---
 
 
-- Clear all Docker imgaes  
+- Clear all Docker images  
   `docker system prune -a`
 - Execute `ant release`  
 ---
@@ -23,7 +30,9 @@
 - Start the service locally  
   `cd /sources`  
   `node service.js`
-- Execute `./test/cumulate.http` (local) -- last pass: 25 sec
+- Clear `./sources/trace.log` via `ant clean-test`  
+- Execute `./test/cumulate.http` (local) -- last pass: 25 sec  
+  ignores failures during the test  
 - Compare `./sources/trace.log` with the version in GitHub
 ---
 
