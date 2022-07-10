@@ -8,16 +8,15 @@
     <echo>                                                                                </echo>
     <echo>changes                Synchronizes README.md with CHANGES.                     </echo>
     <echo>                                                                                </echo>
-    <echo>release                Builds the final scripts and creates the release         </echo>
-    <echo>                       and Docker images for the distribution.                  </echo>
+    <echo>release                Builds the final the release and Docker images for the   </echo>
+    <echo>                       distribution.                                            </echo>
     <echo>                                                                                </echo>
-    <echo>clean                  Cleanup of temporary directories and files from the      </echo>
-    <echo>                       release task and tests.                                  </echo>
+    <echo>clean                  Cleanup of temporary data from the release and tests.    </echo>
     <echo>                                                                                </echo>
     <echo>docker-test            Creates a test version and Docker image and              </echo>
     <echo>                       launches it in local Docker.                             </echo>
     <echo>                                                                                </echo>
-    <echo>docker-integration     Creates a integration version and Docker image and       </echo>
+    <echo>docker-integration     Creates an integration version and Docker image and      </echo>
     <echo>                       launches it in local Docker.                             </echo>
     <echo>                                                                                </echo>
     <echo>docker-release         Creates a final release and Docker image and             </echo>
