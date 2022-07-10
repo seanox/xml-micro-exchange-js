@@ -37,7 +37,7 @@
   <property name="test" value="${workspace}/test"/>
   <property name="development" value="${workspace}/development"/>
 
-  <property name="filter" value="**/*.js,**/*.html,**/*.ini,**/*.cmd"/>
+  <property name="filter" value="**/*.js,**/*.html,**/*.xml,**/*.md,**/*.yaml,**/*.ini,**/*.json,**/*.cmd"/>
 
   <target name="libxml" depends="changes">
     <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${sources}" overwrite="true"/>
@@ -45,6 +45,8 @@
 
   <target name="release" depends="changes">
     <release-locate/>
+
+    <release-insert target="${workspace}"/>
 
     <delete dir="${trace}"/>
     <mkdir dir="${trace}"/>
@@ -190,12 +192,31 @@
   <macrodef name="release-insert">
     <attribute name="target"/>
     <sequential>
-      <replace dir="@{target}" includes="${filter}"
-          token="#[ant:release-year]" value="${release.year}"/>
-      <replace dir="@{target}" includes="${filter}"
-          token="#[ant:release-date]" value="${release.date}"/>
-      <replace dir="@{target}" includes="${filter}"
-          token="#[ant:release-version]" value="${release.version}"/>
+      <replaceregexp
+          match="(Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions)" flags="g" byline="false"
+          replace="\1 ${release.year} \2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <replaceregexp
+          match="(&#34;xmex&#34;,\s+&#34;version&#34;:\s+\&#34;)\d+(?:\.\d)+(&#34;)" flags="g" byline="false"
+          replace="\1${release.version}\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <replaceregexp
+          match="(\[Version)\s+\d+(?:\.\d+)+\s+\d+(\])" flags="g" byline="false"
+          replace="\1 ${release.version} ${release.date}\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <replaceregexp
+          match="(title:\s+&#34;Seanox\s+XMEX.*?&#34;\s+version:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
+          replace="\1${release.version}\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <replaceregexp
+          match="(&#34;name&#34;:\s+&#34;xmex&#34;,\s+&#34;version&#34;:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
+          replace="\1${release.version}\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
     </sequential>
   </macrodef>
 

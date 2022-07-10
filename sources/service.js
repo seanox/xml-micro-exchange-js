@@ -4,7 +4,7 @@
  * Diese Software unterliegt der Version 2 der Apache License.
  *
  * XMEX XML-Micro-Exchange
- * Copyright (C) 2021 Seanox Software Solutions
+ * Copyright (C) 2022 Seanox Software Solutions
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -170,7 +170,7 @@
  * In addition, HTTPS is supported but without client certificate authorization.
  *
  * Service 1.4.0 20210925
- * Copyright (C) 2021 Seanox Software Solutions
+ * Copyright (C) 2022 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
@@ -2660,8 +2660,8 @@ if (module.logging.error) {
 // Version number and year are set later in the build process.
 // Source of knowledge is CHANGES, where else can you find such info ;-)
 // CHANGES is the basis for builds, releases and README.md
-console.log("Seanox XML-Micro-Exchange [Version #[ant:release-version] #[ant:release-date]]")
-console.log("Copyright (C) #[ant:release-year] Seanox Software Solutions")
+console.log("Seanox XML-Micro-Exchange [Version 1.4.1 20220000]")
+console.log("Copyright (C) 2022 Seanox Software Solutions")
 
 const XsltProc = (() => {
 

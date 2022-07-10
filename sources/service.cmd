@@ -1,7 +1,7 @@
   @echo off
 
-  echo Seanox XML-Micro-Exchange [Version #[ant:release-version] #[ant:release-date]]
-  echo Copyright (C) #[ant:release-year] Seanox Software Solutions
+  echo Seanox XML-Micro-Exchange [Version 1.4.1 20220000]
+  echo Copyright (C) 2022 Seanox Software Solutions
   echo.
 
   cd /D "%~dp0"
