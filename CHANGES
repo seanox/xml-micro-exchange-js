@@ -1,7 +1,8 @@
 1.4.1 2022xxxx
   BF: Build: Optimization / correction of the release info process
   CR: Build: Updated dependencies
-  CR: Test: Added Ant task clean-test to clean up temporary test data
+  CR: Build: Enhancement of Ant task clean for cleaning temporary test data
+  CR: Build: Renamed Ant libxml into install
   NT: Harmonization of version numbers for the different implementations
       Major and minor describe the API, patch refers to the implementation.
       The version of OpenAPI therefore only uses major and minor, patch is always 0.
