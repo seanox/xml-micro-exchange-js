@@ -213,6 +213,11 @@
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
       <replaceregexp
+          match="(title:\s+&#34;Seanox\s+XMEX.*?&#34;\s+version:\s+&#34;\d+\.\d+)(?:\.\d+)+(&#34;)" flags="g" byline="false"
+          replace="\1.0\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <replaceregexp
           match="(&#34;name&#34;:\s+&#34;xmex&#34;,\s+&#34;version&#34;:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
           replace="\1${release.version}\2">
         <fileset dir="@{target}" includes="${filter}"/>
