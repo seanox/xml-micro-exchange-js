@@ -2713,7 +2713,7 @@ global.setInterval(() => {
         console.log("Statistic", `Requests ${data.requests}`
             + `, Inbound ${Math.round(data.inbound, 2)} MB`
             + `, Outbound ${Math.round(data.outbound, 2)} MB`
-            + `, Execution ${Math.round(data.time, 2)} min`
+            + `, Execution ${Math.round(data.time, 2)} sec`
             + `, Errors ${data.errors}`)
     }
     let date = new Date()
@@ -2903,7 +2903,7 @@ class ServerFactory {
                         let file = fs.openSync(target, "r")
                         try {
                             response.writeHead(200, "Success", headers)
-                            response.contentLength = state.size
+                            response.contentLength = state.size || 0
                             const buffer = Buffer.alloc(65535)
                             for (let size = 0; size = fs.readSync(file, buffer) > 0;)
                                 response.write(buffer.toString("binary"), "binary")
@@ -3071,8 +3071,8 @@ class ServerFactory {
                         Statistic.data[slot] = Statistic.data[slot] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
                         Statistic.data[slot].requests += 1
                         Statistic.data[slot].inbound += Math.round(request.data.length /1024 /1024, 4)
-                        Statistic.data[slot].outbound += Math.round(response.contentLength /1024 /1024, 4)
-                        Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000 /60, 4)
+                        Statistic.data[slot].outbound += Math.round((response.contentLength || 0) /1024 /1024, 4)
+                        Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000, 4)
                         if (String(response.statusCode).startsWith("5"))
                             Statistic.data[slot].errors += 1
                     })();
