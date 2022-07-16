@@ -3,27 +3,32 @@
   <target name="usage">
     <echo>Following targets are available...                                              </echo>
     <echo>                                                                                </echo>
-    <echo>install                Prepares the project initially for development on        </echo>
-    <echo>                       Windows and unzip libxml2 into the project.              </echo>
+    <echo>install                     Prepares the project initially for development on   </echo>
+    <echo>                            Windows and unzip libxml2 into the project.         </echo>
     <echo>                                                                                </echo>
-    <echo>changes                Synchronizes README.md with CHANGES.                     </echo>
+    <echo>changes                     Synchronizes README.md with CHANGES.                </echo>
     <echo>                                                                                </echo>
-    <echo>release                Builds the final the release and Docker images for the   </echo>
-    <echo>                       distribution.                                            </echo>
+    <echo>release                     Builds the final the release and Docker images for  </echo>
+    <echo>                            the distribution.                                   </echo>
     <echo>                                                                                </echo>
-    <echo>clean                  Cleanup of temporary data from the release and tests.    </echo>
+    <echo>clean                       Cleanup of temporary data for release and tests.    </echo>
     <echo>                                                                                </echo>
-    <echo>docker-test            Creates a test version and Docker image and              </echo>
-    <echo>                       launches it in local Docker.                             </echo>
+    <echo>docker-clean                Cleanup of temporary data for release and tests.    </echo>
     <echo>                                                                                </echo>
-    <echo>docker-integration     Creates an integration version and Docker image and      </echo>
-    <echo>                       launches it in local Docker.                             </echo>
+    <echo>docker-test                 Creates a test version and Docker image and         </echo>
+    <echo>                            launches it in local Docker.                        </echo>
     <echo>                                                                                </echo>
-    <echo>docker-release         Creates a final release and Docker image and             </echo>
-    <echo>                       launches it in local Docker.                             </echo>
+    <echo>docker-integration          Creates an integration version and Docker image and </echo>
+    <echo>                            launches it in local Docker.                        </echo>
     <echo>                                                                                </echo>
-    <echo>docker-push-release    Creates a final release and Docker image and pushes      </echo>
-    <echo>                       image to Docker Hub.                                     </echo>
+    <echo>docker-integration-trace    Updating trace-docker.log with trace.log in the     </echo>
+    <echo>                            container.                                          </echo>
+    <echo>                                                                                </echo>
+    <echo>docker-release              Creates a final release and Docker image and        </echo>
+    <echo>                            launches it in local Docker.                        </echo>
+    <echo>                                                                                </echo>
+    <echo>docker-push-release         Creates a final release and Docker image and pushes </echo>
+    <echo>                            image to Docker Hub.                                </echo>
   </target>
   
   <property name="workspace" value="${basedir}"/>
@@ -50,8 +55,7 @@
     <mkdir dir="${trace}"/>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true"
         output="${trace}/npm-stdout.log" error="${trace}/npm-stderr.log">
-      <arg value="/c"/>
-      <arg value="npm run build"/>
+      <arg value="/c npm run build"/>
     </exec>
     <echo file="${trace}/npm-stdout.log" append="true" message="&#09;"/>
     <replaceregexp file="${trace}/npm-stdout.log" flags="g" byline="false"
@@ -119,8 +123,7 @@
       <arg value="."/>
     </exec>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c"/>
-      <arg value="docker images --filter=reference=seanox/${ant.project.name} --filter=reference=${ant.project.name}"/>
+      <arg value="/c docker images --filter=reference=seanox/${ant.project.name} --filter=reference=${ant.project.name}"/>
     </exec>
 
     <delete dir="${build}-win"/>
@@ -326,16 +329,28 @@
     </sequential>
   </macrodef>
 
+  <target name="clean">
+    <delete dir="${workspace}/release/trace"/>
+    <delete dir="${workspace}/release/xmex"/>
+    <delete dir="${workspace}/sources/data"/>
+    <delete dir="${workspace}/sources/logs"/>
+    <delete file="${workspace}/sources/service-build.js"/>
+    <delete file="${workspace}/sources/service-build-test.js"/>
+
+    <delete dir="${workspace}/sources/data"/>
+    <delete dir="${workspace}/sources/temp"/>
+    <delete file="${workspace}/sources/trace.log"/>
+    <touch file="${workspace}/sources/trace.log"/>
+  </target>
+
   <macrodef name="docker-build">
     <attribute name="target"/>
     <sequential>
       <exec executable="cmd" failonerror="false" failifexecutionfails="false">
-        <arg value="/c"/>
-        <arg value="docker kill ${ant.project.name}-@{target}"/>
+        <arg value="/c docker kill ${ant.project.name}-@{target}"/>
       </exec>
       <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-        <arg value="/c"/>
-        <arg value="docker build -t ${ant.project.name}:@{target} --target @{target} ."/>
+        <arg value="/c docker build -t ${ant.project.name}:@{target} --target @{target} ."/>
       </exec>
     </sequential>
   </macrodef>
@@ -344,12 +359,10 @@
     <attribute name="target"/>
     <sequential>
       <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-        <arg value="/c"/>
-        <arg value="docker run -d -p 8000:8000/tcp --rm --name ${ant.project.name}-@{target} ${ant.project.name}:@{target}"/>
+        <arg value="/c docker run -d -p 8000:8000/tcp --rm --name ${ant.project.name}-@{target} ${ant.project.name}:@{target}"/>
       </exec>
       <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-        <arg value="/c"/>
-        <arg value="docker ps"/>
+        <arg value="/c docker ps"/>
       </exec>
     </sequential>
   </macrodef>
@@ -361,6 +374,17 @@
   <target name="docker-integration" depends="release">
     <docker-run target="integration"/>
   </target>
+  <target name="docker-integration-trace">
+    <exec executable="cmd" failonerror="false" failifexecutionfails="false">
+      <arg value="/c docker cp xmex-integration:/xmex/trace.log ./sources/trace-docker.log"/>
+    </exec>
+    <exec executable="cmd" failonerror="false" failifexecutionfails="false">
+      <arg value="/c docker cp xmex-integration:/xmex/trace-cumulate.http ./sources/trace-cumulate.http"/>
+    </exec>
+    <replaceregexp file="./sources/trace-cumulate.http" flags="g" byline="false"
+        match="172\.[.\d]+" replace="127.0.0.1"/>
+  </target>
+
   <target name="docker-release" depends="release">
     <docker-run target="release"/>
   </target>
@@ -377,36 +401,24 @@
     </condition>
     <fail message="Credentials are missing (check file .credentials)" unless="credentials.exists"/>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c"/>
-      <arg value="docker login -u=${docker.user} -p=${docker.password} ${docker.registry}"/>
+      <arg value="/c docker login -u=${docker.user} -p=${docker.password} ${docker.registry}"/>
     </exec>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c"/>
-      <arg value="docker push seanox/${ant.project.name}:latest"/>
+      <arg value="/c docker push seanox/${ant.project.name}:latest"/>
     </exec>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c"/>
-      <arg value="docker push seanox/${ant.project.name}:${release.version}"/>
+      <arg value="/c docker push seanox/${ant.project.name}:${release.version}"/>
     </exec>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c"/>
-      <arg value="docker logout"/>
+      <arg value="/c docker logout"/>
     </exec>
   </target>
 
-  <target name="clean">
-    <delete dir="${workspace}/release/trace"/>
-    <delete dir="${workspace}/release/xmex"/>
-    <delete dir="${workspace}/sources/data"/>
-    <delete dir="${workspace}/sources/logs"/>
-    <delete file="${workspace}/sources/service-build.js"/>
-    <delete file="${workspace}/sources/service-build-test.js"/>
-
-    <delete dir="${workspace}/sources/data"/>
-    <delete dir="${workspace}/sources/temp"/>
-    <delete file="${workspace}/sources/trace.log"/>
-    <touch file="${workspace}/sources/trace.log"/>
+  <target name="docker-clean">
     <delete file="${workspace}/sources/trace-docker.log"/>
     <touch file="${workspace}/sources/trace-docker.log"/>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg value="/c docker system prune --all --volumes --force"/>
+    </exec>
   </target>
 </project>
