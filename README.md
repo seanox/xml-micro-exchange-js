@@ -112,13 +112,13 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XML-Micro-Exchange 1.4.0](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.0/seanox-xmex-1.4.0.zip)
+[Seanox XML-Micro-Exchange 1.4.1](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.1/seanox-xmex-1.4.1.zip)
 
 # Distributions for Microsoft Windows
 
 Complete package without Node.js to use as a Windows service.
 
-[Seanox XML-Micro-Exchange 1.4.0](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.0/seanox-xmex-1.4.0-win.zip)
+[Seanox XML-Micro-Exchange 1.4.1](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.1/seanox-xmex-1.4.1-win.zip)
 
 
 # Docker Image
@@ -173,11 +173,16 @@ and double memory.
 
 
 # Changes (Change Log)
-## 1.4.0 20210925 (summary of the current version)  
-BF: Service: Correction of automatic restart when updating certificates  
-BF: Build: Update of the version in package.json  
-CR: ACME: Revision of the logic and configuration  
-CR: Build: Updating dependencies  
+## 1.4.1 20220717 (summary of the current version)  
+BF: Statistic: Correction of the calculation of inbound / outbound  
+BF: Build: Optimization / correction of the release info process  
+CR: Build: Updated dependencies  
+CR: Build: Enhancement of Ant task clean for cleaning temporary test data  
+CR: Build: Renamed Ant libxml to install  
+CR: Build: Change from .credentials to environment variables  
+CR: Statistic: Changed execution time in seconds (was previously in minutes)  
+NT: Releases only as attachments on the GitHub release page  
+NT: Harmonization of version numbers for the different implementations  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 

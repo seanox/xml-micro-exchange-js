@@ -169,12 +169,12 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.4.0 20210925
+ * Service 1.4.1 20220717
  * Copyright (C) 2022 Seanox Software Solutions
  * All rights reserved.
  *
  * @author  Seanox Software Solutions
- * @version 1.4.0 20210925
+ * @version 1.4.1 20220717
  */
 const http = require("http")
 const https = require("https")
@@ -2660,7 +2660,7 @@ if (module.logging.error) {
 // Version number and year are set later in the build process.
 // Source of knowledge is CHANGES, where else can you find such info ;-)
 // CHANGES is the basis for builds, releases and README.md
-console.log("Seanox XML-Micro-Exchange [Version 1.4.1 20220000]")
+console.log("Seanox XML-Micro-Exchange [Version 1.4.1 20220717]")
 console.log("Copyright (C) 2022 Seanox Software Solutions")
 
 const XsltProc = (() => {
