@@ -4,6 +4,7 @@
   CR: Build: Updated dependencies
   CR: Build: Enhancement of Ant task clean for cleaning temporary test data
   CR: Build: Renamed Ant libxml to install
+  CR: Build: Change from .credentials to environment variables
   CR: Statistic: Changed execution time in seconds (was previously in minutes)
   NT: Releases only as attachments on the GitHub release page
       Otherwise the download during cloning will be too large.

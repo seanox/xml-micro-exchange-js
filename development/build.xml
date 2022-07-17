@@ -398,19 +398,41 @@
     <docker-run target="release"/>
   </target>
 
-  <target name="docker-push-release" depends="release">
-    <property file="${workspace}/.credentials"/>
-    <condition property="credentials.exists">
-      <and>
-        <matches pattern="^.*\S.*$" string="${docker.user}"/>
-        <isset property="docker.user"/>
-        <matches pattern="^.*\S.*$" string="${docker.password}"/>
-        <isset property="docker.password"/>
-      </and>
-    </condition>
-    <fail message="Credentials are missing (check file .credentials)" unless="credentials.exists"/>
+  <target name="docker-push-release" depends="release"/>
+    <property environment="env"/>
+    <property name="docker.registry" value="${env.docker-registry}"/>
+    <property name="docker.id" value="${env.docker-id}"/>
+    <property name="docker.password" value="${env.docker-password}"/>
+    <property name="docker.fail.message" value="Credentials for Docker Hub are incomplete!${line.separator}"/>
+    <fail message="${docker.fail.message}Environmental variable docker-registry is required">
+      <condition>
+        <or>
+          <matches pattern="^\s*\$\{.*$" string="${docker.registry}"/>
+          <not><matches pattern="^.*\S.*$" string="${docker.registry}"/></not>
+          <not><isset property="docker.registry"/></not>
+        </or>
+      </condition>
+    </fail>
+    <fail message="${docker.fail.message}Environmental variable docker-id is required">
+      <condition>
+        <or>
+          <matches pattern="^\s*\$\{.*$" string="${docker.id}"/>
+          <not><matches pattern="^.*\S.*$" string="${docker.id}"/></not>
+          <not><isset property="docker.id"/></not>
+        </or>
+      </condition>
+    </fail>
+    <fail message="${docker.fail.message}Environmental variable docker-password is required">
+      <condition>
+        <or>
+          <matches pattern="^\s*\$\{.*$" string="${docker.password}"/>
+          <not><matches pattern="^.*\S.*$" string="${docker.password}"/></not>
+          <not><isset property="docker.password"/></not>
+        </or>
+      </condition>
+    </fail>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker login -u=${docker.user} -p=${docker.password} ${docker.registry}"/>
+      <arg value="/c docker login -u=${docker.id} -p=${docker.password} ${docker.registry}"/>
     </exec>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
       <arg value="/c docker push seanox/${ant.project.name}:latest"/>

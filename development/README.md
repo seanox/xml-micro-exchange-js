@@ -10,6 +10,8 @@
   * [Testing release candidate in the Docker environment](#testing-release-candidate-in-the-docker-environment)
   * [Testing Windows Service](#testing-windows-service)
 * [Publish a release](#publish-a-release)
+  * [GitHub](#github)
+  * [Docker Hub](#docker-hub)
 
 
 ## Preparation for development
@@ -85,10 +87,28 @@
   `service.cmd uninstall`
 - Remove the installation
 
-
 ## Publish a release
+
+### GitHub
 - Start in the project directory
+- __Provided all tests are successful!__
 - Finalize the version in CHANGES  
   Call `ant -f ./development/build.xml release`
+- Check the differences with the Git repository
+- Commit all changes with the comment `Release x.x.x`
+- Git Create tag `x.x.x` (comment: x.x.x)
+- Git Push + tags
+- GitHub -> Project -> Tags -> Create Release (... to the right of the tag)   
+  Title: Version x.x.x 20xxxxxx  
+  Content: Short version of CHANGES  
+  Attach files...
+  seanox-xmex-x.x.x.zip
+  seanox-xmex-x.x.x-win.zip
+  Click "Publish release"
 
-TODO: Must be continued
+### Docker Hub
+- __Based on the previous step__
+- Publish the release in Docker Hub  
+  Call `ant -f ./development/build.xml docker-push-release`  
+  __Docker Hub requires the following environment variables as credentials:__  
+  __`docker-registry`, `docker-id`, `docker-password`__
