@@ -398,7 +398,7 @@
     <docker-run target="release"/>
   </target>
 
-  <target name="docker-push-release" depends="release"/>
+  <target name="docker-push-release" depends="release">
     <property environment="env"/>
     <property name="docker.registry" value="${env.docker-registry}"/>
     <property name="docker.id" value="${env.docker-id}"/>
