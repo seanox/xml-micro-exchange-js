@@ -1,7 +1,6 @@
 /.idea/
 /node_modules/
-/release/trace/
-/release/xmex/
+/release/
 /sources/data/
 /sources/libxml*/
 /sources/logs/
