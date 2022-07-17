@@ -71,12 +71,12 @@
   `service.cmd install`
 - Test of `./sources/snake.html`
 - Switch to `service-build-test.js`  
-  Replace `C:\Temp\xmex\service.js` with `./sources/service-build-test.js` and
-  copy `./sources/trace-cumulate.js` to `C:\Temp\xmex` 
+  Replace `C:\Temp\xmex\service.js` with `./sources/service-build-test.js`  
+  and copy `./sources/trace-cumulate.js` to `C:\Temp\xmex` 
 - Restart from service
   `service.cmd restart`
 - Test of `cumulate.http`
-- Test of the service functions
+- Test of the service functions  
   `cd /D C:\Temp\xmex`  
   `service.cmd update`  
   `service.cmd start`  
@@ -87,5 +87,8 @@
 
 
 ## Publish a release
+- Start in the project directory
+- Finalize the version in CHANGES  
+  Call `ant -f ./development/build.xml release`
 
 TODO: Must be continued
