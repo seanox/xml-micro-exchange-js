@@ -160,10 +160,10 @@
         match="(Seanox\s+XML-Micro-Exchange\s+)\d+[\.\d]+" flags="g" byline="false"
         replace="\1${release.version}"/>
     <replaceregexp file="${workspace}/README.md"
-        match="(seanox-xmex-)\d+[\.\d]+((?:-win)*\.zip)" flags="g" byline="false"
+        match="(seanox-${ant.project.name}-)\d+[\.\d]+((?:-win)*\.zip)" flags="g" byline="false"
         replace="\1${release.version}\2"/>
     <replaceregexp file="${workspace}/README.md"
-        match="(releases/download/)\d+[\.\d]+(/seanox-xmex)" flags="g" byline="false"
+        match="(releases/download/)\d+[\.\d]+(/seanox-${ant.project.name})" flags="g" byline="false"
         replace="\1${release.version}\2"/>
     <replaceregexp file="${workspace}/package.json"
         match="(\x22version\x22\s*:\s*\x22)\d+[\.\d]+(\x22)" flags="g" byline="false"
@@ -202,7 +202,7 @@
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
       <replaceregexp
-          match="(&#34;xmex&#34;,\s+&#34;version&#34;:\s+\&#34;)\d+(?:\.\d)+(&#34;)" flags="g" byline="false"
+          match="(&#34;${ant.project.name}&#34;,\s+&#34;version&#34;:\s+\&#34;)\d+(?:\.\d)+(&#34;)" flags="g" byline="false"
           replace="\1${release.version}\2">
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
@@ -212,17 +212,17 @@
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
       <replaceregexp
-          match="(title:\s+&#34;Seanox\s+XMEX.*?&#34;\s+version:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
+          match="(title:\s+&#34;Seanox\s+${ant.project.name}.*?&#34;\s+version:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="ig" byline="false"
           replace="\1${release.version}\2">
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
       <replaceregexp
-          match="(title:\s+&#34;Seanox\s+XMEX.*?&#34;\s+version:\s+&#34;\d+\.\d+)(?:\.\d+)+(&#34;)" flags="g" byline="false"
+          match="(title:\s+&#34;Seanox\s+${ant.project.name}.*?&#34;\s+version:\s+&#34;\d+\.\d+)(?:\.\d+)+(&#34;)" flags="ig" byline="false"
           replace="\1.0\2">
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
       <replaceregexp
-          match="(&#34;name&#34;:\s+&#34;xmex&#34;,\s+&#34;version&#34;:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
+          match="(&#34;name&#34;:\s+&#34;${ant.project.name}&#34;,\s+&#34;version&#34;:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
           replace="\1${release.version}\2">
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
@@ -334,7 +334,7 @@
 
   <target name="clean">
     <delete dir="${workspace}/release/trace"/>
-    <delete dir="${workspace}/release/xmex"/>
+    <delete dir="${workspace}/release/${ant.project.name}"/>
     <delete dir="${workspace}/sources/data"/>
     <delete dir="${workspace}/sources/logs"/>
     <delete file="${workspace}/sources/service-build.js"/>
@@ -379,10 +379,10 @@
   </target>
   <target name="docker-integration-trace">
     <exec executable="cmd" failonerror="false" failifexecutionfails="false">
-      <arg value="/c docker cp xmex-integration:/xmex/trace.log ./sources/trace-docker.log"/>
+      <arg value="/c docker cp ${ant.project.name}-integration:/${ant.project.name}/trace.log ./sources/trace-docker.log"/>
     </exec>
     <exec executable="cmd" failonerror="false" failifexecutionfails="false">
-      <arg value="/c docker cp xmex-integration:/xmex/trace-cumulate.http ./sources/trace-cumulate.http"/>
+      <arg value="/c docker cp ${ant.project.name}-integration:/${ant.project.name}/trace-cumulate.http ./sources/trace-cumulate.http"/>
     </exec>
     <replaceregexp file="./sources/trace-cumulate.http" flags="g" byline="false"
         match="172\.[.\d]+" replace="127.0.0.1"/>
