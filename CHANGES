@@ -5,6 +5,8 @@
   CR: Build: Enhancement of Ant task clean for cleaning temporary test data
   CR: Build: Renamed Ant libxml to install
   CR: Statistic: Changed execution time in seconds (was previously in minutes)
+  NT: Releases only as attachments on the GitHub release page
+      Otherwise the download during cloning will be too large.
   NT: Harmonization of version numbers for the different implementations
       Major and minor describe the API, patch refers to the implementation.
       The version of OpenAPI therefore only uses major and minor, patch is always 0.
