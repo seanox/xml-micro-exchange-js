@@ -175,7 +175,7 @@ Download and installation of the latest version of XMEX.
 cd ~
 mkdir xmex
 cd xmex  
-curl -o seanox-xmex-latest.zip -fsSL https://github.com/seanox/xml-micro-exchange-js/raw/main/release/seanox-xmex-latest.zip
+curl -o seanox-xmex-latest.zip -fsSL https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.0/seanox-xmex-1.4.0.zip
 unzip seanox-xmex-latest.zip -d .
 sudo chmod -R 755 .
 ```
