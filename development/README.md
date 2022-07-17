@@ -96,7 +96,7 @@
   Call `ant -f ./development/build.xml release`
 - Check the differences with the Git repository
 - Commit all changes with the comment `Release x.x.x`
-- Git Create tag `x.x.x` (comment: x.x.x)
+- Git Create tag `x.x.x` (comment: short version of changes)
 - Git Push + tags
 - GitHub -> Project -> Tags -> Create Release (... to the right of the tag)   
   Title: Version x.x.x 20xxxxxx  
