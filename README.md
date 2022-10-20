@@ -172,8 +172,8 @@ and double memory.
 * [Test](https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/test.md)
 
 
-# Changes (Change Log)
-## 1.4.1 20220717 (summary of the current version)  
+# Changes 
+## 1.4.1 20220717 
 BF: Statistic: Correction of the calculation of inbound / outbound  
 BF: Build: Optimization / correction of the release info process  
 CR: Build: Updated dependencies  
