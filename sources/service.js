@@ -169,10 +169,6 @@
  * the individual root element can be regarded as secret.
  * In addition, HTTPS is supported but without client certificate authorization.
  *
- * Service 1.4.1 20220717
- * Copyright (C) 2022 Seanox Software Solutions
- * All rights reserved.
- *
  * @author  Seanox Software Solutions
  * @version 1.4.1 20220717
  */
