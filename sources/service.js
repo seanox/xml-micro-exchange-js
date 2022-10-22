@@ -2656,8 +2656,8 @@ if (module.logging.error) {
 // Version number and year are set later in the build process.
 // Source of knowledge is CHANGES, where else can you find such info ;-)
 // CHANGES is the basis for builds, releases and README.md
-console.log("Seanox XML-Micro-Exchange [Version 1.4.1 20220717]")
-console.log("Copyright (C) 2022 Seanox Software Solutions")
+console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
+console.log("Copyright (C) 0000 Seanox Software Solutions")
 
 const XsltProc = (() => {
 
