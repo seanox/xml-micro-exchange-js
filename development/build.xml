@@ -1,34 +1,38 @@
 <?xml version="1.0"?>
 <project name="xmex" default="usage" basedir="..">
   <target name="usage">
-    <echo>Following targets are available...                                              </echo>
-    <echo>                                                                                </echo>
-    <echo>  install                     Prepares the project initially for development on </echo>
-    <echo>                              Windows and unzip libxml2 into the project.       </echo>
-    <echo>                                                                                </echo>
-    <echo>  changes                     Synchronizes README.md with CHANGES.              </echo>
-    <echo>                                                                                </echo>
-    <echo>  release                     Builds the final the release and Docker images for</echo>
-    <echo>                              the distribution.                                 </echo>
-    <echo>                                                                                </echo>
-    <echo>  clean                       Cleanup of temporary data for release and tests.  </echo>
-    <echo>                                                                                </echo>
-    <echo>  docker-clean                Cleanup of temporary data for release and tests.  </echo>
-    <echo>                                                                                </echo>
-    <echo>  docker-test                 Creates a test version and Docker image and       </echo>
-    <echo>                              launches it in local Docker.                      </echo>
-    <echo>                                                                                </echo>
-    <echo>  docker-integration          Creates an integration version and Docker image   </echo>
-    <echo>                              and launches it in local Docker.                  </echo>
-    <echo>                                                                                </echo>
-    <echo>  docker-integration-trace    Updating trace-docker.log with trace.log in the   </echo>
-    <echo>                              container.                                        </echo>
-    <echo>                                                                                </echo>
-    <echo>  docker-release              Creates a final release and Docker image and      </echo>
-    <echo>                              launches it in local Docker.                      </echo>
-    <echo>                                                                                </echo>
-    <echo>  docker-push-release         Creates a final release and Docker image and      </echo>
-    <echo>                              pushes the image to Docker Hub.                   </echo>
+    <echo>Following targets are available:                               </echo>
+    <echo>                                                               </echo>
+    <echo>  install                     Prepares the development on      </echo> 
+    <echo>                              Windows and with libxml2         </echo>
+    <echo>                                                               </echo>
+    <echo>  changes                     Synchronizes README.md with      </echo>
+    <echo>                              CHANGES                          </echo>  
+    <echo>                                                               </echo>                   
+    <echo>  release                     Builds the final release and     </echo>      
+    <echo>                              Docker images for distribution   </echo> 
+    <echo>                                                               </echo>
+    <echo>  clean                       Cleanup of temporary data of     </echo> 
+    <echo>                              release and tests                </echo>
+    <echo>                                                               </echo>
+    <echo>  docker-clean                Cleanup of temporary data of     </echo>
+    <echo>                              release and tests                </echo>
+    <echo>                                                               </echo>
+    <echo>  docker-test                 Creates a test version as Docker </echo>
+    <echo>                              image and launches them          </echo>
+    <echo>                                                               </echo>
+    <echo>  docker-integration          Creates an integration version as</echo>
+    <echo>                              image and launches them          </echo>
+    <echo>                                                               </echo>
+    <echo>  docker-integration-trace    Updating trace-docker.log with   </echo> 
+    <echo>                              trace.log in the container       </echo>
+    <echo>                                                               </echo>
+    <echo>  docker-release              Creates a final release as Docker</echo> 
+    <echo>                              image and launches them          </echo>
+    <echo>                                                               </echo>
+    <echo>  docker-push-release         Creates a final release as Docker</echo> 
+    <echo>                              image and pushes them to Docker  </echo> 
+    <echo>                              Hub                              </echo>
   </target>
   
   <property name="workspace" value="${basedir}"/>
