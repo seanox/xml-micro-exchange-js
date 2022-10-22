@@ -91,18 +91,25 @@
           replace="\1${release.info.version}\2">
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
-      <!-- Copyright (C) 0000 Seanox Software Solutions -->
+      <!-- "Copyright (C) 0000 Seanox Software Solutions" -->
       <replaceregexp
-          match="(Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions)" flags="g" byline="false"
+          match="(\x22Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions\x22)" flags="g" byline="false"
+          replace="\1 ${release.info.year} \2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <!-- echo Copyright (C) 0000 Seanox Software Solutions -->
+      <replaceregexp
+          match="(echo\s+Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions)" flags="g" byline="false"
           replace="\1 ${release.info.year} \2">
         <fileset dir="@{target}" includes="${filter}"/>
       </replaceregexp>
     </sequential>
   </macrodef>
 
-  <macrodef name="release-info-reset">
+  <macrodef name="release-reset">
+    <attribute name="target"/>
     <sequential>
-      <release-info-insert version="0.0.0 00000000"/>
+      <release-insert target="@{target}" version="0.0.0 00000000"/>
     </sequential>
   </macrodef>
 
@@ -314,7 +321,7 @@
       <fileset dir="${release}" includes="seanox-${ant.project.name}*.zip"/>
     </touch>
 
-    <release-info-reset/>
+    <release-reset target="${workspace}"/>
 
     <replaceregexp file="${workspace}/README.md"
         match="(Seanox\s+XML-Micro-Exchange\s+)\d+[\.\d]+" flags="g" byline="false"
