@@ -205,11 +205,6 @@
     <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${sources}" overwrite="true"/>
   </target>
 
-
-
-
-
-
   <target name="release" depends="changes">
     <release-locate/>
     <release-insert target="${workspace}"/>
