@@ -3,32 +3,32 @@
   <target name="usage">
     <echo>Following targets are available...                                              </echo>
     <echo>                                                                                </echo>
-    <echo>install                     Prepares the project initially for development on   </echo>
-    <echo>                            Windows and unzip libxml2 into the project.         </echo>
+    <echo>  install                     Prepares the project initially for development on </echo>
+    <echo>                              Windows and unzip libxml2 into the project.       </echo>
     <echo>                                                                                </echo>
-    <echo>changes                     Synchronizes README.md with CHANGES.                </echo>
+    <echo>  changes                     Synchronizes README.md with CHANGES.              </echo>
     <echo>                                                                                </echo>
-    <echo>release                     Builds the final the release and Docker images for  </echo>
-    <echo>                            the distribution.                                   </echo>
+    <echo>  release                     Builds the final the release and Docker images for</echo>
+    <echo>                              the distribution.                                 </echo>
     <echo>                                                                                </echo>
-    <echo>clean                       Cleanup of temporary data for release and tests.    </echo>
+    <echo>  clean                       Cleanup of temporary data for release and tests.  </echo>
     <echo>                                                                                </echo>
-    <echo>docker-clean                Cleanup of temporary data for release and tests.    </echo>
+    <echo>  docker-clean                Cleanup of temporary data for release and tests.  </echo>
     <echo>                                                                                </echo>
-    <echo>docker-test                 Creates a test version and Docker image and         </echo>
-    <echo>                            launches it in local Docker.                        </echo>
+    <echo>  docker-test                 Creates a test version and Docker image and       </echo>
+    <echo>                              launches it in local Docker.                      </echo>
     <echo>                                                                                </echo>
-    <echo>docker-integration          Creates an integration version and Docker image and </echo>
-    <echo>                            launches it in local Docker.                        </echo>
+    <echo>  docker-integration          Creates an integration version and Docker image   </echo>
+    <echo>                              and launches it in local Docker.                  </echo>
     <echo>                                                                                </echo>
-    <echo>docker-integration-trace    Updating trace-docker.log with trace.log in the     </echo>
-    <echo>                            container.                                          </echo>
+    <echo>  docker-integration-trace    Updating trace-docker.log with trace.log in the   </echo>
+    <echo>                              container.                                        </echo>
     <echo>                                                                                </echo>
-    <echo>docker-release              Creates a final release and Docker image and        </echo>
-    <echo>                            launches it in local Docker.                        </echo>
+    <echo>  docker-release              Creates a final release and Docker image and      </echo>
+    <echo>                              launches it in local Docker.                      </echo>
     <echo>                                                                                </echo>
-    <echo>docker-push-release         Creates a final release and Docker image and pushes </echo>
-    <echo>                            image to Docker Hub.                                </echo>
+    <echo>  docker-push-release         Creates a final release and Docker image and      </echo>
+    <echo>                              pushes the image to Docker Hub.                   </echo>
   </target>
   
   <property name="workspace" value="${basedir}"/>
@@ -42,13 +42,176 @@
 
   <property name="filter" value="**/*.js,**/*.html,**/*.xml,**/*.md,**/*.yaml,**/*.ini,**/*.json,**/*.cmd"/>
 
+  <macrodef name="release-locate">
+    <sequential>
+      <copy file="CHANGES" tofile="CHANGES.tmp" overwrite="true"/>
+      <replaceregexp file="CHANGES.tmp"
+          match="(?s)^\s*([\d\.x]+) (\d{4})([\dx]+).*$" flags="g" byline="false"
+          replace="release.version=\1&#x000D;release.year=\2&#x000D;release.date=\2\3&#x000D;"/>
+      <replaceregexp file="CHANGES.tmp" match="x+" replace="0000" flags="g" byline="false"/>
+      <loadproperties>
+        <file file="CHANGES.tmp"/>
+      </loadproperties>
+      <delete file="CHANGES.tmp"/>
+      <echo file="CHANGES.tmp" message="release.major=${release.version}"/>
+      <replaceregexp file="CHANGES.tmp"
+          match="(?&lt;=\d+)\." byline="true" replace="&#x000D;release.minor="/>
+      <replaceregexp file="CHANGES.tmp"
+          match="(?&lt;=\d+)\." byline="true" replace="&#x000D;release.patch="/>
+      <loadproperties>
+        <file file="CHANGES.tmp"/>
+      </loadproperties>
+      <delete file="CHANGES.tmp"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="release-insert">
+    <attribute name="target"/>
+    <attribute name="version" default="${release.version} ${release.date}"/>
+    <sequential>
+      <echo file="release-info.tmp" message="@{version}"/>
+      <replaceregexp file="release-info.tmp" match="[^\d\.\s]" replace="0" flags="g"/>
+      <replaceregexp file="release-info.tmp" match="^([^\s]+)\s+(\d{4})(\d{4})"
+          replace="release.info.version=\1&#x000D;release.info.year=\2&#x000D;release.info.date=\2\3&#x000D;"/>
+      <local name="release.info.version"/>
+      <local name="release.info.year"/>
+      <local name="release.info.date"/>
+      <loadproperties srcfile="release-info.tmp"/>
+      <delete file="release-info.tmp"/>
+
+      <!-- [Version 0.0.0 00000000] -->
+      <replaceregexp
+          match="([Version)\s+\d+\.[\d\.]+\s+\d{8}\(])" flags="g" byline="false"
+          replace="\1 ${release.info.version} ${release.info.date}\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <!-- "name": "...", "version": "0.0.0", -->
+      <replaceregexp
+          match="(\x22name\x22:\s+\x22xmex\x22,\s+\x22version\x22:\s+\x22)\d+(?:\.\d)+(\x22)" flags="g" byline="false"
+          replace="\1${release.info.version}\2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+      <!-- Copyright (C) 0000 Seanox Software Solutions -->
+      <replaceregexp
+          match="(Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions)" flags="g" byline="false"
+          replace="\1 ${release.info.year} \2">
+        <fileset dir="@{target}" includes="${filter}"/>
+      </replaceregexp>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="release-info-reset">
+    <sequential>
+      <release-info-insert version="0.0.0 00000000"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="compress-js">
+    <attribute name="file"/>
+    <attribute name="trace"/>
+    <sequential>
+      <echo>Compressing: @{file}</echo>
+      <!--
+        Remove all block comments if they start at the beginning of the line,
+        ignore spaces before and that twice, because block comments expose other
+        block comments :-|
+      -->
+      <basename property="script" file="@{file}"/>
+      <copy file="@{file}" tofile="@{trace}/${script}_0" overwrite="true"/>
+      <copy file="@{trace}/${script}_0" tofile="@{trace}/${script}_1" overwrite="true"/>
+      <replaceregexp file="@{trace}/${script}_1" encoding="UTF-8" flags="g" byline="false"
+          match="(?s)(^|\R)\s*/\*.*?\*/"
+          replace="\1"/>
+      <replaceregexp file="@{trace}/${script}_1" encoding="UTF-8" flags="g" byline="false"
+          match="(?s)(^|\R)\s*/\*.*?\*/"
+          replace="\1"/>
+      <!-- remove all line comments if they start at the beginning of the line, ignore spaces before -->
+      <copy file="@{trace}/${script}_1" tofile="@{trace}/${script}_2" overwrite="true"/>
+      <replaceregexp file="@{trace}/${script}_2" encoding="UTF-8" flags="g" byline="true"
+          match="^\s*//.*$"
+          replace=""/>
+      <copy file="@{trace}/${script}_2" tofile="@{trace}/${script}_3" overwrite="true"/>
+      <replaceregexp file="@{trace}/${script}_3" encoding="UTF-8" flags="g" byline="true"
+          match="^\s+//.*$"
+          replace=""/>
+      <!-- remove all line comments outside literals -->
+      <copy file="@{trace}/${script}_3" tofile="@{trace}/${script}_4" overwrite="true"/>
+      <replaceregexp file="@{trace}/${script}_4" encoding="UTF-8" flags="g" byline="true"
+          match="^((?:(?:&#34;.*?&#34;)|(?:'.*?')|(?:´.*?´)){0,}[^&#34;'´\r\n]*?)(?&lt;=[\&amp;\|\+\-\*/=,;(){}])//.*$"
+          replace="\1"/>
+      <!-- combining of the line breaks -->
+      <copy file="@{trace}/${script}_4" tofile="@{trace}/${script}_5" overwrite="true"/>
+      <replaceregexp file="@{trace}/${script}_5" encoding="UTF-8" flags="g" byline="false"
+          match="(?s)(\s*\R)+"
+          replace="&#13;"/>
+      <copy file="@{trace}/${script}_5" tofile="@{trace}/${script}_6" overwrite="true"/>
+      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
+          match="^(\t*)(\x20{4})"
+          replace="\1&#09;"/>
+      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
+          match="^(\t*)(\x20{4})"
+          replace="\1&#09;"/>
+      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
+          match="^(\t*)(\x20{4})"
+          replace="\1&#09;"/>
+      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
+          match="^(\t*)(\x20{4})"
+          replace="\1&#09;"/>
+      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
+          match="^(\t*)(\x20{4})"
+          replace="\1&#09;"/>
+      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
+          match="^(\t*)(\x20{4})"
+          replace="\1&#09;"/>
+      <copy file="@{trace}/${script}_6" tofile="@{file}" overwrite="true"/>
+    </sequential>
+  </macrodef>
+
+  <target name="changes">
+    <release-locate/>
+
+    <replaceregexp file="${workspace}/CHANGES" match="&#x00E4;" replace="ae" flags="g"/>
+    <replaceregexp file="${workspace}/CHANGES" match="&#x00C4;" replace="Ae" flags="g"/>
+    <replaceregexp file="${workspace}/CHANGES" match="&#x00F6;" replace="oe" flags="g"/>
+    <replaceregexp file="${workspace}/CHANGES" match="&#x00D6;" replace="Oe" flags="g"/>
+    <replaceregexp file="${workspace}/CHANGES" match="&#x00FC;" replace="ue" flags="g"/>
+    <replaceregexp file="${workspace}/CHANGES" match="&#x00DC;" replace="Ue" flags="g"/>
+
+    <copy file="${workspace}/CHANGES" tofile="${workspace}/CHANGES.tmp" overwrite="true"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="^\s+" replace="" byline="false"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="(?s)^(.*?)[\r\n]+\d[\d\. x]+.*$" replace="\1" byline="false"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(.*?)\s*$" replace="\1  " flags="g" byline="true"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(\d[\.\d x]+)[^\r\n]*" replace="## \1" byline="false"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="^ {0,4}([A-Z]+:.*)\s*$" replace="\1" byline="true"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="(?s)[\r\n]+ [^\r\n]+" replace="" flags="g" byline="false"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(## \d[\.\d]+ \d+)(  )" replace="\1\2" flags="g" byline="true"/>
+    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(## \d[\.\d]+ \d+x+)(  )" replace="\1 (upcoming version)\2" flags="g" byline="true"/>
+    <loadresource property="changes">
+      <file file="${workspace}/CHANGES.tmp"/>
+    </loadresource>
+    <delete file="${workspace}/CHANGES.tmp"/>
+    <replaceregexp file="${workspace}/README.md"
+        match="(?si)(# Changes\s+).*?(\[Read more\])" flags="g" byline="false"
+        replace="\1${changes}${line.separator}${line.separator}\2"/>
+    <tstamp>
+      <format property="now.year" pattern="yyyy"/>
+    </tstamp>
+    <replaceregexp file="${workspace}/README.md"
+        match="(?si)(?&lt;=\(C\)\s)\d{4}\b" flags="g" byline="true"
+        replace="${now.year}"/>
+  </target>
+
   <target name="install" depends="changes">
     <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${sources}" overwrite="true"/>
   </target>
 
+
+
+
+
+
   <target name="release" depends="changes">
     <release-locate/>
-
     <release-insert target="${workspace}"/>
 
     <delete dir="${trace}"/>
@@ -156,6 +319,8 @@
       <fileset dir="${release}" includes="seanox-${ant.project.name}*.zip"/>
     </touch>
 
+    <release-info-reset/>
+
     <replaceregexp file="${workspace}/README.md"
         match="(Seanox\s+XML-Micro-Exchange\s+)\d+[\.\d]+" flags="g" byline="false"
         replace="\1${release.version}"/>
@@ -171,185 +336,6 @@
     <replaceregexp file="${workspace}/manual/installation.md"
         match="(releases/download/)\d+[\.\d]+(/seanox-${ant.project.name})" flags="g" byline="false"
         replace="\1${release.version}\2"/>
-    <replaceregexp file="${workspace}/package.json"
-        match="(\x22version\x22\s*:\s*\x22)\d+[\.\d]+(\x22)" flags="g" byline="false"
-        replace="\1${release.version}\2"/>
-  </target>
-
-  <macrodef name="release-locate">
-    <sequential>
-      <copy file="CHANGES" tofile="CHANGES.tmp" overwrite="true"/>
-      <replaceregexp file="CHANGES.tmp"
-          match="(?s)^\s*([\d\.x]+) (\d{4})([\dx]+).*$" flags="g" byline="false"
-          replace="release.version=\1&#x000D;release.year=\2&#x000D;release.date=\2\3&#x000D;"/>
-      <replaceregexp file="CHANGES.tmp" match="x+" replace="0000" flags="g" byline="false"/>
-      <loadproperties>
-        <file file="CHANGES.tmp"/>
-      </loadproperties>
-      <delete file="CHANGES.tmp"/>
-      <echo file="CHANGES.tmp" message="release.major=${release.version}"/>
-      <replaceregexp file="CHANGES.tmp"
-          match="(?&lt;=\d+)\." byline="true" replace="&#x000D;release.minor="/>
-      <replaceregexp file="CHANGES.tmp"
-          match="(?&lt;=\d+)\." byline="true" replace="&#x000D;release.patch="/>
-      <loadproperties>
-        <file file="CHANGES.tmp"/>
-      </loadproperties>
-      <delete file="CHANGES.tmp"/>
-    </sequential>
-  </macrodef>
-
-  <macrodef name="release-insert">
-    <attribute name="target"/>
-    <sequential>
-      <replaceregexp
-          match="(Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions)" flags="g" byline="false"
-          replace="\1 ${release.year} \2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(&#34;${ant.project.name}&#34;,\s+&#34;version&#34;:\s+\&#34;)\d+(?:\.\d)+(&#34;)" flags="g" byline="false"
-          replace="\1${release.version}\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(\[Version)\s+\d+(?:\.\d+)+\s+\d+(\])" flags="g" byline="false"
-          replace="\1 ${release.version} ${release.date}\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(title:\s+&#34;Seanox\s+${ant.project.name}.*?&#34;\s+version:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="ig" byline="false"
-          replace="\1${release.version}\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(title:\s+&#34;Seanox\s+${ant.project.name}.*?&#34;\s+version:\s+&#34;\d+\.\d+)(?:\.\d+)+(&#34;)" flags="ig" byline="false"
-          replace="\1.0\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(&#34;name&#34;:\s+&#34;${ant.project.name}&#34;,\s+&#34;version&#34;:\s+&#34;)\d+(?:\.\d+)+(&#34;)" flags="g" byline="false"
-          replace="\1${release.version}\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(\*\s+Service\s+)\d+(?:\.\d+)+\s+\d{4,}" flags="g" byline="false"
-          replace="\1${release.version} ${release.date}">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <replaceregexp
-          match="(@version\s+)\d+(?:\.\d+)+\s+\d{4,}" flags="g" byline="false"
-          replace="\1${release.version} ${release.date}">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-    </sequential>
-  </macrodef>
-
-  <target name="changes">
-    <replaceregexp file="${workspace}/CHANGES" match="&#x00E4;" replace="ae" flags="g"/>
-    <replaceregexp file="${workspace}/CHANGES" match="&#x00C4;" replace="Ae" flags="g"/>
-    <replaceregexp file="${workspace}/CHANGES" match="&#x00F6;" replace="oe" flags="g"/>
-    <replaceregexp file="${workspace}/CHANGES" match="&#x00D6;" replace="Oe" flags="g"/>
-    <replaceregexp file="${workspace}/CHANGES" match="&#x00FC;" replace="ue" flags="g"/>
-    <replaceregexp file="${workspace}/CHANGES" match="&#x00DC;" replace="Ue" flags="g"/>
-
-    <copy file="${workspace}/CHANGES" tofile="${workspace}/CHANGES.tmp" overwrite="true"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="^\s+" replace="" byline="false"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="(?s)^(.*?)[\r\n]+\d[\d\. x]+.*$" replace="\1" byline="false"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(.*?)\s*$" replace="\1  " flags="g" byline="true"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(\d[\.\d x]+)[^\r\n]*" replace="## \1" byline="false"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="^ {0,4}([A-Z]+:.*)\s*$" replace="\1" byline="true"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="(?s)[\r\n]+ [^\r\n]+" replace="" flags="g" byline="false"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(## \d[\.\d]+ \d+)(  )" replace="\1 (summary of the current version)\2" flags="g" byline="true"/>
-    <replaceregexp file="${workspace}/CHANGES.tmp" match="^(## \d[\.\d]+ [\dx]+)(  )" replace="\1 (summary of the next version)\2" flags="g" byline="true"/>
-    <loadresource property="changes">
-      <file file="${workspace}/CHANGES.tmp"/>
-    </loadresource>
-    <delete file="${workspace}/CHANGES.tmp"/>
-    <replaceregexp file="${workspace}/README.md"
-        match="(?si)(# Changes \(Change Log\)\s+).*?(\[Read more\])" flags="g" byline="false"
-        replace="\1${changes}${line.separator}${line.separator}\2"/>
-    <tstamp>
-      <format property="now.year" pattern="yyyy"/>
-    </tstamp>
-    <replaceregexp file="${workspace}/README.md"
-        match="(?si)(?&lt;=\(C\)\s)\d{4}\b" flags="g" byline="true"
-        replace="${now.year}"/>
-  </target>
-
-  <macrodef name="compress-js">
-    <attribute name="file"/>
-    <attribute name="trace"/>
-    <sequential>
-      <echo>Compressing: @{file}</echo>
-      <!--
-        Remove all block comments if they start at the beginning of the line,
-        ignore spaces before and that twice, because block comments expose other
-        block comments :-|
-      -->
-      <basename property="script" file="@{file}"/>
-      <copy file="@{file}" tofile="@{trace}/${script}_0" overwrite="true"/>
-      <copy file="@{trace}/${script}_0" tofile="@{trace}/${script}_1" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_1" encoding="UTF-8" flags="g" byline="false"
-          match="(?s)(^|\R)\s*/\*.*?\*/"
-          replace="\1"/>
-      <replaceregexp file="@{trace}/${script}_1" encoding="UTF-8" flags="g" byline="false"
-          match="(?s)(^|\R)\s*/\*.*?\*/"
-          replace="\1"/>
-      <!-- remove all line comments if they start at the beginning of the line, ignore spaces before -->
-      <copy file="@{trace}/${script}_1" tofile="@{trace}/${script}_2" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_2" encoding="UTF-8" flags="g" byline="true"
-          match="^\s*//.*$"
-          replace=""/>
-      <copy file="@{trace}/${script}_2" tofile="@{trace}/${script}_3" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_3" encoding="UTF-8" flags="g" byline="true"
-          match="^\s+//.*$"
-          replace=""/>
-      <!-- remove all line comments outside literals -->
-      <copy file="@{trace}/${script}_3" tofile="@{trace}/${script}_4" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_4" encoding="UTF-8" flags="g" byline="true"
-          match="^((?:(?:&#34;.*?&#34;)|(?:'.*?')|(?:´.*?´)){0,}[^&#34;'´\r\n]*?)(?&lt;=[\&amp;\|\+\-\*/=,;(){}])//.*$"
-          replace="\1"/>
-      <!-- combining of the line breaks -->
-      <copy file="@{trace}/${script}_4" tofile="@{trace}/${script}_5" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_5" encoding="UTF-8" flags="g" byline="false"
-          match="(?s)(\s*\R)+"
-          replace="&#13;"/>
-      <copy file="@{trace}/${script}_5" tofile="@{trace}/${script}_6" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <copy file="@{trace}/${script}_6" tofile="@{file}" overwrite="true"/>
-    </sequential>
-  </macrodef>
-
-  <target name="clean">
-    <delete dir="${workspace}/release/trace"/>
-    <delete dir="${workspace}/release/${ant.project.name}"/>
-    <delete dir="${workspace}/sources/data"/>
-    <delete dir="${workspace}/sources/logs"/>
-    <delete file="${workspace}/sources/service-build.js"/>
-    <delete file="${workspace}/sources/service-build-test.js"/>
-
-    <delete dir="${workspace}/sources/data"/>
-    <delete dir="${workspace}/sources/temp"/>
-    <delete file="${workspace}/sources/trace.log"/>
-    <touch file="${workspace}/sources/trace.log"/>
   </target>
 
   <macrodef name="docker-build">
@@ -451,5 +437,19 @@
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
       <arg value="/c docker system prune --all --volumes --force"/>
     </exec>
+  </target>
+
+  <target name="clean">
+    <delete dir="${workspace}/release/trace"/>
+    <delete dir="${workspace}/release/${ant.project.name}"/>
+    <delete dir="${workspace}/sources/data"/>
+    <delete dir="${workspace}/sources/logs"/>
+    <delete file="${workspace}/sources/service-build.js"/>
+    <delete file="${workspace}/sources/service-build-test.js"/>
+
+    <delete dir="${workspace}/sources/data"/>
+    <delete dir="${workspace}/sources/temp"/>
+    <delete file="${workspace}/sources/trace.log"/>
+    <touch file="${workspace}/sources/trace.log"/>
   </target>
 </project>

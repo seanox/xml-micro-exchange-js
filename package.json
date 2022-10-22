@@ -1,6 +1,6 @@
 {
   "name": "xmex",
-  "version": "1.4.1",
+  "version": "0.0.0",
   "description": "XML and XPath based volatile NoSQL stateless micro datasource for data exchange for web applications and IoT",
   "main": "releases/xmex.js",
   "repository": {
