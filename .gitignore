@@ -7,5 +7,4 @@
 /sources/*-build*.js
 /sources/*.pem
 /test/cumulate.http
-/.credentials
 /package-lock.json
