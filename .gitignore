@@ -1,4 +1,5 @@
-/.idea/
+/.idea
+/.project
 /node_modules/
 /release/
 /sources/data/
