@@ -1,14 +1,14 @@
 <p>
   <a href="https://github.com/seanox/xml-micro-exchange-js/pulls"
-      title="Development is waiting for new issues / requests / ideas">
-    <img src="https://img.shields.io/badge/development-passive-blue?style=for-the-badge">
-  </a>  
-  <a href="https://github.com/seanox/xml-micro-exchange-js/issues">
-    <img src="https://img.shields.io/badge/maintenance-active-green?style=for-the-badge">
-  </a>
-  <a href="http://seanox.de/contact">
-    <img src="https://img.shields.io/badge/support-active-green?style=for-the-badge">
-  </a>
+      title="Development is waiting for new issues / requests / ideas"><
+    img src="https://img.shields.io/badge/development-passive-blue?style=for-the-badge"
+  ></a>  
+  <a href="https://github.com/seanox/xml-micro-exchange-js/issues"
+    ><img src="https://img.shields.io/badge/maintenance-active-green?style=for-the-badge"
+  ></a>
+  <a href="http://seanox.de/contact"
+    ><img src="https://img.shields.io/badge/support-active-green?style=for-the-badge"
+  ></a>
 </p>
 
 
@@ -140,11 +140,12 @@ or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githu
 
 
 
-It is a small server (1 Core, 512 MB, 10 GB SSD) in a big datacenter -- but apparently enough.  
+It is a small server (1 Core, 1GB, 10 GB SSD) in a big datacenter -- but
+apparently enough.  
 __Sponsors are always welcome.__  
 The project needs ~~a good and simple domain and~~ if possible more power.  
-It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores
-and double memory.
+It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores and
+double memory.
 
 
 # Manual
