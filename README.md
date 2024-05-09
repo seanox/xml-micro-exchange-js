@@ -6,7 +6,7 @@
   <a href="https://github.com/seanox/xml-micro-exchange-js/issues"
     ><img src="https://img.shields.io/badge/maintenance-active-green?style=for-the-badge"
   ></a>
-  <a href="http://seanox.de/contact"
+  <a href="http://seanox.com/contact"
     ><img src="https://img.shields.io/badge/support-active-green?style=for-the-badge"
   ></a>
 </p>
@@ -191,4 +191,4 @@ NT: Harmonization of version numbers for the different implementations
 # Contact
 [Issues](https://github.com/seanox/xml-online-storage/issues)  
 [Requests](https://github.com/seanox/xml-online-storage/pulls)  
-[Mail](http://seanox.de/contact)  
+[Mail](http://seanox.com/contact)  
