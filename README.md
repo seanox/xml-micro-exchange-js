@@ -47,7 +47,6 @@ __All meet without obligation.__
 
 
 # Features
-
 - __RESTful__  
   The REST API supports the HTTP methods OPTIONS, GET, POST, PUT, PATCH,
   DELETE.
@@ -114,8 +113,8 @@ specific language governing permissions and limitations under the License.
 # Downloads
 [Seanox XML-Micro-Exchange 1.4.1](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.1/seanox-xmex-1.4.1.zip)
 
-# Distributions for Microsoft Windows
 
+# Distributions for Microsoft Windows
 Complete package without Node.js to use as a Windows service.
 
 [Seanox XML-Micro-Exchange 1.4.1](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.1/seanox-xmex-1.4.1-win.zip)
@@ -137,8 +136,6 @@ Requests without storage identifier (see [manual](manual/README.md#manual))
 are responded with status 400.__  
 See also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml)
 or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml).
-
-
 
 It is a small server (1 Core, 1GB, 10 GB SSD) in a big datacenter -- but
 apparently enough.  
