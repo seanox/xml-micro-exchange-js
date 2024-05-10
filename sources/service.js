@@ -4,7 +4,7 @@
  * Diese Software unterliegt der Version 2 der Apache License.
  *
  * XMEX XML-Micro-Exchange
- * Copyright (C) 2022 Seanox Software Solutions
+ * Copyright (C) 2024 Seanox Software Solutions
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -170,7 +170,7 @@
  * In addition, HTTPS is supported but without client certificate authorization.
  *
  * @author  Seanox Software Solutions
- * @version 1.4.1 20220717
+ * @version 1.4.2 20240510
  */
 const http = require("http")
 const https = require("https")
@@ -795,7 +795,9 @@ module.init = function() {
         let secure = meta.connection.secure.trim()
         secure = secure.split(/\s+/)
         if (secure.length > 1) {
-            if (secure[0].match(/\.pfx$/)) {
+            if (!fs.existsSync(secure[0])) {
+                console.warn("Service", `Certificate file ${secure[0]} not found, ignore secure connection`)
+            } else if (secure[0].match(/\.pfx$/)) {
                 module.connection.options = {
                     pfx: fs.readFileSync(secure[0]),
                     passphrase: secure[1]
