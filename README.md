@@ -33,13 +33,11 @@ data access, data transformation, and volatile short-term storage.
 
 __Why all this?__
 
-Static web-applications on different clients want to communicate with each
+- Static web-applications on different clients want to communicate with each
 other, e.g. for games, chats and collaboration.
-
-Smart sensors want to share their data and smart devices want to access this
+- Smart sensors want to share their data and smart devices want to access this
 data and also exchange data with each other.
-
-Clients can establish dynamically volatile networks.
+- Clients can establish dynamically volatile networks.
 
 __In this communication are all participants.__  
 __No one is a server or master, all are equal and no one has to know the other.__  
@@ -82,7 +80,7 @@ __All meet without obligation.__
   [Cerbot](https://certbot.eff.org/).
 - __Containerization__  
   XML-Micro-Exchange is also available as a container image on Docker Hub:
-  https://hub.docker.com/repository/docker/seanox/xmex
+  https://hub.docker.com/r/seanox/xmex
 
 
 # Licence Agreement
@@ -91,7 +89,7 @@ Folgenden Seanox Software Solutions oder kurz Seanox genannt.
  
 Diese Software unterliegt der Version 2 der Apache License.
 
-Copyright (C) 2022 Seanox Software Solutions
+Copyright (C) 2024 Seanox Software Solutions
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -121,7 +119,7 @@ Complete package without Node.js to use as a Windows service.
 
 
 # Docker Image
-https://hub.docker.com/repository/docker/seanox/xmex
+https://hub.docker.com/r/seanox/xmex
 
 
 # Free XML-Micro-Exchange
@@ -129,20 +127,27 @@ __Before using, you must read, understand and agree to__
 __[Terms of Service](https://xmex.seanox.com/terms.html) and__
 __[Privacy Policy](https://xmex.seanox.com/privacy.html).__
 
+__Web site and documentation__  
+[https://xmex.seanox.com/](https://xmex.seanox.com/)  
+
+__Service Endpoint URL__  
 [https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)   
 65536 Storages x 64 kB  
 __Please do not get confused, the API is online.  
 Requests without storage identifier (see [manual](manual/README.md#manual))
 are responded with status 400.__  
-See also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml)
-or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/main/sources/service.yaml).
+See also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange/master/openapi/service.yaml)
+or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githubusercontent.com/seanox/xml-micro-exchange/master/openapi/service.yaml).
 
-It is a small server (1 Core, 1GB, 10 GB SSD) in a big datacenter -- but
+It is a small server (1 Core, 1 GB, 10 GB SSD) in a big data center -- but
 apparently enough.  
 __Sponsors are always welcome.__  
-The project needs ~~a good and simple domain and~~ if possible more power.  
+The project needs if possible more power.  
 It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores and
 double memory.
+
+__Example Multiplayer Snake (Online)__  
+https://xmex.seanox.com/snake.html
 
 
 # Manual
