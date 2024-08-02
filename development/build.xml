@@ -223,6 +223,10 @@
     <delete dir="${trace}"/>
     <mkdir dir="${trace}"/>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true"
+          output="${trace}/npm-stdout.log" error="${trace}/npm-stderr.log">
+      <arg value="/c npm install webpack"/>
+    </exec>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true"
         output="${trace}/npm-stdout.log" error="${trace}/npm-stderr.log">
       <arg value="/c npm run build"/>
     </exec>
