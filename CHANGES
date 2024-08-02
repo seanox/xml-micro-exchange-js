@@ -1,102 +1,102 @@
 1.4.2 2024xxxx
-  BF: Build: Optimization / correction
-  BF: Build: Optimization / correction of the release info process
-  CR: Service: A missing certificate file only causes a warning
-      Useful if the certificate must first be initially requested via ACME challenge.
+BF: Build: Optimization / correction
+BF: Build: Optimization / correction of the release info process
+CR: Service: A missing certificate file only causes a warning
+    Useful if the certificate must first be initially requested via ACME challenge.
 
 1.4.1 20220717
-  BF: Statistic: Correction of the calculation of inbound / outbound
-  BF: Build: Optimization / correction of the release info process
-  CR: Build: Updated dependencies
-  CR: Build: Enhancement of Ant task clean for cleaning temporary test data
-  CR: Build: Renamed Ant libxml to install
-  CR: Build: Change from .credentials to environment variables
-  CR: Statistic: Changed execution time in seconds (was previously in minutes)
-  NT: Releases only as attachments on the GitHub release page
-      Otherwise the download during cloning will be too large.
-  NT: Harmonization of version numbers for the different implementations
-      Major and minor describe the API, patch refers to the implementation.
-      The version of OpenAPI therefore only uses major and minor, patch is always 0.
+BF: Statistic: Correction of the calculation of inbound / outbound
+BF: Build: Optimization / correction of the release info process
+CR: Build: Updated dependencies
+CR: Build: Enhancement of Ant task clean for cleaning temporary test data
+CR: Build: Renamed Ant libxml to install
+CR: Build: Change from .credentials to environment variables
+CR: Statistic: Changed execution time in seconds (was previously in minutes)
+NT: Releases only as attachments on the GitHub release page
+    Otherwise the download during cloning will be too large.
+NT: Harmonization of version numbers for the different implementations
+    Major and minor describe the API, patch refers to the implementation.
+    The version of OpenAPI therefore only uses major and minor, patch is always 0.
 
 1.4.0 20210925
-  BF: Service: Correction of automatic restart when updating certificates
-      Certificate update shortly after startup was not detected.
-  BF: Build: Update of the version in package.json
-  CR: ACME: Revision of the logic and configuration
-      Configuration now uses its own section and the forced redirection has its own key.
-      Multiple challenges are supported.
-  CR: Build: Updating dependencies
+BF: Service: Correction of automatic restart when updating certificates
+    Certificate update shortly after startup was not detected.
+BF: Build: Update of the version in package.json
+CR: ACME: Revision of the logic and configuration
+    Configuration now uses its own section and the forced redirection has its own key.
+    Multiple challenges are supported.
+CR: Build: Updating dependencies
 
 1.3.0 20210525
-  BF: Service: Uniform use of status 204 for 202 / 404
-      Status 404 always refers storage and not entities/addressed targets in the storage.
-  BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)
-      Status 404 is now only used in relation to storage.
-      Addressed targets (axes) use status 204 in combination with the response header Storage-Effects.
-  BF: Service: Optimization/harmonization of content types for XML
-      Fragments (PUT/PATCH) uses application/xml
-      XML output uses application/xml
-      XSLT input (POST) uses application/xslt+xml
-  BF: Docker: Initial creation of all subdirectories
-      ./conf, ./data, ./docs, ./temp
-  BF: Docker: Use of the subdirectory ./temp for the XSLT processor
-      This is important if the container uses a read-only file system.
-  BF: Service: Correction of symbol %r for access log
-      Uses "%m %U%Q %H" from now on.
-  BF: Service: Correction of symbol %q for access log
-      URL without QueryString incorrectly used the path.
-  CR: Service: Restriction on reading/using the RequestBody
-      The RequestBody is only read/used:
-      - if PATCH/PUT/POST methods are used
-      - if URL addresses the API
-      - if a valid storage is present in the request header
-      Otherwise the data is ignored.
-  CR: Service: ACME optional redirect of paths outside the ACME challenge
-      Supports static and dynamic redirects.
-      Dynamic means that beginning from the path of the requested URL is appended to the redirect.
-  CR: Service: Added optional redirect of paths outside the API path
-  CR: Service: Added web server functionality outside the API path
-  CR: Service: OPTIONS responds with 204 instead of 200
-  CR: Service: Optimization of tracing
-  CR: Service: Moving the temporary data from XLST process to ./temp
-  CR: Service: Added creation of ./temp directory at startup
-  CR: Service: Added symbol %Q for access log
-      QueryString with ? at the beginning
+BF: Service: Uniform use of status 204 for 202 / 404
+    Status 404 always refers storage and not entities/addressed targets in the storage.
+BF: Service: Uniform use of status 204 for 404 in relation to targets in the storage (axes)
+    Status 404 is now only used in relation to storage.
+    Addressed targets (axes) use status 204 in combination with the response header Storage-Effects.
+BF: Service: Optimization/harmonization of content types for XML
+    Fragments (PUT/PATCH) uses application/xml
+    XML output uses application/xml
+    XSLT input (POST) uses application/xslt+xml
+BF: Docker: Initial creation of all subdirectories
+    ./conf, ./data, ./docs, ./temp
+BF: Docker: Use of the subdirectory ./temp for the XSLT processor
+    This is important if the container uses a read-only file system.
+BF: Service: Correction of symbol %r for access log
+    Uses "%m %U%Q %H" from now on.
+BF: Service: Correction of symbol %q for access log
+    URL without QueryString incorrectly used the path.
+CR: Service: Restriction on reading/using the RequestBody
+    The RequestBody is only read/used:
+    - if PATCH/PUT/POST methods are used
+    - if URL addresses the API
+    - if a valid storage is present in the request header
+    Otherwise the data is ignored.
+CR: Service: ACME optional redirect of paths outside the ACME challenge
+    Supports static and dynamic redirects.
+    Dynamic means that beginning from the path of the requested URL is appended to the redirect.
+CR: Service: Added optional redirect of paths outside the API path
+CR: Service: Added web server functionality outside the API path
+CR: Service: OPTIONS responds with 204 instead of 200
+CR: Service: Optimization of tracing
+CR: Service: Moving the temporary data from XLST process to ./temp
+CR: Service: Added creation of ./temp directory at startup
+CR: Service: Added symbol %Q for access log
+    QueryString with ? at the beginning
 
 1.2.0 20210327
-  BF: Service: Optimization of xsltproc error handling
-      The log output was not correct and did not help in finding the error.
-  BF: Build: Correction of libxml2-2.9.3_win_x64.zip
-      Bundle was incomplete and contains now:
-      iconv, libtool, libxml2, libxslt, mingwrt, openssl, xmlsec1, zlib
-  CR: Service: Added an access statistic for StdOut
-      For a better control. when the access log is off.
-      Statistic is generated at the end of each hour (for the last hour) and at
-      the end of the day (for the last day).
-          Example
-      2021-02-21 09:00:00 Statistic Requests 424, Inbound 0.73 MB, Outbound 0.17 MB, Execution 0.58 min, Errors 0
-  CR: Service: Added Request Data Limit (for all HTTP methods)
-      If the request overruns the data limit, the request is responded with
-      status 415 Payload Too Large. The limit is configurable in section
-      REQUEST, key DATA-LIMIT
-  CR: Service: Added optional ACME challenge function
-      e.g. for Cerbot and Let's Encrypt
-      The challenge only works via port 80. If the service uses another one,
-      this option additionally opens port 80 only exclusive for the challenge.
-  CR: Service: Added the support of the XSLT processor as a subdirectory of the application directory
-          supports: ./libxml ./libxml2
-      In these cases, no configuration is required from the XSLT processor.
-  CR: Service: Added support of system environment variable LIBXML_HOME, LIBXML2_HOME or XSLTPROC_HOME
-      Can optionally be used as an alternative for the extension of the path variable.
-      LIBXML_HOME/LIBXML2_HOME/XSLTPROC_HOME is the bin directory of libxml2/xsltproc.
-  CR: Service: Check of the availability of the XSLT process with the start of the service
-      If the XSLT processor is not available, the service ends with an error output.
-  CR: Build: Added the creation of a package for Windows
-      The package contains everything except Node.JS and installs XMEX as a service.
+BF: Service: Optimization of xsltproc error handling
+    The log output was not correct and did not help in finding the error.
+BF: Build: Correction of libxml2-2.9.3_win_x64.zip
+    Bundle was incomplete and contains now:
+    iconv, libtool, libxml2, libxslt, mingwrt, openssl, xmlsec1, zlib
+CR: Service: Added an access statistic for StdOut
+    For a better control. when the access log is off.
+    Statistic is generated at the end of each hour (for the last hour) and at
+    the end of the day (for the last day).
+        Example
+    2021-02-21 09:00:00 Statistic Requests 424, Inbound 0.73 MB, Outbound 0.17 MB, Execution 0.58 min, Errors 0
+CR: Service: Added Request Data Limit (for all HTTP methods)
+    If the request overruns the data limit, the request is responded with
+    status 415 Payload Too Large. The limit is configurable in section
+    REQUEST, key DATA-LIMIT
+CR: Service: Added optional ACME challenge function
+    e.g. for Cerbot and Let's Encrypt
+    The challenge only works via port 80. If the service uses another one,
+    this option additionally opens port 80 only exclusive for the challenge.
+CR: Service: Added the support of the XSLT processor as a subdirectory of the application directory
+        supports: ./libxml ./libxml2
+    In these cases, no configuration is required from the XSLT processor.
+CR: Service: Added support of system environment variable LIBXML_HOME, LIBXML2_HOME or XSLTPROC_HOME
+    Can optionally be used as an alternative for the extension of the path variable.
+    LIBXML_HOME/LIBXML2_HOME/XSLTPROC_HOME is the bin directory of libxml2/xsltproc.
+CR: Service: Check of the availability of the XSLT process with the start of the service
+    If the XSLT processor is not available, the service ends with an error output.
+CR: Build: Added the creation of a package for Windows
+    The package contains everything except Node.JS and installs XMEX as a service.
 
 1.1.0 20210215
-  NT: Release is available
+NT: Release is available
 
 1.0.0 2020xxxx
-  NT: Version was skipped
-      For compatibility with the PHP implementation
+NT: Version was skipped
+    For compatibility with the PHP implementation
