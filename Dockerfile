@@ -1,13 +1,17 @@
+# Basic environment, which is used by all versions.
+FROM node:lts-alpine AS runtime
+RUN apk update
+RUN apk add libxml2
+RUN apk add libxslt
+
+
+
 # The Dockerfile uses multi-stages and targets for different environments
 #     Usage:
 # docker build -t xmex:test --target test .
 # docker build -t xmex:integration --target integration .
 # docker build -t xmex:release --target release .
-
-FROM node:lts-alpine AS release
-RUN apk update
-RUN apk add libxml2
-RUN apk add libxslt
+FROM runtime AS release
 
 ARG WORKDIR=/xmex
 ARG USER=nobody
@@ -40,10 +44,7 @@ CMD node service.js ./conf/service.ini
 # docker cp xmex-integration:/xmex/trace.log ./sources/trace-docker.log
 # docker cp xmex-integration:/xmex/trace-cumulate.http ./sources/trace-cumulate.http
 # docker kill xmex-integration
-FROM node:lts-alpine AS integration
-RUN apk update
-RUN apk add libxml2
-RUN apk add libxslt
+FROM runtime AS integration
 
 ARG WORKDIR=/xmex
 ARG USER=nobody
@@ -68,10 +69,7 @@ CMD node service.js ./conf/service.ini
 # docker logs xmex-test
 # docker cp xmex-test:/xmex/trace.log ./sources/trace-docker.log
 # docker kill xmex-test
-FROM node:lts-alpine AS test
-RUN apk update
-RUN apk add libxml2
-RUN apk add libxslt
+FROM runtime AS test
 
 ARG WORKDIR=/xmex
 ARG USER=nobody
