@@ -1,6 +1,7 @@
-1.4.2 2024xxxx
+1.5.0 2024xxxx
   BF: Build: Optimization / correction
   BF: Build: Optimization / correction of the release info process
+  BF: Build: Update of dependencies
   CR: Service: A missing certificate file only causes a warning
       Useful if the certificate must first be initially requested via ACME challenge.
 
