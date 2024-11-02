@@ -3,12 +3,20 @@
 # Initialization from the first player
 # Expectations:
 # - Status code 201 Resource Created
-OPTIONS {{service}} HTTP/1.0
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/72 bytes
+PUT {{service}} HTTP/1.0
 Storage: {{storage_snake}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4079cc36e0016a30757751e1e0107dca");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b064518214ba578ef590d162ae445172");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2c2ae6de80b51f3244ca7c0d1c71a4c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "88d31e43d149f144fc9c43b6e7a7fea9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "6731214dd1b6c96c5a47c2bcb8bddf13");
 });
 %}
 
@@ -17,7 +25,8 @@ client.test("unittest", function() {
 # Initialization from the first player
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 10x UID-A 1x UID-M
+# - Storage-Revision: 2/10
+# - Storage-Space: 262144/664 bytes
 PUT {{service}}/snake%5Bnot(players)%5D%5Bnot(board)%5D::last HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
@@ -36,7 +45,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "abd6d292d9ecc62d767d7d2d82d5e404");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "3a1980267def8cbe67f91308e29a19cf");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f9d8c5bb76cd4d55e07d0baa8871089f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "a622551b8a21651ab24e5724451af7ff");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "1aaf1eb6085ad599439d3bc0e1ffbe0e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "fb7a5ddef06d3258451cf645ffa7c8c4");
 });
 %}
 
@@ -45,12 +60,20 @@ client.test("unittest", function() {
 # Initialization from another player
 # Expectations:
 # - Status code 204 No Content
-OPTIONS {{service}} HTTP/1.0
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/664 bytes
+PUT {{service}} HTTP/1.0
 Storage: {{storage_snake}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "16c62b7e0fbf5b6840383da0ff8d3341");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b064518214ba578ef590d162ae445172");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2c2ae6de80b51f3244ca7c0d1c71a4c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "626e5ebe7741e4425451c4abeae12d6a");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "fb7a5ddef06d3258451cf645ffa7c8c4");
 });
 %}
 
@@ -58,7 +81,9 @@ client.test("unittest", function() {
 # initStorage
 # Initialization from another player
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/664 bytes
 PUT {{service}}/snake%5Bnot(players)%5D%5Bnot(board)%5D::last HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
@@ -77,7 +102,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4091470983cec6b2662bb75ecba7945e");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "3a1980267def8cbe67f91308e29a19cf");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f9d8c5bb76cd4d55e07d0baa8871089f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "a622551b8a21651ab24e5724451af7ff");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "626e5ebe7741e4425451c4abeae12d6a");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "fb7a5ddef06d3258451cf645ffa7c8c4");
 });
 %}
 
@@ -85,14 +116,22 @@ client.test("unittest", function() {
 # readPlayers
 # Expectations:
 # - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/664 bytes
 # - Content-Type: application/json
-# - Content-Length: 793
+# - Content-Length: 694
 GET {{service}}/snake/players!json HTTP/1.0
 Storage: {{storage_snake}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1088e6d65cb6a219dffe47b9e400b4b6");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "db0c9ce5719010f8fc60b3de84efafd2");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f55648bc0f0428ea6e2e0d63c6c58483");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "1189412976a1409db242cdc595a560ce");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "6200ae2b573c454e9214061e1d16e459");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "fb7a5ddef06d3258451cf645ffa7c8c4");
 });
 %}
 
@@ -100,14 +139,22 @@ client.test("unittest", function() {
 # readBoard
 # Expectations:
 # - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/664 bytes
 # - Content-Type: application/json
-# - Content-Length: 80
+# - Content-Length: 70
 GET {{service}}/snake/board!json HTTP/1.0
 Storage: {{storage_snake}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ce4e5c3cb7d713a04927e957b306c4db");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "c6e96cd274483434204d2c61b748ee84");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f55648bc0f0428ea6e2e0d63c6c58483");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "9cc3bbf68ece5aec7b73d4ee680bc64c");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "b208c13c6eba9993e25ab9066daa8716");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "fb7a5ddef06d3258451cf645ffa7c8c4");
 });
 %}
 
@@ -115,9 +162,10 @@ client.test("unittest", function() {
 # initTouchUpdate
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects; 1x UID-M
+# - Storage-Revision: 3/1
+# - Storage-Space: 262144/667 bytes
 # - URI: //a/@touch
-PATCH {{service}}0x2f2f612f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f612f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
@@ -125,7 +173,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5f292126f40828a8f08cec8d4f063404");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "49343de6c926cb5e5777062fc8ab54ce");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6eeebf131031df800d5160fc3374c92a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f899139df5e1059396431415e770c6dd");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "667392bfa4d5b8973ffdae097606111e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "012705fcd8645e0f47edf861d410c963");
 });
 %}
 
@@ -133,9 +187,10 @@ client.test("unittest", function() {
 # initTouchUpdate
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects; 1x UID-M
+# - Storage-Revision: 4/1
+# - Storage-Space: 262144/670 bytes
 # - URI: //b/@touch
-PATCH {{service}}0x2f2f622f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f622f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
@@ -143,7 +198,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0c368fedcf2358e3dbbc1ce5cddb6282");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "695aa503de5aff4c77ef62572d18dc68");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6eeebf131031df800d5160fc3374c92a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "3644a684f98ea8fe223c713b77189a77");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "3a65eedc32f0e4e1189a9fcd3117dfb1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "a0f85a749e2f41a03d0b7e7301d10ea7");
 });
 %}
 
@@ -151,9 +212,10 @@ client.test("unittest", function() {
 # initTouchUpdate
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects; 1x UID-M
+# - Storage-Revision: 5/1
+# - Storage-Space: 262144/673 bytes
 # - URI: //c/@touch
-PATCH {{service}}0x2f2f632f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f632f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
@@ -161,7 +223,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8c0aa16911e3af7afbf5743ab5e4fbeb");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "241378dd6c69169ea942f71e0c002b99");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6eeebf131031df800d5160fc3374c92a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "94f6d7e04a4d452035300f18b984988c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "5eebc459198f2b37b33b0fed2a4cb024");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "399a5373208e3c6ea22e1e55a297ffda");
 });
 %}
 
@@ -169,9 +237,10 @@ client.test("unittest", function() {
 # initTouchUpdate
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects; 1x UID-M
+# - Storage-Revision: 6/1
+# - Storage-Space: 262144/676 bytes
 # - URI: //d/@touch
-PATCH {{service}}0x2f2f642f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f642f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
@@ -179,7 +248,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5396cdb73d11664bd83fe44dae1b1262");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "a42d120eccf17d79d19b900ce2ec8c50");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6eeebf131031df800d5160fc3374c92a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "18d8042386b79e2c279fd162df0205c8");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "40aa74f70acaa92a83bb113cd9bf1d49");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "47ddb4e2ccbb38ac4b1eca41bd106b27");
 });
 %}
 
@@ -187,9 +262,10 @@ client.test("unittest", function() {
 # initTouchUpdate
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects; 1x UID-M
+# - Storage-Revision: 7/1
+# - Storage-Space: 262144/676 bytes
 # - URI: //a/@touch
-PATCH {{service}}0x2f2f612f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f612f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
@@ -197,7 +273,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "13730a4e0ae376557578cfd05c57e856");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "49343de6c926cb5e5777062fc8ab54ce");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6eeebf131031df800d5160fc3374c92a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "cee631121c2ec9232f3a2f028ad5c89b");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "9c3d3c745993bfe49734d35c0cca4b0e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "948b21abbe595e524ae16fe8d8f387a1");
 });
 %}
 
@@ -205,9 +287,10 @@ client.test("unittest", function() {
 # initKeyboardControl
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 3x UID-A 1x UID-M
+# - Storage-Revision: 8/3
+# - Storage-Space: 262144/858 bytes
 # - URI: //players[not(//field[@id=1])]//a
-PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d315d295d2f2f61 HTTP/1.0
+PATCH {{service}}?2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d315d295d2f2f61 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
 
@@ -215,7 +298,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f9a819b821a82ec8fef8bf7832245cef");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "40e8f39ad62e90059074691370a1c257");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9653cf008d4cf1a2bb5a797288e8dbb5");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "9c8949c12ff18869cc23e18d0f80efc9");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "2cc218b3ff0f376d71804ca9b095392b");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d5c7aa1a078c57fcbae3e3cacf59c0d7");
 });
 %}
 
@@ -223,9 +312,10 @@ client.test("unittest", function() {
 # initKeyboardControl
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 3x UID-A 1x UID-M
+# - Storage-Revision: 9/3
+# - Storage-Space: 262144/1040 bytes
 # - URI: //players[not(//field[@id=1])]//b
-PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d315d295d2f2f62 HTTP/1.0
+PATCH {{service}}?2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d315d295d2f2f62 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
 
@@ -233,7 +323,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "36ae5868a25ff85cc27ad8c09099daea");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "067a3cbde1fec45c40b1929423ebf5a5");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9653cf008d4cf1a2bb5a797288e8dbb5");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d34c908204ca9949958d2a4171d2ad1b");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "7779952b081db5eff71fa8d717374bc3");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "ef9f0ac776c89b0156a2fc6f3fb051f6");
 });
 %}
 
@@ -241,15 +337,23 @@ client.test("unittest", function() {
 # initScreenUpdate
 # Expectations:
 # - Status code 200 Success
+# - Storage-Revision: 9/0
+# - Storage-Space: 262144/1040 bytes
 # - Content-Type: application/json
-# - Content-Length: 491
+# - Content-Length: 425
 # - URI: //players//field!json
-GET {{service}}0x2f2f706c61796572732f2f6669656c64216a736f6e HTTP/1.0
+GET {{service}}?2f2f706c61796572732f2f6669656c64216a736f6e HTTP/1.0
 Storage: {{storage_snake}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c753017706d0bf9b0c634fa803d88919");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b14dc2a7675b3f1da0e638569bd3c57d");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f55648bc0f0428ea6e2e0d63c6c58483");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "004a12bebb3be5cb1937e9d5958bd9f9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "fb554f652c75153ae1e04f4122521c4a");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "ef9f0ac776c89b0156a2fc6f3fb051f6");
 });
 %}
 
@@ -257,15 +361,22 @@ client.test("unittest", function() {
 # initPlayersCleanUp
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 6x UID-M
+# - Storage-Revision: 10/6
+# - Storage-Space: 262144/884 bytes
 # - URI: //players/*[@touch<400]|//players/*[@touch='']
-PATCH {{service}}0x2f2f706c61796572732f2a5b40746f7563683c3430305d7c2f2f706c61796572732f2a5b40746f7563683d27275d HTTP/1.0
+PATCH {{service}}?2f2f706c61796572732f2a5b40746f7563683c3430305d7c2f2f706c61796572732f2a5b40746f7563683d27275d HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "77ab6a5d37d45602057aaa075bb7dd73");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "7e4800ed6c161f92cd8d2325f1057959");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9983f74a850dbb21a50235a885895ae6");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "88cd41d87b153b69a870a8b7172fe83c");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "122372f4b3ea066e8ad8c6e69ac37b6c");
 });
 %}
 
@@ -273,15 +384,22 @@ client.test("unittest", function() {
 # initPlayersCleanUp
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 2x UID-M
+# - Storage-Revision: 11/2
+# - Storage-Space: 262144/860 bytes
 # - URI: //players/*[@touch<400]/@touch
-PATCH {{service}}0x2f2f706c61796572732f2a5b40746f7563683c3430305d2f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f706c61796572732f2a5b40746f7563683c3430305d2f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6910e3acd243eb4d9147e8510fd32b50");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "6b8b5dce5201db6abed282ab49aced27");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9983f74a850dbb21a50235a885895ae6");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "494fb695494602af9009f1f737c31c96");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "9a6f7dee0dc9f02e675df2870427f87e");
 });
 %}
 
@@ -290,9 +408,10 @@ client.test("unittest", function() {
 # Get the next free player through set touch
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 1x UID-M
+# - Storage-Revision: 12/1
+# - Storage-Space: 262144/863 bytes
 # - URI: //players/*[@touch=''][1]/@touch
-PATCH {{service}}0x2f2f706c61796572732f2a5b40746f7563683d27275d5b315d2f40746f756368 HTTP/1.0
+PATCH {{service}}?2f2f706c61796572732f2a5b40746f7563683d27275d5b315d2f40746f756368 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: text/plain
 
@@ -300,7 +419,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "98bde6f5ee3b0032e6665babea305467");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "966c778bb83ccfcd6077834170849b9f");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6eeebf131031df800d5160fc3374c92a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "e5841df2166dd424a57127423d276bbe");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c130c726fbb2428bef99d5f5690c216b");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "3b1a5f5c4d5633e249ce191fada354ad");
 });
 %}
 
@@ -308,9 +433,11 @@ client.test("unittest", function() {
 # join
 # H wants to put on the start position, but only if free, but it is occupied
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 12/0
+# - Storage-Space: 262144/863 bytes
 # - URI: /snake[not(//field/@id=11)]//h
-PATCH  {{service}}0x2f736e616b655b6e6f74282f2f6669656c642f4069643d3131295d2f2f68 HTTP/1.0
+PATCH  {{service}}?2f736e616b655b6e6f74282f2f6669656c642f4069643d3131295d2f2f68 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
 
@@ -318,7 +445,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8ee3e35afce80ab3e7e49372fc15df31");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "363ad0e22efb274d7c3af577e8a1fd3e");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "5bc355a71347d20187dd45851ae7f458");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c9498c6970b8b7bc1ab3d641eaf9580a");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "33809df17666e6e8edb6adc3faeb8e0d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "3b1a5f5c4d5633e249ce191fada354ad");
 });
 %}
 
@@ -327,9 +460,10 @@ client.test("unittest", function() {
 # A Moves one to the right
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 3x UID-A 1x UID-M
+# - Storage-Revision: 13/3
+# - Storage-Space: 262144/870 bytes
 # - URI: //players[not(//field[@id=14])]//a
-PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d31345d295d2f2f61 HTTP/1.0
+PATCH {{service}}?2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d31345d295d2f2f61 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
 
@@ -337,7 +471,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ea749f11239ba09206d102a4ea4199f9");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "aa995efb237dcffeeec27a5bf3d913d3");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9653cf008d4cf1a2bb5a797288e8dbb5");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f532a0946fb34c86e7fb62cd8879387e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "87669fbef67f2e71306de56fadb47cb5");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "938476ecd9f030a47aedd010f9ab6a77");
 });
 %}
 
@@ -346,9 +486,10 @@ client.test("unittest", function() {
 # H wants to put on the start position, but only if free, and it is free, because A has moved
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 1x UID-A 1x UID-M
+# - Storage-Revision: 14/1
+# - Storage-Space: 262144/938 bytes
 # - URI: /snake[not(//field/@id=11)]//h
-PATCH  {{service}}0x2f736e616b655b6e6f74282f2f6669656c642f4069643d3131295d2f2f68 HTTP/1.0
+PATCH  {{service}}?2f736e616b655b6e6f74282f2f6669656c642f4069643d3131295d2f2f68 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
 
@@ -356,7 +497,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "63b91e44d676c1d6adccb723583fa050");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "363ad0e22efb274d7c3af577e8a1fd3e");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "5bc355a71347d20187dd45851ae7f458");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c9498c6970b8b7bc1ab3d641eaf9580a");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "cf507788286540b5b84cc79aa803c7c9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "523f552304851d62c06cb667d5219572");
 });
 %}
 
@@ -364,9 +511,11 @@ client.test("unittest", function() {
 # initKeyboardControl
 # B moves one up and collides
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 14/0
+# - Storage-Space: 262144/938 bytes
 # - URI: //players[not(//field[@id=14])]//b
-PATCH {{service}}0x2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d31345d295d2f2f62 HTTP/1.0
+PATCH {{service}}?2f2f706c61796572735b6e6f74282f2f6669656c645b4069643d31345d295d2f2f62 HTTP/1.0
 Storage: {{storage_snake}}
 Content-Type: application/xml
 
@@ -374,8 +523,12 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "84eed8e2879bffa3742211ab83279eda");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "ace528a3fa2d4664dac773320ce8e561");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9653cf008d4cf1a2bb5a797288e8dbb5");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c49e6180cadc6f7c45e96f16cf2325fe");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "d62e71a7176bd52928a6b1357870c1db");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "523f552304851d62c06cb667d5219572");
 });
 %}
-
-###
