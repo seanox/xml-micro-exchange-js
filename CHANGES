@@ -4,6 +4,7 @@
   BF: Build: Update of dependencies
   CR: Service: A missing certificate file only causes a warning
       Useful if the certificate must first be initially requested via ACME challenge.
+  CR: Documentation: Update of OpenAPI
 
 1.4.1 20220717
   BF: Statistic: Correction of the calculation of inbound / outbound

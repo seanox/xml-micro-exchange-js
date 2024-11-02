@@ -1,0 +1,1854 @@
+openapi: 3.0.1
+info:
+  title: Seanox XMEX - XML-Micro-Exchange
+  version: 0.0.0
+  description: |
+    XML-Micro-Exchange is a RESTful volatile NoSQL stateless micro datasource
+    for the Internet. It is designed for easy communication and data exchange of
+    web-applications and for IoT or for other Internet-based modules and
+    components. The XML based datasource is volatile and lives through
+    continuous use and expires through inactivity. They are designed for active
+    and near real-time data exchange but not as a real-time capable long-term
+    storage. Compared to a JSON storage, this datasource supports more dynamics,
+    partial data access, data transformation, and volatile short-term storage.
+    
+    ## Terms
+    
+    ### XMEX / XML-Micro-Exchange
+    Name of the project and the corresponding abbreviation.
+    
+    ### Datasource
+    XML-Micro-Exchange is a data service that manages various data storages. The
+    entirety of all data is the data source. Physically, this is the data
+    directory.
+    
+    ### Storage
+    In the data directory, the data are managed as XML storage files. The file
+    name is based case-sensitive on the identifier of the storage and the name
+    of the root element.
+    
+    ### Storage Identifier
+    Each storage has an identifier. The Storage Identifier is used as filename
+    of the corresponding XML file and must be specified with each request so
+    that the datasource uses the correct storage. Optionally, the storage
+    identifier can be followed by the name of the root element of the XML file
+    separated by a space. If the root element is not specified, the default
+    `data` is used.
+    
+    **Important:** To use a storage, the storage identifier and name of the root
+    element must match. The name of the storage and the name of the root element
+    compose the storage name in the file system and are case-sensitive.
+    Different spellings and names then use different storages.
+    
+    The storage name may be a maximum of 64 characters long and must begin and
+    end with a word character (0-9 a-z A-Z _). The minus sign is also permitted
+    between the word characters.
+
+    The name of the root element may be a maximum of 64 characters long and may
+    only contain word characters (0-9 a-z A-Z _).
+    
+    ### Element(s)
+    The content of the XML storage file provide the data as object or tree
+    structure. The data entries are called elements. Elements can enclose other
+    elements.
+    
+    ### Attribute(s)
+    Elements can also contain direct values in the form of attributes.
+    
+    ### XPath
+    XPath is a notation for accessing and navigating the XML data structure. An
+    XPath can be an axis or a function.
+    
+    ### XPath Axis
+    XPath axes address or select elements or attributes. The axes can have a
+    multidimensional effect.
+    
+    ### XPath Axis Pseudo Elements
+    For PUT requests it is helpful to specify a relative navigation to an XPath
+    axis. For example first, last, before, after. This extension of the notation
+    is supported for PUT requests and is added to an XPath axis separated by two
+    colons at the end (e.g. `/root/element::end` - means put in element as
+    last).
+  
+    ### XPath Function
+    The XPath notation also supports functions that can be used in combination
+    with axes and standalone for dynamic data requests. In combination with
+    XPath axes, the addressing and selection of elements and attributes can be
+    made dynamic.
+  
+    ### Revision
+    Every change in a storage is expressed as a revision. This should make it
+    easier for the client to determine whether data has changed, even for
+    partial requests. Depending on `XMEX_STORAGE_REVISION_TYPE`, the revision is
+    an auto-incremental integer starting with 1 or an alphanumeric timestamp.
+   
+    Each element uses a revision in the read-only attribute `___rev`, which, as
+    with all parent revision attributes, is automatically update when it
+    changes. A change can affect the element itself or the change to its
+    children. Because the revision is passed up, the root element automatically
+    always uses the current revision. Write accesses to attribute `___rev` are
+    accepted but has no effect. If only the attribute is changed, the request is
+    responded with status 304.
+    
+    ### UID
+    Each element uses a unique identifier in the form of the read-only attribute
+    `___uid`. The unique identifier is automatically created when an element is
+    put into storage and never changes. The UID based on the current revision
+    and a request-related auto-incremental integer. The UID is thus also
+    sortable and provides information about the order in which elements are
+    created. Write accesses to attribute `___uid` are accepted but has no
+    effect. If only the attribute is changed, the request is responded with
+    status 304.
+    
+    ### Transaction and Simultaneous Access
+    XML-Micro-Exchange supports simultaneous access. Read accesses are executed
+    simultaneously. Write accesses creates a lock and avoids dirty reading.
+    
+    ### Error Handling
+    Service and applications errors are communicated via the server status 500
+    and the response header Error, which contains only an error number, for
+    security reasons no details. The error number with details can be found in
+    the log file of the service. In the case of errors during XML processing,
+    error status 400 and 422 and the additional response header Message with
+    more details about the error are used. The difference between status 400 and
+    422 is that status 400 always refers to the request and 422 to the request
+    body. With status 400 errors are detected in the request itself, and with
+    status 422, errors are detected in the content of the request body.
+  
+    # API
+    The API uses the HTTP.
+    
+    The URI typically contains a noticeable separator to divide it into context
+    path and XPath. The URI is always used in full. This means that the query
+    string remains part of the path and is not taken into account separately.
+    The question mark is therefore not a separator. For the API only the XPath
+    is relevant.
+    
+    ```
+    https://xmex.seanox.com/xmex!xpath(-function)
+    <-------------------------->|<-------------->
+            Context Path              XPath
+    ```
+    
+    In some cases, the XPath syntax may not be supported as a URI by the client
+    or provider. In these cases, the XPath can alternatively be used as Base64
+    or hexadecimal encoded. For this purpose, a question mark is expected after
+    the last character of the context path and then the encoded string. The
+    encoding method is determined automatically.
+    
+    ```
+    https://xmex.seanox.com/xmex!count(//items[@id<0])
+    https://xmex.seanox.com/xmex!count(%2F%2Fitems[@id<0])
+    https://xmex.seanox.com/xmex!?636F756E74282F2F6974656D735B4069643C305D29
+    https://xmex.seanox.com/xmex!?Y291bnQoLy9pdGVtc1tAaWQ8MF0p
+    ```
+    
+    If the method cannot be determined, the string is interpreted as an XPath
+    (function) and because of the question mark at the beginning usually causes
+    an invalid XPath error.
+    
+    The request supports the following additional headers:
+    
+    | Request Header | Description                                               |
+    |----------------|-----------------------------------------------------------|
+    | `Storage`      | Storage identifier optional with name of the root element |
+    
+    Also the response has additional headers:
+    
+    | Response Header           | Description                                             |
+    |---------------------------|---------------------------------------------------------|
+    | `Storage`                 | Storage identifier without the name of the root element |
+    | `Storage-Revision`        | Current revision of the storage (revision/changes)      |
+    | `Storage-Space`           | Capacity of the storage (total/used in bytes)           |
+    | `Storage-Last-Modified`   | Timestamp (RFC822) of the last access                   |
+    | `Storage-Expiration`      | Timestamp (RFC822) when the storage will expire         |
+    | `Storage-Expiration-Time` | Idle time in milliseconds until storage expires         |
+    | `Execution-Time`          | Duration of request processing in milliseconds          |
+    | `Error`                   | Unique error number from the logging with status 500    |
+    | `Message`                 | Detailed error message with status 400 / 422            |
+    
+    <b>
+      Notice about response code 404: This always refers to the storage file,
+      but never to an addressed target in the storage. If a target does not
+      exist, requests are responded to with code 204 or 304 for modifying
+      requests.
+    </b>
+    
+    ## Usage
+    1. The storage must be opened by CONNECT, TOUCH or PUT without XPath. This
+       can be done by any client, even if the storage already exists. Because
+       CONNECT and TOUCH are not an HTTP standard, it is better to use PUT
+       without XPath.
+    
+    2. The client should always proceed as if it were using storage alone and
+       created the schema it needs. The creation of the schema is done with PUT.
+       Relative and conditional axes should be used as targets. This ensures
+       that no duplicates are created or data is overwritten.
+    
+       e.g. `PUT /books[not(book[@title='A Modern Utopia'])]::last`
+    
+       This approach made transactions unnecessary.
+
+    3. Now the client can use the storage.
+    
+    4. Closing or terminating the storage is not possible and necessary. The
+       storage expires automatically due to inactivity. The duration of use and
+       expiration time of the storage is contained in the response in the
+       headers `Storage-Last-Modified`, `Storage-Expiration`,
+       `Storage-Expiration-Time`.
+  termsOfService: https://xmex.seanox.com/terms.html
+  contact:
+    email: xmex@seanox.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+externalDocs:
+  description: Find out more about Seanox XMEX (incl. Manual and Getting Started)
+  url: https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/README.md
+servers:
+- url: https://xmex.seanox.com
+- url: http://localhost
+tags:
+- name: Storage Initialization
+- name: Data Exchange
+- name: JSON Transformation
+paths:
+  /xmex!:
+    connect:
+      tags:
+      - Storage Initialization
+      summary: |
+        Opens a storage and queries the current information about the storage.
+      description: |
+        CONNECT opens a storage and queries the current information about the
+        storage. If the storage does not yet exist, CONNECT will create it.
+        Otherwise, CONNECT will only query the metadata for the existing one. If
+        CONNECT cannot be used for whatever reason, TOUCH or PUT without XPath
+        can be used as an alternative.
+        
+        <b>
+          Before a storage can be used, it must always be opened with an
+          CONNECT, TOUCH or PUT without XPath.
+        </b>
+
+        ## Request
+        ```
+        CONNECT /context-path HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        ```
+        ```
+        CONNECT /context-path HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ root-element
+        ```
+
+        ### Example
+        ```
+        CONNECT /xmex! HTTP/1.0
+        Storage: BookReview
+        ```
+        Creates a storage with the identifier `BookReview` if it does not yet
+        exist. For the XML structure the default root named `data` is used.
+        
+        ```
+        CONNECT /xmex! HTTP/1.0
+        Storage: BookReview books
+        ```
+        Creates a storage with the identifier `BookReview` if it does not yet
+        exist. For the XML structure the root named `books` is used.
+
+        ## Response
+        ```
+        HTTP/1.0 201 Created
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+        Response if the storage was newly created. Also recognizable by the
+        initial revision 1 in the Storage-Revision header.
+  
+        ```
+        HTTP/1.0 204 No Content
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+        Response, if the storage already exists. The revision in the header
+        Storage-Revision-Header returns the last existing revision. 
+
+      parameters:
+      - name: Storage
+        in: header
+        description:
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: false
+        schema:
+          type: string
+          example: BookReview books
+      responses:
+        201:
+          description: |
+            Storage was newly created
+        204:
+          description: |
+            Storage already exists
+        400:
+          description: |
+            Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+        507:
+          description: |
+            Storage is full
+    touch:
+      tags:
+      - Storage Initialization
+      summary: |
+        Opens a storage and queries the current information about the storage.
+      description: |
+        TOUCH is an alias for CONNECT and opens a storage and queries the
+        current information about the storage. If the storage does not yet
+        exist, TOUCH will create it. Otherwise, TOUCH will only query the
+        metadata for the existing one. If TOUCH cannot be used for whatever
+        reason, CONNECT or PUT without XPath can be used as an alternative.
+        
+        <b>
+          Before a storage can be used, it must always be opened with an CONNECT
+          TOUCH or PUT without XPath.
+        </b>
+
+        ## Request
+        ```
+        TOUCH /context-path HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        ```
+        ```
+        TOUCH /context-path HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ root-element
+        ```
+
+        ### Example
+        ```
+        TOUCH /xmex! HTTP/1.0
+        Storage: BookReview
+        ```
+        Creates a storage with the identifier `BookReview` if it does not yet
+        exist. For the XML structure the default root named `data` is used.
+        
+        ```
+        TOUCH /xmex! HTTP/1.0
+        Storage: BookReview books
+        ```
+        Creates a storage with the identifier `BookReview` if it does not yet
+        exist. For the XML structure the root named `books` is used.
+
+        ## Response
+        ```
+        HTTP/1.0 201 Created
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+        Response if the storage was newly created. Also recognizable by the
+        initial revision 1 in the Storage-Revision header.
+        
+        ```
+        HTTP/1.0 204 No Content
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+        Response, if the storage already exists. The revision in the header
+        Storage-Revision-Header returns the last existing revision.
+
+      parameters:
+      - name: Storage
+        in: header
+        description:
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: false
+        schema:
+          type: string
+          example: BookReview books
+      responses:
+        201:
+          description: |
+            Storage was newly created
+        204:
+          description: |
+            Storage already exists
+        400:
+          description: |
+            Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+        507:
+          description: |
+            Storage is full
+    put:
+      tags:
+      - Storage Initialization
+      summary: |
+        Opens a storage and queries the current information about the storage.
+      description: |
+        PUT without XPath is an alias for CONNECT and opens a storage and
+        queries the current information about the storage. If the storage does
+        not yet exist, PUT without XPath will create it. Otherwise, PUT without
+        XPath will only query the metadata for the existing one.
+        
+        <b>
+          Before a storage can be used, it must always be opened with an CONNECT
+          TOUCH or PUT without XPath.
+        </b>
+
+        ## Request
+        ```
+        PUT /context-path HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        ```
+        ```
+        PUT /context-path HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ root-element
+        ```
+
+        ### Example
+        ```
+        PUT /xmex! HTTP/1.0
+        Storage: BookReview
+        ```
+        Creates a storage with the identifier `BookReview` if it does not yet
+        exist. For the XML structure the default root named `data` is used.
+
+        ```
+        PUT /xmex! HTTP/1.0
+        Storage: BookReview books
+        ```
+        Creates a storage with the identifier `BookReview` if it does not yet
+        exist. For the XML structure the root named `books` is used.
+        
+        ## Response
+        ```
+        HTTP/1.0 201 Created
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+        Response if the storage was newly created. Also recognizable by the
+        initial revision 1 in the Storage-Revision header.
+        
+        ```
+        HTTP/1.0 204 No Content
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+        Response, if the storage already exists. The revision in the header
+        Storage-Revision-Header returns the last existing revision.
+
+      parameters:
+      - name: Storage
+        in: header
+        description:
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: false
+        schema:
+          type: string
+          example: BookReview books
+      responses:
+        201:
+          description: |
+            Storage was newly created
+        204:
+          description: |
+            Storage already exists
+        400:
+          description: |
+            Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+        507:
+          description: |
+            Storage is full
+  /xmex!{xpath}:
+    options:
+      tags:
+      - Data Exchange
+      summary: |
+        Gets information about the storage and a target addressed by XPath.
+      description: |
+        OPTIONS is used to query the allowed HTTP methods for an XPath, which is
+        responded with the header Allow. This method distinguishes between XPath
+        function and XPath axis and for an XPath axis the target exists or not
+        and uses different Allow headers accordingly.
+      
+        Overview of header Allow
+        - XPath function: CONNECT, OPTIONS, GET, POST
+        - XPath axis without target: CONNECT, OPTIONS, PUT
+        - XPath axis with target: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+      
+        The method always executes a transmitted XPath, but does not return the
+        result directly, but reflects the result via different header Allow. The
+        status 404 is not used in relation to the XPath, but only in relation to
+        the storage file. The XPath processing is strict and does not accept
+        unnecessary spaces. Faulty XPath will cause the status 400.
+
+        ## Request
+        ```
+        OPTIONS /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        ```
+
+        ### Example
+        ```
+        OPTIONS /xmex!/books/book HTTP/1.0
+        Storage: BookReview books
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 204 Success
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 204 No Content
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE
+        Storage: BookReview
+        Storage-Revision: 123/0
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Execution-Time: 4 ms
+        ```
+        ```
+        HTTP/1.0 304 No Content
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Allow: OPTIONS, GET, POST, PUT, PATCH, DELETE
+        Storage: BookReview
+        Storage-Revision: 123/0
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Execution-Time: 4 ms
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+          
+          <b>
+            Special case CORS: The request header storage is normally always
+            required. However, it is not required for the CORS preflight
+            request. Because it does not directly affect the API, however, the
+            header has been declared as non-optional.
+          </b>
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      responses:
+        204:
+          description: |
+            Request was successfully executed
+        400:
+          description: |
+            Bad Request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+    put:
+      tags:
+      - Data Exchange
+      summary: |
+        Creates multi-dimensional elements and attributes in storage and/or
+        changes multi-dimensional the value of existing ones.
+      description: |
+        PUT creates elements and attributes in storage and/or changes the value
+        of existing ones. The position for the insert is defined via an XPath.
+        For better understanding, the method should be called PUT INTO, because
+        it is always based on an existing XPath axis as the parent target. XPath
+        uses different notations for elements and attributes. 
+        
+        The notation for attributes use the following structure at the end.
+        
+        `<xpath>/@<attribute>` or `<xpath>/attribute::<attribute>`
+        
+        The attribute values can be static (text) and dynamic (XPath function).
+        Values are send as request-body. Whether they are used as text or XPath
+        function is decided by the Content-Type header of the request:
+      
+        - `text/plain`: static text
+        - `text/xpath`: XPath function        
+        
+        If the XPath notation does not match the attributes, elements are
+        assumed. For elements, the notation for pseudo elements is supported.
+        
+        `<xpath>::first`, `<xpath>::last`, `<xpath>::before` or `<xpath>::after`
+        
+        Pseudo elements are a relative position specification to the selected
+        element.
+        
+        The value of elements can be static (text), dynamic (XPath function) or
+        be an XML structure. Also here the value is send with the request-body.
+        
+        The PUT method works resolutely and inserts or overwrites existing data.
+        The XPath processing is strict and does not accept unnecessary spaces.
+        The attributes `___rev` / `___uid` used internally by the storage are
+        read-only and cannot be changed.
+        
+        PUT requests are usually responded with status 204. Changes at the
+        storage are indicated by the two-part response header Storage-Revision.
+        If the PUT request has no effect on the storage, it is responded with
+        status 304. Status 404 is used only with relation to the storage file.
+        
+        Syntactic and semantic errors in the request and/or XPath and/or value
+        can cause error status 400 and 415. If errors occur due to the
+        transmitted request body, this causes status 422.
+
+        ## Request
+        ```
+        PUT /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: application/xml
+        
+        XML structure
+        ```
+        ```
+        PUT /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: text/plain
+        
+        Value as plain text
+        ```
+        ```
+        PUT /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: text/xpath
+        
+        Value as XPath function
+        ```
+
+        ### Example
+        ```
+        PUT /xmex!/books/attribute::genre HTTP/1.0
+        Storage: BookReview books
+        Content-Type: text/plain
+        Content-Length: 5
+        
+        Value
+        ```
+        ```
+        PUT /xmex!/books/@genre HTTP/1.0
+        Storage: BookReview books
+        Content-Type: text/xpath
+        Content-Length: 25
+        
+        concat(name(/*), "-Test")
+        ```
+        ```
+        PUT /xmex!/books HTTP/1.0
+        Storage: BookReview books
+        Content-Type: application/xml
+        Content-Length: 70
+        
+        <book title="Book A"/>
+        <book title="Book B"/>
+        <book title="Book C"/>
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 204 No Content
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 204 No Content
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123/4
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Execution-Time: 3 ms
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      requestBody:
+        description: |
+          The attribute values can be static (text) and dynamic (XPath
+          function). Values are send as request-body. Whether they are used as
+          text or XPath function is decided by the Content-Type header of the
+          request:
+          
+          - `text/plain` Static text
+          - `text/xpath` XPath function
+          
+          The value of elements can be static (text), dynamic (XPath function)
+          or be an XML structure. Also here the value is send with the
+          request-body and the type of processing is determined by the
+          Content-Type:
+          
+          - `text/plain` Static text
+          - `text/xpath` XPath function
+          - `application/xml` XML structure
+        content:
+          application/xml:
+            schema:
+              type: object
+              xml:
+                name: comment
+              example: |
+                <!-- XML fragments are expected, see examples in description -->
+                <book title="Book A"/>
+                <book title="Book B"/>
+                <book title="Book C"/>
+          text/plain:
+            schema:
+              example: Value
+          text/xpath:
+            schema:
+              example: concat(name(/*), "-Test")
+      responses:
+        204:
+          description: |
+            Element(s) or attribute(s) successfully created or set
+        304:
+          description: |
+            XPath without addressing a target has no effect on the storage
+        400:
+          description: |
+            Bad Request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        413:
+          description: |
+            Allowed size of the request(-body) and/or storage is exceeded
+        415:
+          description: |
+            Attribute request without Content-Type text/plain
+        422:
+          description: |
+            Unprocessable content
+            Data in the request body cannot be processed
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+    patch:
+      tags:
+      - Data Exchange
+      summary: |
+        Changes existing elements and attributes in storage.
+      description: |
+        PATCH changes multi-dimensional existing elements and attributes in
+        storage. The position for the insert is defined via an XPath. The method
+        works almost like PUT, but the XPath axis of the request always expect
+        an existing target. XPath uses different notations for elements and
+        attributes.
+        
+        The notation for attributes use the following structure at the end.
+        
+        `<xpath>/@<attribute>` or `<xpath>/attribute::<attribute>`
+        
+        The attribute values can be static (text) and dynamic (XPath function).
+        Values are send as request-body. Whether they are used as text or XPath
+        function is decided by the Content-Type header of the request:
+      
+        - `text/plain`: static text
+        - `text/xpath`: XPath function
+        
+        If the XPath notation does not match the attributes, elements are
+        assumed. Unlike the PUT method, no pseudo elements are supported for
+        elements.
+        
+        The value of elements can be static (text), dynamic (XPath function) or
+        be an XML structure. Also here the value is send with the request-body.
+        Also here the value is send with the request-body and the type of
+        processing is determined by the Content-Type:
+  
+        - `text/plain` Static text
+        - `text/xpath` XPath function
+        - `application/xml` XML structure
+        
+        The PATCH method works resolutely and overwrites existing data. The
+        XPath processing is strict and does not accept unnecessary spaces. The
+        attributes `___rev` / `___uid` used internally by the storage are
+        read-only and cannot be changed.
+        
+        PATCH requests are usually responded with status 204. Changes at the
+        storage are indicated by the two-part response header Storage-Revision.
+        If the PATCH request has no effect on the storage, it is responded with
+        status 304. Status 404 is used only with relation to the storage file.        
+        
+        Syntactic and semantic errors in the request and/or XPath and/or value
+        can cause error status 400 and 415. If errors occur due to the
+        transmitted request body, this causes status 422.
+
+        ## Request
+        ```
+        PATCH /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: application/xml
+        
+        XML structure
+        ```
+        ```
+        PATCH /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: text/plain
+        
+        Value as plain text
+        ```
+        ```
+        PATCH /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: text/xpath
+        
+        Value as XPath function
+        ```
+
+        ### Example
+        ```
+        PATCH /xmex!/books/attribute::genre HTTP/1.0
+        Storage: BookReview books
+        Content-Type: text/plain
+        Content-Length: 5
+        
+        Value
+        ```
+        ```
+        PATCH /xmex!/books/@genre HTTP/1.0
+        Storage: BookReview books
+        Content-Type: text/xpath
+        Content-Length: 25
+        
+        concat(name(/*), "-Test")
+        ```
+        ```
+        PATCH /xmex!/books HTTP/1.0
+        Storage: BookReview books
+        Content-Type: application/xml
+        Content-Length: 70
+        
+        <book title="Book A"/>
+        <book title="Book B"/>
+        <book title="Book C"/>
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 204 No Content
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 204 No Content
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123/4
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Execution-Time: 3 ms
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      requestBody:
+        description: |
+          The attribute values can be static (text) and dynamic (XPath
+          function). Values are send as request-body. Whether they are used as
+          text or XPath function is decided by the Content-Type header of the
+          request:
+          
+          - `text/plain` Static text
+          - `text/xpath` XPath function
+
+          The value of elements can be static (text), dynamic (XPath function)
+          or be an XML structure. Also here the value is send with the
+          request-body and the type of processing is determined by the
+          Content-Type:
+          
+          - `text/plain` Static text
+          - `text/xpath` XPath function
+          - `application/xml` XML structure
+        content:
+          application/xml:
+            schema:
+              type: object
+              xml:
+                name: comment
+              example: |
+                <!-- XML fragments are expected, see examples in description -->
+                <book title="Book A"/>
+                <book title="Book B"/>
+                <book title="Book C"/>
+          text/plain:
+            schema:
+              example: Value
+          text/xpath:
+            schema:
+              example: concat(name(/*), "-Test")
+      responses:
+        204:
+          description: |
+            Attributes successfully created or set
+        304:
+          description: |
+            XPath without addressing a target has no effect on the storage
+        400:
+          description: |
+            Bad Request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        413:
+          description: |
+            Allowed size of the request(-body) and/or storage is exceeded
+        415:
+          description: |
+            Attribute request without Content-Type text/plain
+        422:
+          description: |
+            Unprocessable content
+            Data in the request body cannot be processed
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+    get:
+      tags:
+      - Data Exchange
+      summary: |
+        Queries data about XPath axes and functions.
+      description: |
+        GET queries data about XPath axes and functions. For this, the XPath
+        axis or function is sent with URI. Depending on whether the request is
+        an XPath axis or an XPath function, different Content-Type are used for
+        the response.
+
+        ## application/xml
+        When the XPath axis addresses one target, the addressed target is the
+        root element of the returned XML structure. If the XPath addresses
+        multiple targets, their XML structure is combined in the root element
+        collection.
+
+        ## text/plain
+        If the XPath addresses only one attribute, the value is returned as
+        plain text. Also the result of XPath functions is returned as plain
+        text. Decimal results use float, booleans the values true and false.
+        
+        The XPath processing is strict and does not accept unnecessary spaces.
+
+        ## Request
+        ```
+        GET /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        ```
+
+        ### Example
+        ```
+        GET /xmex!/books/attribute::genre HTTP/1.0
+        Storage: BookReview books
+        ```
+        ```
+        GET /xmex!/books/@genre HTTP/1.0
+        Storage: BookReview books
+        ```
+        ```
+        GET /xmex!count(/books/book) HTTP/1.0
+        Storage: BookReview books
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 200 Success
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        Content-Length: (bytes)
+        
+        The result of the XPath request
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 200 Success
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Content-Length: 26
+        Content-Type: application/xml
+        Execution-Time: 4 ms
+        
+        <?xml version="1.0"?>
+        ...
+        ```
+        ```
+        HTTP/1.0 200 Success
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Content-Length: 26
+        Content-Type: text/plain
+        Execution-Time: 4 ms
+        
+        ...
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions. 
+          
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      responses:
+        200:
+          description: |
+            Request was successfully executed
+          content:
+            application/xml:
+              schema:
+                type: object
+                example: "TODO:"
+            text/plain:
+              schema:
+                type: string
+                example: Text output, see examples in description
+        204:
+          description: |
+            Request was successfully executed but without content
+        400:
+          description: |
+            Bad Request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+    post:
+      tags:
+      - Data Exchange
+      summary: |
+        Queries data about XPath axes and functions via transformation.
+      description: |
+        POST queries data about XPath axes and functions via transformation. For
+        this, an XSLT stylesheet is sent with the request-body, which is then
+        applied by the XSLT processor to the data in storage. Thus the content
+        type `application/xslt+xml` is always required. The client defines the
+        content type for the output with the output-tag and the
+        method-attribute.
+        
+        The XPath is optional for this method and is used to limit and preselect
+        the data. If the XPath addresses one or more attributes as preselection,
+        then tags  of the same name of these attributes are used, which contain
+        the value of the attribute as content.
+        
+        The processing is strict and does not accept unnecessary spaces.
+
+        ## Request
+        ```
+        POST /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: application/xslt+xml
+        
+        XSLT stylesheet
+        ```
+
+        ### Example
+        ```
+        POST /xmex!/ HTTP/1.0
+        Storage: BookReview books
+        Content-Type: application/xslt+xml
+        Content-Length: 212
+        
+        <?xml version="1.0"?>
+        <xsl:stylesheet version="1.0"
+            xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:output method="xml"/>
+          <xsl:template match="/">
+            ...
+          </xsl:template>
+        </xsl:stylesheet>
+        ```
+        The output element defines the output format. In the example, this is
+        `xml`. The formats `html` and `text` are also supported.
+        
+        ```
+        POST /xmex!/ HTTP/1.0
+        Storage: BookReview books
+        Content-Type: application/xslt+xml
+        Content-Length: 212
+        
+        <?xml version="1.0"?>
+        <xsl:stylesheet version="1.0"
+            xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:output method="xml" encoding="iso-8859-1"/>
+          <xsl:template match="/">
+            ...
+          </xsl:template>
+        </xsl:stylesheet>
+        ```
+        In addition, the encoding attribute can be added to the output element.
+        The attribute qualifies the Content-Type in the response header.  
+
+        ## Response
+        ```
+        HTTP/1.0 200 Success
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        Content-Length: (bytes)
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 200 Success
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Content-Length: 26
+        Content-Type: application/xml
+        Execution-Time: 4 ms
+        
+        <?xml version="1.0"?>
+        ...
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      requestBody:
+        content:
+          application/xslt+xml:
+            schema:
+              type: object
+              xml:
+                name: comment
+              example: |
+                <!-- XML fragments are expected, see examples in description -->
+      responses:
+        200:
+          description: |
+            Request was successfully executed
+          content:
+            application/xml:
+              schema:
+                type: object
+                example: "TODO:"
+            text/plain:
+              schema:
+                type: string
+                example: Text output, see examples in description
+            text/html:
+              schema:
+                type: object
+                example: "TODO:"
+        204:
+          description: |
+            Request was successfully executed but without content
+        400:
+          description: |
+            Bad Request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        415:
+          description: |
+            Attribute request without Content-Type text/plain
+        422:
+          description: |
+            Unprocessable content
+            - Data in the request body cannot be processed
+            - XSLT Stylesheet is erroneous
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+    delete:
+      tags:
+      - Data Exchange
+      summary: |
+        Deletes multi-dimensional elements and attributes in the storage.
+      description: |
+        DELETE deletes elements and attributes in the storage. The position for
+        deletion is defined via an XPath. XPath uses different notations for
+        elements and attributes.
+        
+        The notation for attributes use the following structure at the end.
+        
+        `<xpath>/@<attribute>` or `<xpath>/attribute::<attribute>`
+
+        If the XPath notation does not match the attributes, elements are
+        assumed. For elements, the notation for pseudo elements is supported.
+        
+        `<xpath>::first`, `<xpath>::last`, `<xpath>::before` or `<xpath>::after`
+        
+        Pseudo elements are a relative position specification to the selected
+        element.
+        
+        The DELETE method works resolutely and deletes existing data. The XPath
+        processing is strict and does not accept unnecessary spaces. The
+        attributes `___rev` / `___uid` used internally by the storage are
+        read-only and cannot be changed.
+        
+        DELETE requests are usually responded with status 204. Changes at the
+        storage are indicated by the two-part response header Storage-Revision.
+        If the DELETE request has no effect on the storage, it is responded with
+        status 304. Status 404 is used only with relation to the storage file.           
+        
+        Syntactic and semantic errors in the request and/or XPath can cause
+        error status 400.
+
+        ## Request
+        ```
+        DELETE /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        ```
+
+        ### Example
+        ```
+        DELETE /books/book[1] HTTP/1.0
+        Storage: BookReview books
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 204 No Content
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        ```
+
+        ### Example
+        ```
+        HTTP/1.1 204 No Content
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Server: Apache
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123/2 
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Execution-Time: 7 ms
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      responses:
+        204:
+          description: |
+            Element(s) or attribute(s) successfully deleted
+        304:
+          description: |
+            XPath without addressing a target has no effect on the storage
+        400:
+          description: |
+            Bad request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+  /xmex!{xpath}!json:
+    get:
+      tags:
+      - JSON Transformation
+      summary: |
+        Queries data about XPath axes and functions as JSON output
+      description: |
+        GET queries data about XPath axes and functions. For this, the XPath
+        axis or function is sent with URI. If the XPath addresses multiple
+        targets, their XML structure is combined in the root element collection.
+        
+        With the directive `!json` at the end of the URL, the content type of
+        the response is always `application/json`.
+        
+        The XPath processing is strict and does not accept unnecessary spaces.
+
+        ## Request
+        ```
+        GET /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        ```
+
+        ### Example
+        ```
+        GET /xmex!/books/attribute::genre HTTP/1.0
+        Storage: BookReview books
+        ```
+        ```
+        GET /xmex!/books/@genre HTTP/1.0
+        Storage: BookReview books
+        ```
+        ```
+        GET /xmex!count(/books/book) HTTP/1.0
+        Storage: BookReview books
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 200 Success
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        Content-Length: (bytes)
+        
+        The result of the XPath request
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 200 Success
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Content-Length: 26
+        Content-Type: application/xml
+        Execution-Time: 4 ms
+        
+        <?xml version="1.0"?>
+        ...
+        ```
+        ```
+        HTTP/1.0 200 Success
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Content-Length: 26
+        Content-Type: text/plain
+        Execution-Time: 4 ms
+        
+        ...
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      responses:
+        200:
+          description: |
+            Request was successfully executed
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "TODO:"
+        204:
+          description: |
+            Request was successfully executed but without content
+        400:
+          description: |
+            Bad request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details
+    post:
+      tags:
+      - JSON Transformation
+      summary: |
+        Queries data about XPath axes and functions via transformation as JSON
+        output
+      description: |
+        POST queries data about XPath axes and functions via transformation. For
+        this, an XSLT stylesheet is sent with the request-body, which is then
+        applied by the XSLT processor to the data in storage. Thus the content
+        type `application/xslt+xml` is always required. The client defines the
+        content type for the output with the output-tag and the
+        method-attribute.
+        
+        The XPath is optional for this method and is used to limit and preselect
+        the data. If the XPath addresses one or more attributes as preselection,
+        then tags of the same name of these attributes are used, which contain
+        the value of the attribute as content.
+        
+        With the directive `!json` at the end of the URL, XML data and simple
+        data types for the response are converted to the content type
+        `application/json`.
+        
+        The processing is strict and does not accept unnecessary spaces.
+
+        ## Request
+        ```
+        POST /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: application/xslt+xml
+        
+        XSLT stylesheet
+        ```
+
+        ### Example
+        ```
+        POST /xmex!/ HTTP/1.0
+        Storage: BookReview books
+        Content-Type: application/xslt+xml
+        Content-Length: 212
+        
+        <?xml version="1.0"?>
+        <xsl:stylesheet version="1.0"
+            xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:output method="xml"/>
+          <xsl:template match="/">
+            ...
+          </xsl:template>
+        </xsl:stylesheet>
+        ```
+
+        ## Response
+        ```
+        HTTP/1.0 200 Success
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Storage-Revision: Revision/Changes (number/number)
+        Storage-Space: Total/Used (bytes)
+        Storage-Last-Modified: Timestamp (RFC822)
+        Storage-Expiration: Timestamp (RFC822)
+        Storage-Expiration-Time: Timeout (milliseconds)
+        Content-Length: (bytes)
+        ```
+
+        ### Example
+        ```
+        HTTP/1.0 200 Success
+        Date: Wed, 11 Nov 2020 12:00:00 GMT
+        Access-Control-Allow-Origin: *
+        Storage: BookReview
+        Storage-Revision: 123
+        Storage-Space: 262144/1363 bytes
+        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
+        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
+        Storage-Expiration-Time: 900000 ms
+        Content-Length: 26
+        Content-Type: application/xml
+        Execution-Time: 4 ms
+        
+        <?xml version="1.0"?>
+        ...
+        ```
+      parameters:
+      - name: Storage
+        in: header
+        description: |
+          Each storage has an identifier. The Storage Identifier is used as
+          filename of the corresponding XML file and must be specified with each
+          request so that the datasource uses the correct storage. Optionally,
+          the storage identifier can be followed by the name of the root element
+          of the XML file separated by a space. If the root element is not
+          specified, the default `data` is used.
+        required: true
+        schema:
+          type: string
+          example: BookReview books
+      - name: xpath
+        in: path
+        description: |
+          XPath axis or function. Axes always start with a slash, functions do
+          not. This is only for the initial distinction from the expression for
+          the interpreter. Functions can then also use axes and axes can then
+          also use functions.
+          ### Example
+          ```
+          count(/books/*)
+          /books/book[position()>count(//book)-5]
+          ```
+        required: true
+        schema:
+          type: string
+          example: /books
+      requestBody:
+        content:
+          application/xslt+xml:
+            schema:
+              type: object
+              xml:
+                name: comment
+              example: |
+                <!-- XML fragments are expected, see examples in description -->
+      responses:
+        200:
+          description: |
+            Request was successfully executed
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "TODO:"
+            text/html:
+              schema:
+                type: string
+                example: "TODO:"
+        204:
+          description: |
+            Request was successfully executed but without content
+        400:
+          description: |
+            Bad request
+            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+            - XPath is missing or malformed
+            - XPath is used from PATH_INFO, not the request URI
+        404:
+          description: |
+            Storage file does not exist
+        415:
+          description: |
+            Attribute request without Content-Type text/plain
+        422:
+          description: |
+            Unprocessable content
+            - Data in the request body cannot be processed
+            - XSLT Stylesheet is erroneous
+        500:
+          description: |
+            Internal server error
+            - An unexpected error has occurred
+            - Response header Error contains an unique error number as a
+              reference to the log file with more details

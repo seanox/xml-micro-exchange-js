@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Seanox XMEX - OpenAPI</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css"/>
+    <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" crossorigin></script>
+    <script>
+      // https://github.com/nodeca/js-yaml
+      // https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
+      window.onload = () => {
+          const LOCATION = window.location.toString();
+          const QUERY = LOCATION.replace(/^[^?]+(\?)?/, "").match(/^[a-z]+:\/\/\w+(?:\.\w+)*(?::\d{1,5})?$/i);
+          const HOST = QUERY ? QUERY.toString() : LOCATION.replace(/^([a-z]+:\/\/.*?)(?:\/.*|$)/i, "$1");
+          const BASE = LOCATION.replace(/^((?:[^?]+\/)(?:[^?.]+)?).*$/, "$1");
+          const FILE = BASE + (BASE.endsWith("/") ? "openAPI.yaml" : ".yaml");
+          if (QUERY)
+              window.history.pushState(null, null, LOCATION.replace(/\?.*$/, ""));
+          const request = new XMLHttpRequest();
+          request.open("GET", `${FILE}`, false);
+          request.send();
+          if (request.status !== 200)
+              throw {message: "OpenAPI specification not not available"};
+          const specification = jsyaml.load(request.responseText);
+          specification.servers = [{"url":QUERY ? QUERY : HOST}];
+          window.ui = SwaggerUIBundle({
+              spec: specification,
+              dom_id: '#swagger-ui',
+          });
+      };
+    </script>
+  </head>
+  <body>
+    <div id="swagger-ui"/>
+  </body>
+</html>
