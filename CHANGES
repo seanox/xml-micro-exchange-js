@@ -7,6 +7,9 @@ CR: Service: A missing certificate file only causes a warning
 CR: Documentation: Update of OpenAPI
 CR: Service: Optimization of the configuration via environment variables
     Simplifies the provision as a container.
+CR: Storage: Review and optimization
+  - The name now allows word characters and minus, if the minus is not at the
+    beginning and not at the end.
 
 1.4.1 20220717
 BF: Statistic: Correction of the calculation of inbound / outbound

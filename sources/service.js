@@ -75,6 +75,18 @@ const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
+Number.parseBytes = function(text) {
+    if (!Object.exists(text)
+            || String(text).trim().length <= 0)
+        throw "Number parser error: Invalid value"
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]?)\s*$/i)
+    if (!match || match.length < 3 || Number.isNaN(match[1]))
+        throw "Number parser error: Invalid value " + String(text).trim()
+    let number = Number.parseFloat(match[1])
+    let factor = ("kmg").indexOf(match[2]) +1
+    return number *Math.pow(1024, factor)
+}
+
 class Storage {
 
     /** Directory of the data storage */
@@ -115,6 +127,14 @@ class Storage {
         "Access-Control-Max-Age": "86400",
         "Access-Control-Expose-Headers": "*"
     }
+
+    /**
+     * Pattern for the Storage header
+     *     Group 0. Full match
+     *     Group 1. Storage
+     *     Group 2. Name of the root element (optional)
+     */
+    static PATTERN_HEADER_STORAGE = /^(\w(?:[-\w]{0,62}\w)?)(?:\s+(\w{1,64}))?$/
 }
 
 class ServerFactory {
@@ -128,6 +148,8 @@ class ServerFactory {
     static ACME_CHALLENGE = XMEX_ACME_CHALLENGE
     static ACME_TOKEN = XMEX_ACME_TOKEN
     static ACME_REDIRECT = XMEX_ACME_REDIRECT
+
+    static STORAGE_SPACE = Number.parseBytes(XMEX_STORAGE_SPACE)
 
     static serverInstancesAcme = undefined
     static serverInstancesXmex = undefined
@@ -156,6 +178,35 @@ class ServerFactory {
         const server = context.createServer(options, (request, response) => {
 
             request.on("data", (data) => {
+
+                // Loading RequestBody is limited to the methods PATH/PUT/POST.
+                // It does not cause HTTP error status, the data is ignored.
+                let method = request.method.toUpperCase()
+                if (!["PATCH", "POST", "PUT"].includes(method))
+                    return
+
+                // It must be a valid storage, existence will be checked later.
+                // It does not cause HTTP error status, the data is ignored.
+                let storage
+                if (request.headers.storage)
+                    storage = request.headers.storage
+                if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
+                    return
+
+                // Loading RequestBody is limited to the API only.
+                // It does not cause HTTP error status, the data is ignored.
+                let context = Object.exists(module.connection.context) ? module.connection.context : ""
+                if (!decodeURI(request.url).startsWith(context))
+                    return
+
+                if (!Object.exists(request.data))
+                    request.data = ""
+                if (Object.exists(request.error))
+                    return
+                if (request.data.length +data.length > ServerFactory.STORAGE_SPACE) {
+                    request.data = ""
+                    request.error = [415, "Payload Too Large"]
+                } else request.data += data
             })
 
             request.on("end", () => {
