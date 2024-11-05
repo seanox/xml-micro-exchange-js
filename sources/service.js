@@ -252,8 +252,9 @@ class ServerFactory {
             response.exit(200, "Success", headers)
         let file = fs.openSync(target, "r")
         try {
+            if (state.size || 0 > 0)
+                response.setHeader("Content-Length", state.size || 0)
             response.writeHead(200, "Success"/*, headers*/)
-            response.contentLength = state.size || 0
             const buffer = Buffer.alloc(65535)
             for (let size = 0; size = fs.readSync(file, buffer) > 0;)
                 response.write(buffer.toString("binary"), "binary")
@@ -420,5 +421,11 @@ class ServerFactory {
         }
     }
 }
+
+// Version number and year are set later in the build process.
+// Source of knowledge is CHANGES, where else can you find such info ;-)
+// CHANGES is the basis for builds, releases and README.md
+console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
+console.log("Copyright (C) 0000 Seanox Software Solutions")
 
 ServerFactory.bind()
