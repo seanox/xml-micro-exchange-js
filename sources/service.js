@@ -31,9 +31,9 @@
  *     TERMS / WORDING
  * TODO:
  */
+import fs from "fs"
 import http from "http"
 import https from "https"
-import fs from "fs"
 import path from "path"
 
 import Mime from "mime/lite"
@@ -44,7 +44,7 @@ import Mime from "mime/lite"
 class Runtime {
     static getEnv(variable, standard) {
         if (!process.env.hasOwnProperty(variable)
-                || String(process.env[variable]).trim().length <= 0)
+                || String.isEmpty(String(process.env[variable])))
             return standard
         return String(process.env[variable]).trim()
     }
@@ -70,8 +70,8 @@ const XMEX_CONTENT_DEFAULT = Runtime.getEnv("XMEX_CONTENT_DEFAULT", "index.html 
 const XMEX_CONTENT_REDIRECT = Runtime.getEnv("XMEX_CONTENT_REDIRECT")
 
 const XMEX_STORAGE_DIRECTORY = Runtime.getEnv("XMEX_STORAGE_DIRECTORY", "./data")
-const XMEX_STORAGE_SPACE = Runtime.getEnv("XMEX_STORAGE_SPACE", "256K")
-const XMEX_STORAGE_EXPIRATION = Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s")
+const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE", "256K"))
+const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s"))
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
 const XMEX_STORAGE_REVISION_TYPE = Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "timestamp")
 
@@ -79,9 +79,27 @@ const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
+Date.parseDuration = function(text) {
+    if (String.isEmpty(text))
+        throw "Date parser error: Invalid value"
+    let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h?)\s*$/i)
+    if (!match || match.length < 3 || Number.isNaN(match[1]))
+        throw "Date parser error: Invalid value " + String(text).trim()
+    let number = Number.parseFloat(match[1])
+    let factor = 1
+    if (match[2] === "s")
+        factor = 1000
+    else if (match[2] === "m")
+        factor = 1000 *60
+    else if (match[2] === "h")
+        factor = 1000 *60 *60
+    else if (match[2] === "s")
+        factor = 1
+    return number *factor
+}
+
 Number.parseBytes = function(text) {
-    if (!Object.exists(text)
-            || String(text).trim().length <= 0)
+    if (String.isEmpty(text))
         throw "Number parser error: Invalid value"
     let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]?)\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
@@ -89,6 +107,11 @@ Number.parseBytes = function(text) {
     let number = Number.parseFloat(match[1])
     let factor = ("kmg").indexOf(match[2]) +1
     return number *Math.pow(1024, factor)
+}
+
+String.isEmpty = function(string) {
+    return !Object.exists(string)
+        || string.trim() === "";
 }
 
 // Query if something exists, it minimizes the check of undefined and null
@@ -124,33 +147,50 @@ http.ServerResponse.prototype.exit = function(status, message, headers = undefin
 class Storage {
 
     /** Directory of the data storage */
-    static DIRECTORY = XMEX_STORAGE_DIRECTORY
+    static get DIRECTORY() {
+        return XMEX_STORAGE_DIRECTORY
+    }
 
     /** Maximum number of files in data storage */
-    static QUANTITY = XMEX_STORAGE_QUANTITY
+    static get QUANTITY() {
+        return XMEX_STORAGE_QUANTITY
+    }
 
     /**
      * Maximum data size of files in data storage in bytes.
      * The value also limits the size of the requests(-body).
      */
-    static SPACE = XMEX_STORAGE_SPACE
+    static get SPACE() {
+        return XMEX_STORAGE_SPACE
+    }
 
     /** Maximum idle time of the files in seconds */
-    static EXPIRATION = XMEX_STORAGE_EXPIRATION
+    static get EXPIRATION() {
+        return XMEX_STORAGE_EXPIRATION
+    }
 
     /** Character or character sequence of the XPath delimiter in the URI */
-    static DELIMITER = XMEX_REQUEST_XPATH_DELIMITER
+    static get DELIMITER() {
+        return XMEX_REQUEST_XPATH_DELIMITER
+    }
 
     /** Activates the debug and test mode (supports on, true, 1) */
-    static DEBUG_MODE = XMEX_DEBUG_MODE
+    static get DEBUG_MODE() {
+        return XMEX_DEBUG_MODE
+    }
 
     /** Activates the container mode (supports on, true, 1) */
-    static CONTAINER_MODE = XMEX_CONTAINER_MODE
+    static get CONTAINER_MODE() {
+        return XMEX_CONTAINER_MODE
+    }
 
     /** Defines the revision type (serial, timestamp) */
-    static REVISION_TYPE = XMEX_STORAGE_REVISION_TYPE
+    static get REVISION_TYPE() {
+        return XMEX_STORAGE_REVISION_TYPE
+    }
 
     /**
+     * TODO:
      * Optional CORS response headers as associative array.
      * For the preflight OPTIONS the following headers are added automatically:
      *     Access-Control-Allow-Methods, Access-Control-Allow-Headers
@@ -162,32 +202,244 @@ class Storage {
         "Access-Control-Expose-Headers": "*"
     }
 
+    /** Constants of share options */
+    static get STORAGE_SHARE_NONE() {
+        return 0
+    }
+    static get STORAGE_SHARE_EXCLUSIVE(){
+        return 1
+    }
+    static get STORAGE_SHARE_INITIAL() {
+        return 2
+    }
+
     /**
      * Pattern for the Storage header
      *     Group 0. Full match
      *     Group 1. Storage
      *     Group 2. Name of the root element (optional)
      */
-    static PATTERN_HEADER_STORAGE = /^(\w(?:[-\w]{0,62}\w)?)(?:\s+(\w{1,64}))?$/
+    static get PATTERN_HEADER_STORAGE() {
+        return /^(\w(?:[-\w]{0,62}\w)?)(?:\s+(\w{1,64}))?$/
+    }
+
+    /**
+     * Pattern to determine options (optional directives) at the end of XPath
+     *     Group 0. Full match
+     *     Group 1. XPath
+     *     Group 2. options (optional)
+     */
+    static get PATTERN_XPATH_OPTIONS() {
+        return /^(.*?)((?:!+\w+){0,})$/
+    }
+
+    /** Pattern for detecting Base64 decoding */
+    static get PATTERN_BASE64() {
+        return /^\?(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/
+    }
+
+    /** Pattern for detecting HEX decoding */
+    static get PATTERN_HEX() {
+        return /^\?([A-Fa-f0-9]{2})+$/
+    }
+
+    /**
+     * Constructor creates a new Storage object.
+     * @param string storage
+     * @param string root
+     * @param string xpath
+     */
+    constructor(storage = null, root = null, xpath = null) {
+
+        // The storage identifier is case-sensitive.
+        // To ensure that this also works with Windows, Base64 encoding is used.
+
+        let options = [];
+        const pattern = new RegExp(Storage.PATTERN_XPATH_OPTIONS)
+        if (pattern.test(xpath || "")) {
+            const matches = xpath.match(pattern);
+            if (matches) {
+                xpath = matches[1];
+                options = matches[2].toLowerCase().split("!").filter(Boolean);
+            }
+        }
+
+        if (!String.isEmpty(storage))
+            root = root ? root: "data";
+        else root = null;
+        let store = null;
+        if (!String.isEmpty(storage)) {
+            // The file name from the storage is case-sensitive, which is not
+            // automatically supported by Windows by default. The file name must
+            // therefore be formatted so that case-sensitive characteristics are
+            // retained but the spelling is case-insensitive. For this purpose,
+            // the lower case transitions are marked with a special character.
+            // Afterwards, the file name can be used in lower case letters. The
+            // idea of simply converting everything to hexadecimal was rejected
+            // due to the length of the file name.
+            store = `${storage}[${root}]`
+            store = store.replace(/(^|[^a-z])([a-z])/, "$1'$2")
+            store = store.replace(/([a-z])([^a-z]|$)/, "$1'$2")
+            store = `${Storage.DIRECTORY}/${store.toLowerCase()}`
+            if (Storage.DEBUG_MODE)
+                store += ".xml"
+        }
+
+        this.storage  = storage
+        this.root     = root
+        this.store    = store
+        this.xpath    = xpath
+        this.options  = options
+        this.serial   = 0
+        this.unique   = null
+        this.revision = null
+    }
+
+    /**
+     * Opens a storage with a XPath for the current request. The storage can be
+     * opened with various options, which are passed as a bit mask. If the
+     * storage to be opened does not yet exist, it is initialized with option
+     * Storage.STORAGE_SHARE_INITIAL, otherwise the request will be terminated.
+     * With option Storage.STORAGE_SHARE_EXCLUSIVE, simultaneous
+     * requests must wait for a file lock.
+     * param  string  storage
+     * param  string  xpath
+     * param  number  options
+     * return Storage Instance of the Storage
+     */
+    static share(storage, xpath, options = Storage.STORAGE_SHARE_NONE) {
+
+        const root = storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
+        storage = storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
+
+        if (!fs.existsSync(Storage.DIRECTORY))
+            fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
+        storage = new Storage(storage, root, xpath)
+
+        // The cleanup does not run permanently, so the possible expiry is
+        // checked before access and the storage is deleted if necessary.
+        let expiration = Date.now() -Storage.EXPIRATION
+        if (fs.existsSync(storage.store))
+            if (fs.lstatSync(file).mtimeMs < expiration)
+                fs.unlinkSync(storage.store)
+
+        let initial = (options & Storage.STORAGE_SHARE_INITIAL) == Storage.STORAGE_SHARE_INITIAL;
+        if (!initial && !storage.exists())
+            storage.exit(404, "Resource Not Found")
+        initial = initial && (!fs.existsSync(storage.store) || fs.lstatSync(storage.store).size <= 0)
+
+        const exclusive = (options & Storage.STORAGE_SHARE_EXCLUSIVE) == Storage.STORAGE_SHARE_EXCLUSIVE
+        storage.share = fs.openSync(storage.store, initial ? "as+" : exclusive ? "rs+" : "r")
+        const now = Date.now()
+        fs.utimesSync(storage.store, now, now)
+
+        if (Storage.REVISION_TYPE === "serial") {
+            storage.unique = Date.now().toString(36).toUpperCase();
+        } else storage.unique = 1;
+
+        if (initial) {
+            let files = fs.readdirSync(Storage.DIRECTORY)
+                    .filter(file =>
+                            fs.lstatSync(Storage.DIRECTORY + "/" + file).isFile())
+            if (files.length >= Storage.QUANTITY)
+                storage.exit(507, "Insufficient Storage")
+            fs.writeSync(this.share,
+                `<?xml version="1.0" encoding="UTF-8"?>`
+                    + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`);
+            if (strcasecmp(Storage.REVISION_TYPE, "serial") === 0)
+                storage.unique = 0
+        }
+
+        const buffer = Buffer.alloc(fs.lstatSync(storage.store).size)
+        fs.readSync(storage.share, buffer, {position:0})
+        storage.xml = new DOMParser().parseFromString(buffer.toString(), Storage.CONTENT_TYPE_XML)
+        storage.revision = storage.xml.documentElement.getAttributeNumber("___rev")
+        if (Storage.REVISION_TYPE === "serial") {
+            if (storage.revision.match(Storage.PATTERN_NON_NUMERICAL))
+                storage.exit(503, "Resource revision conflict")
+            storage.unique += storage.revision
+        }
+
+        // TODO: $storage->xml->preserveWhiteSpace = false;
+        // TODO: $storage->xml->formatOutput = Storage.DEBUG_MODE;
+
+        return storage;
+    }
+
+    /**
+     * Opens a storage with a XPath for the current request.
+     * The storage can optionally be opened exclusively for write access.
+     * If the storage to be opened does not yet exist, it is initialized.
+     * Simultaneous requests must then wait through the file lock.
+     * @param  {object} meta {request, response, storage, xpath, exclusive}
+     * @return Storage Instance of the Storage
+     */
+    static share(meta) {
+
+        if (!(meta.storage || "").match(Storage.PATTERN_HEADER_STORAGE))
+            (new Storage(meta)).exit(400, "Bad Request", {Message: "Invalid storage identifier"})
+
+        meta.root = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
+        meta.storage = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
+
+        Storage.cleanUp(meta.storage)
+        if (!fs.existsSync(Storage.DIRECTORY))
+            fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
+        let storage = new Storage(meta)
+
+        if (storage.exists()) {
+            storage.open(meta.exclusive)
+            // Safe is safe, if not the default 'data' is used,
+            // the name of the root element must be known.
+            // Otherwise the request is quit with status 404 and terminated.
+            if ((meta.root ? meta.root : "data") !== storage.xml.documentElement.nodeName)
+                storage.exit(404, "Resource Not Found")
+        }
+        return storage
+    }
 }
 
 class ServerFactory {
 
-    static CONNECTION_ADDRESS = XMEX_CONNECTION_ADDRESS
-    static CONNECTION_PORT = XMEX_CONNECTION_PORT
-    static CONNECTION_CONTEXT = XMEX_CONNECTION_CONTEXT
-    static CONNECTION_CERTIFICATE = XMEX_CONNECTION_CERTIFICATE
-    static CONNECTION_SECRET = XMEX_CONNECTION_SECRET
+    static get CONNECTION_ADDRESS() {
+        return XMEX_CONNECTION_ADDRESS
+    }
+    static get CONNECTION_PORT() {
+        return XMEX_CONNECTION_PORT
+    }
+    static get CONNECTION_CONTEXT() {
+        return XMEX_CONNECTION_CONTEXT
+    }
+    static get CONNECTION_CERTIFICATE() {
+        return XMEX_CONNECTION_CERTIFICATE
+    }
+    static get CONNECTION_SECRET() {
+        return XMEX_CONNECTION_SECRET
+    }
 
-    static ACME_CHALLENGE = XMEX_ACME_CHALLENGE
-    static ACME_TOKEN = XMEX_ACME_TOKEN
-    static ACME_REDIRECT = XMEX_ACME_REDIRECT
+    static get ACME_CHALLENGE() {
+        return XMEX_ACME_CHALLENGE
+    }
+    static get ACME_TOKEN() {
+        return XMEX_ACME_TOKEN
+    }
+    static get ACME_REDIRECT() {
+        return XMEX_ACME_REDIRECT
+    }
 
-    static STORAGE_SPACE = Number.parseBytes(XMEX_STORAGE_SPACE)
+    static get STORAGE_SPACE() {
+        return XMEX_STORAGE_SPACE
+    }
 
-    static CONTENT_DIRECTORY = XMEX_CONTENT_DIRECTORY
-    static CONTENT_DEFAULT = XMEX_CONTENT_DEFAULT
-    static CONTENT_REDIRECT = XMEX_CONTENT_REDIRECT
+    static get CONTENT_DIRECTORY() {
+        return XMEX_CONTENT_DIRECTORY
+    }
+    static get CONTENT_DEFAULT() {
+        return XMEX_CONTENT_DEFAULT
+    }
+    static get CONTENT_REDIRECT() {
+        return XMEX_CONTENT_REDIRECT
+    }
 
     static serverInstancesAcme = undefined
     static serverInstancesXmex = undefined
@@ -265,6 +517,78 @@ class ServerFactory {
         throw http.ServerResponse.prototype.exit
     }
 
+    static onServiceRequest(request, response) {
+
+        // Request method is determined
+        let method = request.method.toUpperCase()
+
+        // Access-Control headers are received during preflight OPTIONS request
+        if (method.toUpperCase() === "OPTIONS"
+                && request.headers.origin
+                && !request.headers.storage)
+            response.exit(204, "No Content")
+
+        if (Object.exists(request.headers.storage))
+            response.exit(400, "Bad Request", {Message: "Missing storage identifier"})
+        let storage = request.headers.storage;
+        if (!storage.match(Storage.PATTERN_HEADER_STORAGE))
+            response.exit(400, "Bad Request", {Message: "Invalid storage identifier"})
+
+        // The XPath is determined from REQUEST_URI.
+        // The XPath starts directly after the context path. To improve visual
+        // recognition, the context path should always end with a symbol.
+        let xpath = request.url.substring(context.length)
+        if (xpath.match(Storage.PATTERN_HEX))
+            xpath = String.fromCharCode(parseInt(xpath.substring(1), 16)).trim()
+        else if (xpath.match(Storage.PATTERN_BASE64))
+            xpath = Buffer.from(xpath.substring(1), "base64").toString("ascii").trim()
+        else xpath = decodeURIComponent(xpath).trim()
+
+        // As an alternative to CONNECT, PUT without a path can be used. CONNECT
+        // is not supported by XMLHttpRequest, for example. That is why there
+        // are three variants. Because PUT without XPath is always valid.
+        if (method == "PUT"
+                && xpath.length <= 0)
+            method = "CONNECT";
+
+        // With the exception of CONNECT, OPTIONS and POST, all requests expect
+        // an XPath or XPath function. CONNECT does not use an (X)Path to
+        // establish a storage. POST uses the XPath for transformation only
+        // optionally to delimit the XML data for the transformation and works
+        // also without. In the other cases an empty XPath is replaced by the
+        // root slash.
+        if (xpath === ""
+                && !["CONNECT", "OPTIONS", "POST"].includes(method))
+            xpath = "/"
+        let options = Storage.STORAGE_SHARE_NONE
+        if (["CONNECT", "DELETE", "PATCH", "PUT"].includes(method))
+            options |= Storage.STORAGE_SHARE_EXCLUSIVE
+        if (["CONNECT"].includes(method))
+            options |= Storage.STORAGE_SHARE_INITIAL
+        storage = Storage.share(storage, xpath, options)
+
+        try {
+            switch (method) {
+                case "OPTIONS":
+                    storage.doOptions()
+                case "GET":
+                    storage.doGet()
+                case "POST":
+                    storage.doPost()
+                case "PUT":
+                    storage.doPut()
+                case "PATCH":
+                    storage.doPatch()
+                case "DELETE":
+                    storage.doDelete()
+                default:
+                    storage.exit(405, "Method Not Allowed", {Allow: "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
+            }
+        } finally {
+            storage.close()
+        }
+    }
+
     static newInstance() {
 
         const secure = ServerFactory.CONNECTION_CERTIFICATE && ServerFactory.CONNECTION_SECRET
@@ -306,7 +630,8 @@ class ServerFactory {
 
                 // Loading RequestBody is limited to the API only.
                 // It does not cause HTTP error status, the data is ignored.
-                let context = Object.exists(module.connection.context) ? module.connection.context : ""
+                // TODO:
+                let context = !String.isEmpty(ServerFactory.CONNECTION_CONTEXT) ? ServerFactory.CONNECTION_CONTEXT : ""
                 if (!decodeURI(request.url).startsWith(context))
                     return
 
@@ -325,7 +650,7 @@ class ServerFactory {
                 try {
 
                     // Marking the start time for request processing
-                    request.timing = new Date().getTime()
+                    request.timing = Date.now()
                     request.data = Object.exists(request.data) ? request.data : ""
 
                     if (Object.exists(request.error))
@@ -347,6 +672,8 @@ class ServerFactory {
 
                     if (!decodeURI(request.url).startsWith(ServerFactory.CONNECTION_CONTEXT))
                         ServerFactory.onContentRequest(request, response)
+
+                    ServerFactory.onServiceRequest(request, response)
 
                 } catch (error) {
                     if (error === Storage.prototype.exit
