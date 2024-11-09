@@ -37,6 +37,7 @@ import https from "https"
 import path from "path"
 
 import Mime from "mime/lite"
+import XPath from "xpath";
 
 // For the environment variables, constants are created so that they can be
 // assigned as static values to the constants in the class!
@@ -79,6 +80,31 @@ const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
+http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
+
+    if (this.headersSent)
+        return
+
+    // Directly set headers (e.g. for CORS) are read
+    // Names are converted to camel case, pure cosmetics -- Node.js uses only lower case
+    if (typeof headers !== "object")
+        headers = {}
+
+    for (const [header, value] of Object.entries(this.getHeaders()))
+        headers[header.replace(/\b[a-z]/g, match =>
+            match.toUpperCase())] = value
+
+    this.writeHead(status, message, headers)
+    if (Object.exists(data))
+        this.contentLength = data.length
+    this.end(data)
+}
+
+http.ServerResponse.prototype.exit = function(status, message, headers = undefined, data = undefined) {
+    this.quit(status, message, headers, data)
+    throw http.ServerResponse.prototype.exit
+}
+
 Date.parseDuration = function(text) {
     if (String.isEmpty(text))
         throw "Date parser error: Invalid value"
@@ -109,39 +135,15 @@ Number.parseBytes = function(text) {
     return number *Math.pow(1024, factor)
 }
 
+// Query if something exists, it minimizes the check of undefined and null
+Object.exists = function(object) {
+    return object !== undefined
+        && object !== null
+}
+
 String.isEmpty = function(string) {
     return !Object.exists(string)
         || string.trim() === ""
-}
-
-// Query if something exists, it minimizes the check of undefined and null
-Object.exists = function(object) {
-    return object !== undefined && object !== null
-}
-
-http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
-
-    if (this.headersSent)
-        return
-
-    // Directly set headers (e.g. for CORS) are read
-    // Names are converted to camel case, pure cosmetics -- Node.js uses only lower case
-    if (typeof headers !== "object")
-        headers = {}
-
-    for (const [header, value] of Object.entries(this.getHeaders()))
-        headers[header.replace(/\b[a-z]/g, match =>
-            match.toUpperCase())] = value
-
-    this.writeHead(status, message, headers)
-    if (Object.exists(data))
-        this.contentLength = data.length
-    this.end(data)
-}
-
-http.ServerResponse.prototype.exit = function(status, message, headers = undefined, data = undefined) {
-    this.quit(status, message, headers, data)
-    throw http.ServerResponse.prototype.exit
 }
 
 class Storage {
@@ -255,8 +257,7 @@ class Storage {
         // To ensure that this also works with Windows, Base64 encoding is used.
 
         let options = []
-        const pattern = new RegExp(Storage.PATTERN_XPATH_OPTIONS)
-        const matches = (xpath || "").match(pattern)
+        const matches = (xpath || "").match(Storage.PATTERN_XPATH_OPTIONS)
         if (matches) {
             xpath = matches[1]
             options = matches[2].toLowerCase().split("!").filter(Boolean)
@@ -433,6 +434,74 @@ class Storage {
 
         this.materialize()
         this.exit(response[0], response[1], {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
+    }
+
+    /**
+     * OPTIONS is used to query the allowed HTTP methods for an XPath, which is
+     * responded with the header Allow. This method distinguishes between XPath
+     * function and XPath axis and for an XPath axis the target exists or not
+     * and uses different Allow headers accordingly.
+     *
+     * Overview of header Allow
+     * - XPath function: CONNECT, OPTIONS, GET, POST
+     * - XPath axis without target: CONNECT, OPTIONS, PUT
+     * - XPath axis with target: CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE
+     *
+     * The method always executes a transmitted XPath, but does not return the
+     * result directly, but reflects the result via different header Allow. The
+     * status 404 is not used in relation to the XPath, but only in relation to
+     * the storage file. The XPath processing is strict and does not accept
+     * unnecessary spaces. Faulty XPath will cause the status 400.
+     *
+     *     Request:
+     * OPTIONS /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Request was successfully executed
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
+     * - XPath is missing or malformed
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage file does not exist
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     */
+    doOptions() {
+
+        let allow = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE";
+        if ((this.xpath || "").match(Storage.PATTERN_XPATH_FUNCTION)) {
+            const targets = XPath.select(this.xpath, this.xml)
+            if (targets instanceof Error) {
+                let message = `Invalid XPath function (${targets.message})`
+                this.exit(400, "Bad Request", {Message: message})
+            }
+            allow = "CONNECT, OPTIONS, GET, POST"
+        } else if (String.isEmpty(this.xpath)) {
+            const targets = XPath.select(this.xpath, this.xml)
+            if (targets instanceof Error) {
+                let message = `Invalid XPath axis (${targets.message})`
+                this.exit(400, "Bad Request", {Message: message})
+            }
+            if (!Object.exists(targets)
+                    || targets.length <= 0)
+                allow = "CONNECT, OPTIONS, PUT";
+        }
+
+        // Without XPath, OPTIONS generally refers to the storage.
+        this.exit(204, "No Content", {"Allow": allow})
     }
 
     /** Cleans up all files that have exceeded the maximum idle time. */
@@ -637,6 +706,8 @@ class ServerFactory {
 
         try {
             switch (method) {
+                case "CONNECT":
+                    storage.doConnect()
                 case "OPTIONS":
                     storage.doOptions()
                 case "GET":
