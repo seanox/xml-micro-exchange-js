@@ -600,6 +600,164 @@ class Storage {
         this.quit(200, "Success", null, result)
     }
 
+    /**
+     * DELETE deletes elements and attributes in the storage. The position for
+     * deletion is defined via an XPath. XPath uses different notations for
+     * elements and attributes.
+     *
+     * The notation for attributes use the following structure at the end.
+     *
+     *     <xpath>/@<attribute> or <xpath>/attribute::<attribute>
+     *
+     * If the XPath notation does not match the attributes, elements are
+     * assumed. For elements, the notation for pseudo elements is supported.
+     *
+     *     <xpath>::first, <xpath>::last, <xpath>::before or <xpath>::after
+     *
+     * Pseudo elements are a relative position specification to the selected
+     * element.
+     *
+     * The DELETE method works resolutely and deletes existing data. The XPath
+     * processing is strict and does not accept unnecessary spaces. The
+     * attributes ___rev / ___uid used internally by the storage are read-only
+     * and cannot be deleted.
+     *
+     * DELETE requests are usually responded with status 204. Changes at the
+     * storage are indicated by the two-part response header Storage-Revision.
+     * If the DELETE request has no effect on the storage, it is responded with
+     * status 304. Status 404 is used only with relation to the storage file.
+     *
+     * Syntactic and semantic errors in the request and/or XPath can cause error
+     * status 400.
+     *
+     *     Request:
+     * DELETE /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Element(s) or attribute(s) successfully deleted
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
+     * - XPath is missing or malformed
+     *         HTTP/1.0 304 Not Modified
+     * - XPath without addressing a target has no effect on the storage
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage file does not exist
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     */
+    doDelete() {
+
+        // In any case an XPath is required for a valid request.
+        if (String.isEmpty(this.xpath))
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            const message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {Message: message})
+        }
+
+        let xpath = this.xpath
+        let pseudo = false
+        if (!this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)) {
+            // An XPath for element(s) is then expected here.
+            // If this is not the case, the request is responded with status 400.
+            let matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
+            if (!matches)
+                this.quit(400, "Bad Request", {Message: "Invalid XPath axis"})
+            xpath = matches[1]
+            pseudo = (matches[2] || "").toLowerCase()
+        }
+
+        let targets = XPath.select(xpath, this.xml)
+        if (targets instanceof Error) {
+            const message = "Invalid XPath axis (" + targets.message + ")"
+            this.quit(400, "Bad Request", {Message: message})
+        }
+
+        if (!Object.exists(targets)
+                || targets.length <= 0)
+            this.quit(304, "Not Modified")
+
+        // Pseudo elements can be used to delete in an XML substructure relative
+        // to the selected element.
+        if (!String.isEmpty(pseudo)) {
+            if (pseudo === "before") {
+                const childs = []
+                targets.forEach((target) => {
+                    if (!target.previousSibling)
+                        return
+                    for (let previous = target.previousSibling; previous; previous = previous.previousSibling)
+                        childs.push(previous)
+                })
+                targets = childs
+            } else if (pseudo === "after") {
+                const childs = []
+                targets.forEach((target) => {
+                    if (!target.nextSibling)
+                        return
+                    for (let next = target.nextSibling; next; next = next.nextSibling)
+                        childs.push(next)
+                })
+                targets = childs
+            } else if (pseudo === "first") {
+                targets = targets.map(target => target.firstChild)
+                targets = targets.filter(Object.exists)
+            } else if (pseudo === "last") {
+                targets = targets.map(target => target.lastChild)
+                targets = targets.filter(Object.exists)
+            } else this.quit(400, "Bad Request", {Message: "Invalid XPath axis (Unsupported pseudo syntax found)"})
+        }
+
+        targets.forEach((target) => {
+            if (target.nodeType === XML_ATTRIBUTE_NODE) {
+                if (!target.ownerElement
+                        || target.ownerElement.nodeType !== XML_ELEMENT_NODE
+                        || ["___rev", "___uid"].includes(target.name))
+                    return
+                const parent = target.ownerElement
+                parent.removeAttribute(target.name)
+                this.serial++
+                Storage.updateNodeRevision(parent, this.unique)
+            } else if (target.nodeType !== XML_DOCUMENT_NODE) {
+                if (!Object.exists(target.parentNode)
+                        || ![XML_ELEMENT_NODE, XML_DOCUMENT_NODE].includes(target.parentNode.nodeType))
+                    return
+                parent = target.parentNode
+                parent.removeChild(target)
+                this.serial++
+                if (parent.nodeType === XML_DOCUMENT_NODE) {
+                    // Special case, if the root element is deleted, then the
+                    // newly created root element should have the serial (the
+                    // same change number).
+                    this.serial--
+                    target = this.xml.createElement(this.root)
+                    target = this.xml.appendChild(target)
+                    Storage.updateNodeRevision(target, this.unique)
+                    target.setAttribute("___uid", serial)
+                } else Storage.updateNodeRevision(parent, this.unique)
+            }
+        })
+
+        if (this.serial <= 0)
+            this.quit(304, "Not Modified")
+
+        this.materialize()
+        this.quit(204, "No Content")
+    }
+
     /** Cleans up all files that have exceeded the maximum idle time. */
     static cleanUp() {
 
