@@ -71,7 +71,7 @@ const XMEX_CONTENT_REDIRECT = Runtime.getEnv("XMEX_CONTENT_REDIRECT")
 
 const XMEX_STORAGE_DIRECTORY = Runtime.getEnv("XMEX_STORAGE_DIRECTORY", "./data")
 const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE", "256K"))
-const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s"))
+const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s")) *1000
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
 const XMEX_STORAGE_REVISION_TYPE = Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "timestamp")
 
@@ -111,7 +111,7 @@ Number.parseBytes = function(text) {
 
 String.isEmpty = function(string) {
     return !Object.exists(string)
-        || string.trim() === "";
+        || string.trim() === ""
 }
 
 // Query if something exists, it minimizes the check of undefined and null
@@ -254,20 +254,18 @@ class Storage {
         // The storage identifier is case-sensitive.
         // To ensure that this also works with Windows, Base64 encoding is used.
 
-        let options = [];
+        let options = []
         const pattern = new RegExp(Storage.PATTERN_XPATH_OPTIONS)
-        if (pattern.test(xpath || "")) {
-            const matches = xpath.match(pattern);
-            if (matches) {
-                xpath = matches[1];
-                options = matches[2].toLowerCase().split("!").filter(Boolean);
-            }
+        const matches = (xpath || "").match(pattern)
+        if (matches) {
+            xpath = matches[1]
+            options = matches[2].toLowerCase().split("!").filter(Boolean)
         }
 
         if (!String.isEmpty(storage))
-            root = root ? root: "data";
-        else root = null;
-        let store = null;
+            root = root ? root: "data"
+        else root = null
+        let store = null
         if (!String.isEmpty(storage)) {
             // The file name from the storage is case-sensitive, which is not
             // automatically supported by Windows by default. The file name must
@@ -323,7 +321,7 @@ class Storage {
             if (fs.lstatSync(file).mtimeMs < expiration)
                 fs.unlinkSync(storage.store)
 
-        let initial = (options & Storage.STORAGE_SHARE_INITIAL) == Storage.STORAGE_SHARE_INITIAL;
+        let initial = (options & Storage.STORAGE_SHARE_INITIAL) == Storage.STORAGE_SHARE_INITIAL
         if (!initial && !storage.exists())
             storage.exit(404, "Resource Not Found")
         initial = initial && (!fs.existsSync(storage.store) || fs.lstatSync(storage.store).size <= 0)
@@ -334,8 +332,8 @@ class Storage {
         fs.utimesSync(storage.store, now, now)
 
         if (Storage.REVISION_TYPE === "serial") {
-            storage.unique = Date.now().toString(36).toUpperCase();
-        } else storage.unique = 1;
+            storage.unique = Date.now().toString(36).toUpperCase()
+        } else storage.unique = 1
 
         if (initial) {
             let files = fs.readdirSync(Storage.DIRECTORY)
@@ -345,7 +343,7 @@ class Storage {
                 storage.exit(507, "Insufficient Storage")
             fs.writeSync(this.share,
                 `<?xml version="1.0" encoding="UTF-8"?>`
-                    + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`);
+                    + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`)
             if (strcasecmp(Storage.REVISION_TYPE, "serial") === 0)
                 storage.unique = 0
         }
@@ -360,42 +358,112 @@ class Storage {
             storage.unique += storage.revision
         }
 
-        // TODO: $storage->xml->preserveWhiteSpace = false;
-        // TODO: $storage->xml->formatOutput = Storage.DEBUG_MODE;
+        // TODO: $storage->xml->preserveWhiteSpace = false
+        // TODO: $storage->xml->formatOutput = Storage.DEBUG_MODE
 
-        return storage;
+        return storage
     }
 
     /**
-     * Opens a storage with a XPath for the current request.
-     * The storage can optionally be opened exclusively for write access.
-     * If the storage to be opened does not yet exist, it is initialized.
-     * Simultaneous requests must then wait through the file lock.
-     * @param  {object} meta {request, response, storage, xpath, exclusive}
-     * @return Storage Instance of the Storage
+     * CONNECT initiates the use of a storage. A storage is a volatile XML
+     * construct that is used via a datasource URL. The datasource managed
+     * several independent storages. Each storage has a name specified by the
+     * client, which must be sent with each request. This is similar to the
+     * header host for virtual servers. Optionally, the name of the root element
+     * can also be defined by the client.
+     *
+     * Each client can create a new storage at any time. Communication is
+     * established when all parties use the same name. There are no rules, only
+     * the clients know the rules. A storage expires with all information if it
+     * is not used (read/write).
+     *
+     *     Request:
+     * CONNECT / HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     *
+     *     Request:
+     * CONNECT / HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ root (identifier / root)
+     *
+     *    Response:
+     * HTTP/1.0 201 Created
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 201 Resource Created
+     * - Storage was newly created
+     *         HTTP/1.0 204 No Content
+     * - Storage already exists
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     *         HTTP/1.0 507 Insufficient Storage
+     * - Storage is full
      */
-    static share(meta) {
+    doConnect() {
 
-        if (!(meta.storage || "").match(Storage.PATTERN_HEADER_STORAGE))
-            (new Storage(meta)).exit(400, "Bad Request", {Message: "Invalid storage identifier"})
+        // Cleaning up can run longer and delay the request. It is least
+        // disruptive during the connect. Threads were deliberately omitted here
+        // to keep the service simple.
+        Storage.cleanUp()
 
-        meta.root = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
-        meta.storage = meta.storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
+        if (!String.isEmpty(this.xpath))
+            this.exit(400, "Bad Request", {Message: "Unexpected XPath"})
 
-        Storage.cleanUp(meta.storage)
-        if (!fs.existsSync(Storage.DIRECTORY))
-            fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
-        let storage = new Storage(meta)
+        let response = [201, "Created"]
+        if (this.revision != this.unique)
+            response = [204, "No Content"]
 
-        if (storage.exists()) {
-            storage.open(meta.exclusive)
-            // Safe is safe, if not the default 'data' is used,
-            // the name of the root element must be known.
-            // Otherwise the request is quit with status 404 and terminated.
-            if ((meta.root ? meta.root : "data") !== storage.xml.documentElement.nodeName)
-                storage.exit(404, "Resource Not Found")
-        }
-        return storage
+        this.materialize()
+        this.exit(response[0], response[1], {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
+    }
+
+    /** Cleans up all files that have exceeded the maximum idle time. */
+    static cleanUp() {
+
+        if (!fs.existsSync(Storage.DIRECTORY)
+                || !fs.lstatSync(Storage.DIRECTORY).isDirectory())
+            return
+
+        // To reduce the execution time of the requests, the cleanup is only
+        // carried out every minute. Parallel cleanup due to parallel requests
+        // cannot be excluded, but this should not be a problem.
+        const marker = `${Storage.DIRECTORY}/cleanup`
+        if (fs.existsSync(marker)
+                && (Date.now() -fs.statSync(marker).mtime.getTime() < 60 *1000))
+            return
+        fs.writeFileSync(marker, '')
+
+        const expiration = Date.now() -Storage.EXPIRATION
+        const files = fs.readdirSync(Storage.DIRECTORY)
+        files.forEach((entry) => {
+            if ([".", "..", "cleanup"].includes(entry))
+                return
+            try {
+                entry = `${Storage.DIRECTORY}/${entry}`
+                if (fs.existsSync(entry)
+                        && (fs.statSync(entry).mtimeMs < expiration))
+                    fs.unlinkSync(entry)
+            } catch (error) {
+            }
+        })
     }
 }
 
@@ -530,7 +598,7 @@ class ServerFactory {
 
         if (Object.exists(request.headers.storage))
             response.exit(400, "Bad Request", {Message: "Missing storage identifier"})
-        let storage = request.headers.storage;
+        let storage = request.headers.storage
         if (!storage.match(Storage.PATTERN_HEADER_STORAGE))
             response.exit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
@@ -549,7 +617,7 @@ class ServerFactory {
         // are three variants. Because PUT without XPath is always valid.
         if (method == "PUT"
                 && xpath.length <= 0)
-            method = "CONNECT";
+            method = "CONNECT"
 
         // With the exception of CONNECT, OPTIONS and POST, all requests expect
         // an XPath or XPath function. CONNECT does not use an (X)Path to
@@ -630,7 +698,6 @@ class ServerFactory {
 
                 // Loading RequestBody is limited to the API only.
                 // It does not cause HTTP error status, the data is ignored.
-                // TODO:
                 let context = !String.isEmpty(ServerFactory.CONNECTION_CONTEXT) ? ServerFactory.CONNECTION_CONTEXT : ""
                 if (!decodeURI(request.url).startsWith(context))
                     return
