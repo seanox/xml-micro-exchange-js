@@ -80,6 +80,7 @@ const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
+// TODO synchronize with php (quit + exit in the one function)
 http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
 
     if (this.headersSent)
@@ -98,10 +99,6 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
     if (Object.exists(data))
         this.contentLength = data.length
     this.end(data)
-}
-
-http.ServerResponse.prototype.exit = function(status, message, headers = undefined, data = undefined) {
-    this.quit(status, message, headers, data)
     throw http.ServerResponse.prototype.exit
 }
 
@@ -110,7 +107,7 @@ Date.parseDuration = function(text) {
         throw "Date parser error: Invalid value"
     let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*(ms|s|m|h?)\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
-        throw "Date parser error: Invalid value " + String(text).trim()
+        throw `Date parser error: Invalid value ${String(text).trim()}`
     let number = Number.parseFloat(match[1])
     let factor = 1
     if (match[2] === "s")
@@ -129,7 +126,7 @@ Number.parseBytes = function(text) {
         throw "Number parser error: Invalid value"
     let match = String(text).toLowerCase().match(/^\s*([\d\.\,]+)\s*([kmg]?)\s*$/i)
     if (!match || match.length < 3 || Number.isNaN(match[1]))
-        throw "Number parser error: Invalid value " + String(text).trim()
+        throw `Number parser error: Invalid value ${String(text).trim()}`
     let number = Number.parseFloat(match[1])
     let factor = ("kmg").indexOf(match[2]) +1
     return number *Math.pow(1024, factor)
@@ -339,7 +336,7 @@ class Storage {
         if (initial) {
             let files = fs.readdirSync(Storage.DIRECTORY)
                     .filter(file =>
-                            fs.lstatSync(Storage.DIRECTORY + "/" + file).isFile())
+                            fs.lstatSync(`${Storage.DIRECTORY}/${file}`).isFile())
             if (files.length >= Storage.QUANTITY)
                 storage.exit(507, "Insufficient Storage")
             fs.writeSync(this.share,
@@ -426,14 +423,14 @@ class Storage {
         Storage.cleanUp()
 
         if (!String.isEmpty(this.xpath))
-            this.exit(400, "Bad Request", {Message: "Unexpected XPath"})
+            this.quit(400, "Bad Request", {Message: "Unexpected XPath"})
 
         let response = [201, "Created"]
         if (this.revision != this.unique)
             response = [204, "No Content"]
 
         this.materialize()
-        this.exit(response[0], response[1], {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
+        this.quit(response[0], response[1], {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
     }
 
     /**
@@ -482,26 +479,125 @@ class Storage {
     doOptions() {
 
         let allow = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE";
-        if ((this.xpath || "").match(Storage.PATTERN_XPATH_FUNCTION)) {
-            const targets = XPath.select(this.xpath, this.xml)
-            if (targets instanceof Error) {
-                let message = `Invalid XPath function (${targets.message})`
-                this.exit(400, "Bad Request", {Message: message})
+        if (!String.isEmpty(this.xpath)) {
+            const result = XPath.select(this.xpath, this.xml)
+            if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+                if (result instanceof Error) {
+                    const message = `Invalid XPath function (${result.message})`
+                    this.quit(400, "Bad Request", {Message: message})
+                }
+                allow = "CONNECT, OPTIONS, GET, POST"
+            } else {
+                if (targets instanceof Error) {
+                    const message = `Invalid XPath axis (${targets.message})`
+                    this.quit(400, "Bad Request", {Message: message})
+                }
+                if (!Object.exists(targets)
+                        || targets.length <= 0)
+                    allow = "CONNECT, OPTIONS, PUT";
             }
-            allow = "CONNECT, OPTIONS, GET, POST"
-        } else if (String.isEmpty(this.xpath)) {
-            const targets = XPath.select(this.xpath, this.xml)
-            if (targets instanceof Error) {
-                let message = `Invalid XPath axis (${targets.message})`
-                this.exit(400, "Bad Request", {Message: message})
-            }
-            if (!Object.exists(targets)
-                    || targets.length <= 0)
-                allow = "CONNECT, OPTIONS, PUT";
         }
 
         // Without XPath, OPTIONS generally refers to the storage.
-        this.exit(204, "No Content", {"Allow": allow})
+        this.quit(204, "No Content", {"Allow": allow})
+    }
+
+    /**
+     * GET queries data about XPath axes and functions. For this, the XPath axis
+     * or function is sent with URI. Depending on whether the request is an
+     * XPath axis or an XPath function, different Content-Type are used for the
+     * response.
+     *
+     *     application/xml
+     * When the XPath axis addresses one target, the addressed target is the
+     * root element of the returned XML structure. If the XPath addresses
+     * multiple targets, their XML structure is combined in the root element
+     * collection.
+     *
+     *     text/plain
+     * If the XPath addresses only one attribute, the value is returned as plain
+     * text. Also the result of XPath functions is returned as plain text.
+     * Decimal results use float, booleans the values true and false.
+     *
+     * The XPath processing is strict and does not accept unnecessary spaces.
+     *
+     *     Request:
+     * GET /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     *
+     *     Response:
+     * HTTP/1.0 200 Success
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     * Content-Length: (bytes)
+     *     Response-Body:
+     * The result of the XPath request
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 200 Success
+     * - Request was successfully executed, target was found in the storage
+     *         HTTP/1.0 200 Success
+     * - Request was successfully executed, no target was found in the storage
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
+     * - XPath is missing or malformed
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage file does not exist
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     */
+    doGet() {
+
+        // In any case an XPath is required for a valid request.
+        if (String.isEmpty(this.xpath))
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
+
+        let result = XPath.select(this.xpath, this.xml)
+        if (result instanceof Error) {
+            let message = "Invalid XPath"
+            if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION))
+                message = "Invalid XPath function"
+            message += `(${result.message})`
+            this.quit(400, "Bad Request", {Message: message})
+        }
+        if (!this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)
+                && (!Object.exists(result) || result.length <= 0))
+            this.quit(204, "No Content")
+        if (Array.isArray(result)) {
+            if (result.length === 1) {
+                if (result[0].nodeType === XML_DOCUMENT_NODE)
+                    result = [result[0].documentElement]
+                if (result[0].nodeType === XML_ATTRIBUTE_NODE) {
+                    result = result[0].value
+                } else {
+                    let xml = Storage.XML.createDocument()
+                    xml.appendChild(result[0].cloneNode(true))
+                    result = xml
+                }
+            } else if (result.length > 0) {
+                let xml = Storage.XML.createDocument()
+                let collection = xml.createElement("collection")
+                result.forEach((entry) => {
+                    if (entry.nodeType === XML_ATTRIBUTE_NODE) {
+                        let text = xml.createTextNode(entry.nodeValue)
+                        entry = xml.createElement(entry.nodeName)
+                        entry.appendChild(text)
+                    }
+                    collection.appendChild(entry.cloneNode(true))
+                })
+                xml.appendChild(collection)
+                result = xml
+            } else result = ""
+        } else if (typeof result === "boolean")
+            result = result ? "true" : "false"
+
+        this.quit(200, "Success", null, result)
     }
 
     /** Cleans up all files that have exceeded the maximum idle time. */
@@ -602,7 +698,7 @@ class ServerFactory {
             response.exit(404, "Resource Not Found")
 
         let target = path.normalize(decodeURI(request.url.replace(/\?.*$/, "")).trim()).replace(/\\+/g, "/")
-        target = ServerFactory.CONTENT_DIRECTORY + "/" + target
+        target = `${ServerFactory.CONTENT_DIRECTORY}/${target}`
         target = target.replace(/\/{2,}/g, "/")
         if (!fs.existsSync(target))
             response.exit(404, "Resource Not Found")
@@ -616,8 +712,8 @@ class ServerFactory {
                 while (files.length > 0) {
                     if (!files[0].includes("/")
                             && !files[0].includes("\\")
-                            && fs.existsSync(target + "/" + files[0])
-                            && fs.lstatSync(target + "/" + files[0]).isFile())
+                            && fs.existsSync(`${target}/${files[0]}`)
+                            && fs.lstatSync(`${target}/${files[0]}`).isFile())
                         break
                     files.shift()
                 }
@@ -818,9 +914,9 @@ class ServerFactory {
                             || error === http.ServerResponse.prototype.exit)
                         return
                     const unique = Date.now().toString(36).toUpperCase()
-                    console.error("Service", "#" + unique, error)
+                    console.error("Service", `#${unique}`, error)
                     if (!response.headersSent)
-                        response.quit(500, "Internal Server Error", {"Error": "#" + unique})
+                        response.quit(500, "Internal Server Error", {"Error": `#${unique}`})
                 } finally {
 
                 }
@@ -869,9 +965,9 @@ class ServerFactory {
                     if (error === http.ServerResponse.prototype.exit)
                         return
                     const unique = Date.now().toString(36).toUpperCase()
-                    console.error("Service", "#" + unique, error)
+                    console.error("Service", `#${unique}`, error)
                     if (!response.headersSent)
-                        response.quit(500, "Internal Server Error", {"Error": "#" + unique})
+                        response.quit(500, "Internal Server Error", {"Error": `#${unique}`})
                 }
             })
 
