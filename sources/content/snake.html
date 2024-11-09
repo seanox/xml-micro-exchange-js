@@ -100,7 +100,7 @@
                   request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
                   request.send();
                   if (request.status === 201
-                          || request.status === 204)
+                          || request.status === 304)
                       return;
                   throw {message: "Datasource not available", request: request};
               },
