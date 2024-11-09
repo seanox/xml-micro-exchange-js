@@ -404,7 +404,7 @@ class Storage {
      *     Response codes / behavior:
      *         HTTP/1.0 201 Resource Created
      * - Storage was newly created
-     *         HTTP/1.0 204 No Content
+     *         HTTP/1.0 304 Not Modified
      * - Storage already exists
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
@@ -427,7 +427,7 @@ class Storage {
 
         let response = [201, "Created"]
         if (this.revision != this.unique)
-            response = [204, "No Content"]
+            response = [304, "Not Modified"]
 
         this.materialize()
         this.quit(response[0], response[1], {"Allow": "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
@@ -598,6 +598,145 @@ class Storage {
             result = result ? "true" : "false"
 
         this.quit(200, "Success", null, result)
+    }
+
+    /**
+     * PATCH changes existing elements and attributes in storage. The position
+     * for the insert is defined via an XPath. The method works almost like PUT,
+     * but the XPath axis of the request always expects an existing target.
+     * XPath uses different notations for elements and attributes.
+     *
+     * The notation for attributes use the following structure at the end.
+     *
+     *     <xpath>/@<attribute> or <xpath>/attribute::<attribute>
+     *
+     * The attribute values can be static (text) and dynamic (XPath function).
+     * Values are send as request-body. Whether they are used as text or XPath
+     * function is decided by the Content-Type header of the request:
+     *
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *
+     * If the XPath notation does not match the attributes, elements are
+     * assumed. Unlike the PUT method, no pseudo elements are supported for
+     * elements.
+     *
+     * The value of elements can be static (text), dynamic (XPath function) or
+     * be an XML structure. Also here the value is send with the request-body
+     * and the type of processing is determined by the Content-Type:
+     *
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *     application/xml: XML structure
+     *
+     * The PATCH method works resolutely and  overwrites existing data. The
+     * XPath processing is strict and does not accept unnecessary spaces. The
+     * attributes ___rev / ___uid used internally by the storage are read-only
+     * and cannot be changed.
+     *
+     * PATCH requests are usually responded with status 204. Changes at the
+     * storage are indicated by the two-part response header Storage-Revision.
+     * If the PATCH request has no effect on the storage, it is responded with
+     * status 304. Status 404 is used only with relation to the storage file.
+     *
+     * Syntactic and semantics errors in the request and/or XPath and/or value
+     * can cause error status 400 and 415. If errors occur due to the
+     * transmitted request body, this causes status 422.
+     *
+     *     Request:
+     * PATCH /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: application/xml
+     *     Request-Body:
+     * XML structure
+     *
+     *     Request:
+     * PATCH /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     *  Content-Type: text/plain
+     *     Request-Body:
+     * Value as plain text
+     *
+     *     Request:
+     * PATCH /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: text/xpath
+     *     Request-Body:
+     * Value as XPath function
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Element(s) or attribute(s) successfully created or set
+     *         HTTP/1.0 304 Not Modified
+     * - XPath without addressing a target has no effect on the storage
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
+     * - XPath is missing or malformed
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage file does not exist
+     *         HTTP/1.0 413 Payload Too Large
+     * - Allowed size of the request(-body) and/or storage is exceeded
+     *         HTTP/1.0 415 Unsupported Media Type
+     * - Attribute request without Content-Type text/plain
+     *         HTTP/1.0 422 Unprocessable Entity
+     * - Data in the request body cannot be processed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     */
+    doPatch() {
+
+        // PATCH is implemented like PUT. There are some additional conditions
+        // and restrictions that will be checked. After that the response to the
+        // request can be passed to PUT.
+        // - Pseudo elements are not supported
+        // - Target must exist, particularly for attributes
+
+        // In any case an XPath is required for a valid request.
+        if (String.isEmpty(this.xpath))
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
+
+        // Storage.SPACE also limits the maximum size of writing request(-body).
+        // If the limit is exceeded, the request is quit with status 413.
+        if (this.request.data.length > Storage.SPACE)
+            this.quit(413, "Payload Too Large")
+
+        // For all PUT requests the Content-Type is needed, because for putting
+        // in XML structures and text is distinguished.
+        if ((this.request.headers["content-type"] || "") === "")
+            this.quit(415, "Unsupported Media Type")
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            let message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {Message: message})
+        }
+
+        let targets = XPath.select(this.xpath, this.xml)
+        if (targets instanceof Error) {
+            let message = `Invalid XPath axis (${targets.message})`
+            this.quit(400, "Bad Request", {Message: message})
+        }
+
+        if (!Object.exists(targets)
+                || targets.length <= 0)
+            this.quit(304, "Not Modified")
+
+        // The response to the request is delegated to PUT.
+        // The function call is executed and the request is terminated.
+        this.doPut()
     }
 
     /**
