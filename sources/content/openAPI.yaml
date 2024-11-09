@@ -175,10 +175,9 @@ info:
     </b>
     
     ## Usage
-    1. The storage must be opened by CONNECT, TOUCH or PUT without XPath. This
-       can be done by any client, even if the storage already exists. Because
-       CONNECT and TOUCH are not an HTTP standard, it is better to use PUT
-       without XPath.
+    1. The storage must be opened by CONNECT or PUT without XPath. This can be
+       done by any client, even if the storage already exists. Because CONNECT
+       is not an HTTP standard, it is better to use PUT without XPath.
     
     2. The client should always proceed as if it were using storage alone and
        created the schema it needs. The creation of the schema is done with PUT.
@@ -223,12 +222,12 @@ paths:
         CONNECT opens a storage and queries the current information about the
         storage. If the storage does not yet exist, CONNECT will create it.
         Otherwise, CONNECT will only query the metadata for the existing one. If
-        CONNECT cannot be used for whatever reason, TOUCH or PUT without XPath
-        can be used as an alternative.
+        CONNECT cannot be used for whatever reason, PUT without XPath can be
+        used as an alternative.
         
         <b>
           Before a storage can be used, it must always be opened with an
-          CONNECT, TOUCH or PUT without XPath.
+          CONNECT or PUT without XPath.
         </b>
 
         ## Request
@@ -270,7 +269,7 @@ paths:
         initial revision 1 in the Storage-Revision header.
   
         ```
-        HTTP/1.0 204 No Content
+        HTTP/1.0 304 Not Modified
         Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
         Storage-Revision: Revision/Changes (number/number)
         Storage-Space: Total/Used (bytes)
@@ -299,107 +298,7 @@ paths:
         201:
           description: |
             Storage was newly created
-        204:
-          description: |
-            Storage already exists
-        400:
-          description: |
-            Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
-        500:
-          description: |
-            Internal server error
-            - An unexpected error has occurred
-            - Response header Error contains an unique error number as a
-              reference to the log file with more details
-        507:
-          description: |
-            Storage is full
-    touch:
-      tags:
-      - Storage Initialization
-      summary: |
-        Opens a storage and queries the current information about the storage.
-      description: |
-        TOUCH is an alias for CONNECT and opens a storage and queries the
-        current information about the storage. If the storage does not yet
-        exist, TOUCH will create it. Otherwise, TOUCH will only query the
-        metadata for the existing one. If TOUCH cannot be used for whatever
-        reason, CONNECT or PUT without XPath can be used as an alternative.
-        
-        <b>
-          Before a storage can be used, it must always be opened with an CONNECT
-          TOUCH or PUT without XPath.
-        </b>
-
-        ## Request
-        ```
-        TOUCH /context-path HTTP/1.0
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        ```
-        ```
-        TOUCH /context-path HTTP/1.0
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ root-element
-        ```
-
-        ### Example
-        ```
-        TOUCH /xmex! HTTP/1.0
-        Storage: BookReview
-        ```
-        Creates a storage with the identifier `BookReview` if it does not yet
-        exist. For the XML structure the default root named `data` is used.
-        
-        ```
-        TOUCH /xmex! HTTP/1.0
-        Storage: BookReview books
-        ```
-        Creates a storage with the identifier `BookReview` if it does not yet
-        exist. For the XML structure the root named `books` is used.
-
-        ## Response
-        ```
-        HTTP/1.0 201 Created
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        Storage-Revision: Revision/Changes (number/number)
-        Storage-Space: Total/Used (bytes)
-        Storage-Last-Modified: Timestamp (RFC822)
-        Storage-Expiration: Timestamp (RFC822)
-        Storage-Expiration-Time: Timeout (milliseconds)
-        ```
-        Response if the storage was newly created. Also recognizable by the
-        initial revision 1 in the Storage-Revision header.
-        
-        ```
-        HTTP/1.0 204 No Content
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        Storage-Revision: Revision/Changes (number/number)
-        Storage-Space: Total/Used (bytes)
-        Storage-Last-Modified: Timestamp (RFC822)
-        Storage-Expiration: Timestamp (RFC822)
-        Storage-Expiration-Time: Timeout (milliseconds)
-        ```
-        Response, if the storage already exists. The revision in the header
-        Storage-Revision-Header returns the last existing revision.
-
-      parameters:
-      - name: Storage
-        in: header
-        description:
-          Each storage has an identifier. The Storage Identifier is used as
-          filename of the corresponding XML file and must be specified with each
-          request so that the datasource uses the correct storage. Optionally,
-          the storage identifier can be followed by the name of the root element
-          of the XML file separated by a space. If the root element is not
-          specified, the default `data` is used.
-        required: false
-        schema:
-          type: string
-          example: BookReview books
-      responses:
-        201:
-          description: |
-            Storage was newly created
-        204:
+        304:
           description: |
             Storage already exists
         400:
@@ -427,7 +326,7 @@ paths:
         
         <b>
           Before a storage can be used, it must always be opened with an CONNECT
-          TOUCH or PUT without XPath.
+          or PUT without XPath.
         </b>
 
         ## Request
@@ -469,7 +368,7 @@ paths:
         initial revision 1 in the Storage-Revision header.
         
         ```
-        HTTP/1.0 204 No Content
+        HTTP/1.0 304 Not Modified
         Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
         Storage-Revision: Revision/Changes (number/number)
         Storage-Space: Total/Used (bytes)
@@ -498,7 +397,7 @@ paths:
         201:
           description: |
             Storage was newly created
-        204:
+        304:
           description: |
             Storage already exists
         400:
