@@ -37,7 +37,7 @@ import https from "https"
 import path from "path"
 
 import Mime from "mime/lite"
-import XPath from "xpath";
+import XPath from "xpath"
 
 // For the environment variables, constants are created so that they can be
 // assigned as static values to the constants in the class!
@@ -201,6 +201,26 @@ class Storage {
         "Access-Control-Expose-Headers": "*"
     }
 
+    /** Constants of used content types */
+    static get CONTENT_TYPE_TEXT() {
+        return "text/plain"
+    }
+    static get CONTENT_TYPE_XPATH() {
+        return "text/xpath"
+    }
+    static get CONTENT_TYPE_HTML() {
+        return "text/html"
+    }
+    static get CONTENT_TYPE_XML() {
+        return "application/xml"
+    }
+    static get CONTENT_TYPE_XSLT() {
+        return "application/xslt+xml"
+    }
+    static get CONTENT_TYPE_JSON() {
+        return "application/json"
+    }
+
     /** Constants of share options */
     static get STORAGE_SHARE_NONE() {
         return 0
@@ -240,6 +260,23 @@ class Storage {
     /** Pattern for detecting HEX decoding */
     static get PATTERN_HEX() {
         return /^\?([A-Fa-f0-9]{2})+$/
+    }
+
+    static get XML() {
+        return class {
+            static get VERSION() {
+                return "1.0"
+            }
+            static get ENCODING() {
+                return "UTF-8"
+            }
+            static createDeclaration() {
+                return `<?xml version="${Storage.XML.VERSION}" encoding="${Storage.XML.ENCODING}"?>`
+            }
+            static createDocument() {
+                return new DOMParser().parseFromString(Storage.XML.createDeclaration())
+            }
+        }
     }
 
     /**
@@ -316,15 +353,15 @@ class Storage {
         // checked before access and the storage is deleted if necessary.
         let expiration = Date.now() -Storage.EXPIRATION
         if (fs.existsSync(storage.store))
-            if (fs.lstatSync(file).mtimeMs < expiration)
+            if (fs.lstatSync(storage.store).mtimeMs < expiration)
                 fs.unlinkSync(storage.store)
 
-        let initial = (options & Storage.STORAGE_SHARE_INITIAL) == Storage.STORAGE_SHARE_INITIAL
+        let initial = (options & Storage.STORAGE_SHARE_INITIAL) === Storage.STORAGE_SHARE_INITIAL
         if (!initial && !storage.exists())
             storage.exit(404, "Resource Not Found")
         initial = initial && (!fs.existsSync(storage.store) || fs.lstatSync(storage.store).size <= 0)
 
-        const exclusive = (options & Storage.STORAGE_SHARE_EXCLUSIVE) == Storage.STORAGE_SHARE_EXCLUSIVE
+        const exclusive = (options & Storage.STORAGE_SHARE_EXCLUSIVE) === Storage.STORAGE_SHARE_EXCLUSIVE
         storage.share = fs.openSync(storage.store, initial ? "as+" : exclusive ? "rs+" : "r")
         const now = Date.now()
         fs.utimesSync(storage.store, now, now)
@@ -335,14 +372,14 @@ class Storage {
 
         if (initial) {
             let files = fs.readdirSync(Storage.DIRECTORY)
-                    .filter(file =>
-                            fs.lstatSync(`${Storage.DIRECTORY}/${file}`).isFile())
+                .filter(file =>
+                    fs.lstatSync(`${Storage.DIRECTORY}/${file}`).isFile())
             if (files.length >= Storage.QUANTITY)
                 storage.exit(507, "Insufficient Storage")
-            fs.writeSync(this.share,
+            fs.writeSync(storage.share,
                 `<?xml version="1.0" encoding="UTF-8"?>`
                     + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`)
-            if (strcasecmp(Storage.REVISION_TYPE, "serial") === 0)
+            if (Storage.REVISION_TYPE === "serial")
                 storage.unique = 0
         }
 
@@ -426,7 +463,7 @@ class Storage {
             this.quit(400, "Bad Request", {Message: "Unexpected XPath"})
 
         let response = [201, "Created"]
-        if (this.revision != this.unique)
+        if (this.revision !== this.unique)
             response = [304, "Not Modified"]
 
         this.materialize()
@@ -478,7 +515,7 @@ class Storage {
      */
     doOptions() {
 
-        let allow = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE";
+        let allow = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
         if (!String.isEmpty(this.xpath)) {
             const result = XPath.select(this.xpath, this.xml)
             if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
@@ -494,7 +531,7 @@ class Storage {
                 }
                 if (!Object.exists(targets)
                         || targets.length <= 0)
-                    allow = "CONNECT, OPTIONS, PUT";
+                    allow = "CONNECT, OPTIONS, PUT"
             }
         }
 
@@ -598,6 +635,424 @@ class Storage {
             result = result ? "true" : "false"
 
         this.quit(200, "Success", null, result)
+    }
+
+    /**
+     * PUT creates elements and attributes in storage and/or changes the value
+     * of existing ones. The position for the insert is defined via an XPath.
+     * For better understanding, the method should be called PUT INTO, because
+     * it is always based on an existing XPath axis as the parent target. XPath
+     * uses different notations for elements and attributes.
+     *
+     * The notation for attributes use the following structure at the end.
+     *
+     *     <xpath>/@<attribute> or <xpath>/attribute::<attribute>
+     *
+     * The attribute values can be static (text) and dynamic (XPath function).
+     * Values are send as request-body. Whether they are used as text or XPath
+     * function is decided by the Content-Type header of the request:
+     *
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *
+     * If the XPath notation does not match the attributes, elements are
+     * assumed. For elements, the notation for pseudo elements is supported.
+     *
+     *     <xpath>::first, <xpath>::last, <xpath>::before or <xpath>::after
+     *
+     * Pseudo elements are a relative position specification to the selected
+     * element.
+     *
+     * The value of elements can be static (text), dynamic (XPath function) or
+     * be an XML structure. Also here the value is send with the request-body
+     * and the type of processing is determined by the Content-Type:
+     *
+     *     text/plain: static text
+     *     text/xpath: XPath function
+     *     application/xml: XML structure
+     *
+     * The PUT method works resolutely and inserts or overwrites existing data.
+     * The XPath processing is strict and does not accept unnecessary spaces.
+     * The attributes ___rev / ___uid used internally by the storage are
+     * read-only and cannot be changed.
+     *
+     * PUT requests are usually responded with status 204. Changes at the
+     * storage are indicated by the two-part response header Storage-Revision.
+     * If the PUT request has no effect on the storage, it is responded with
+     * status 304. Status 404 is used only with relation to the storage file.
+     *
+     * Syntactic and semantic errors in the request and/or XPath and/or value
+     * can cause error status 400 and 415. If errors occur due to the
+     * transmitted request body, this causes status 422.
+     *
+     *     Request:
+     * PUT /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: application/xml
+     *     Request-Body:
+     * XML structure
+     *
+     *     Request:
+     * PUT /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     *  Content-Type: text/plain
+     *     Request-Body:
+     * Value as plain text
+     *
+     *     Request:
+     * PUT /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: text/xpath
+     *     Request-Body:
+     * Value as XPath function
+     *
+     *     Response:
+     * HTTP/1.0 204 No Content
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 204 No Content
+     * - Element(s) or attribute(s) successfully created or set
+     *         HTTP/1.0 304 Not Modified
+     *  - XPath without addressing a target has no effect on the storage
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
+     * - XPath is missing or malformed
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage file does not exist
+     *         HTTP/1.0 413 Payload Too Large
+     * - Allowed size of the request(-body) and/or storage is exceeded
+     *         HTTP/1.0 415 Unsupported Media Type
+     * - Attribute request without Content-Type text/plain
+     *         HTTP/1.0 422 Unprocessable Entity
+     * - Data in the request body cannot be processed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     */
+    doPut() {
+
+        // In any case an XPath is required for a valid request.
+        if (String.isEmpty(this.xpath))
+            this.quit(400, "Bad Request", {Message: "Invalid XPath"})
+
+        // Storage::SPACE also limits the maximum size of writing request(-body).
+        // If the limit is exceeded, the request is quit with status 413.
+        if (this.request.data.length > Storage.SPACE)
+            this.quit(413, "Payload Too Large")
+
+        // For all PUT requests the Content-Type is needed, because for putting
+        // in XML structures and text is distinguished.
+        if (String.isEmpty(this.request.headers["content-type"]))
+            this.quit(415, "Unsupported Media Type")
+
+        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            const message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {Message: message})
+        }
+
+        // PUT requests can address attributes and elements via XPath.
+        // Multi-axis XPaths allow multiple targets. The method only supports
+        // these two possibilities, other requests are responded with an error,
+        // because this situation cannot occur because the XPath is recognized
+        // as XPath for an attribute and otherwise an element is assumed. In
+        // this case it can only happen that the XPath does not address target,
+        // which is not an error in the true sense. Therefore there is only one
+        // decision here.
+
+        // XPath can address elements and attributes. If the XPath ends with
+        // /attribute::<attribute> or /@<attribute> an attribute is expected,
+        // in all other cases an element.
+
+        let matches = this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)
+        if (matches) {
+
+            // The following Content-Type is supported for attributes:
+            // - text/plain for static values (text)
+            // - text/xpath for dynamic values, based on XPath functions
+
+            // For attributes only the Content-Type text/plain and text/xpath
+            // are supported, for other Content-Types no conversion exists.
+            const media = (this.request.headers["content-type"] || "").toLowerCase()
+            if (![Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media))
+                this.quit(415, "Unsupported Media Type")
+
+            let input = this.request.data
+
+            // The Content-Type text/xpath is a special of the XMEX Storage. It
+            // expects a plain text which is an XPath function. The XPath
+            // function is first once applied to the current XML document from
+            // the storage and the result is put like the Content-Type
+            // text/plain. Even if the target is mutable, the XPath function is
+            // executed only once and the result is put on all targets.
+            if (media === Storage.CONTENT_TYPE_XPATH) {
+                if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
+                    const message = "Invalid XPath (Axes are not supported)"
+                    this.quit(422, "Unprocessable Entity", {Message: message})
+                }
+                input = XPath.select(input, this.xml)
+                if (!Object.exists(input)
+                        || input instanceof Error) {
+                    let message = "Invalid XPath function"
+                    if (input instanceof Error)
+                        message += ` (${input.message})`
+                    this.quit(422, "Unprocessable Entity", {Message: message})
+                }
+            }
+
+            // From here on it continues with a static value for the attribute.
+
+            const xpath = matches[1]
+            const attribute = matches[2]
+
+            const targets = XPath.select(xpath, this.xml)
+            if (targets instanceof Error) {
+                const message = `Invalid XPath axis (${targets.message})`
+                this.quit(400, "Bad Request", {Message: message})
+            }
+            if (!Object.exists(targets)
+                    || targets.length <= 0)
+                this.quit(304, "Not Modified")
+
+            // The attributes ___rev and ___uid are essential for the internal
+            // organization and management of the data and cannot be changed.
+            // PUT requests for these attributes are ignored and behave as if no
+            // matching node was found. It should say request understood and
+            // executed but without effect.
+            if (!["___rev", "___uid"].includes(attribute)) {
+                targets.forEach((target) => {
+                    // Only elements are supported, this prevents the addressing
+                    // of the XML document by the XPath.
+                    if (target.nodeType !== XML_ELEMENT_NODE)
+                        return
+                    target.setAttribute(attribute, input)
+                    this.serial++
+                    // The revision is updated at the parent nodes, so you can
+                    // later determine which nodes have changed and with which
+                    // revision. Partial access allows the client to check if
+                    // the data or a tree is still up to date, because he can
+                    // compare the revision.
+                    Storage.updateNodeRevision(target, this.unique)
+                })
+            }
+
+            if (this.serial <= 0)
+                this.quit(304, "Not Modified")
+
+            this.materialize()
+            this.quit(204, "No Content")
+        }
+
+        // An XPath for element(s) is then expected here.
+        // If this is not the case, the request is responded with status 400.
+        matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
+        if (!matches)
+            this.quit(400, "Bad Request", {Message: "Invalid XPath axis"})
+
+        let xpath = matches[1]
+        let pseudo = (matches[2] || "").toLowerCase()
+
+        // The following Content-Type is supported for elements:
+        // - application/xml for XML structures
+        // - text/plain for static values (text)
+        // - text/xpath for dynamic values, based on XPath functions
+
+        const media = (this.request.headers["content-type"] || "").toLowerCase()
+        if ([Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media)) {
+
+            // The combination with a pseudo element is not possible for a text
+            // value. Response with status 415 (Unsupported Media Type).
+            if (String.isEmpty($pseudo))
+                this.quit(415, "Unsupported Media Type")
+
+            let input = this.request.data
+
+            // The Content-Type text/xpath is a special of the XMEX Storage. It
+            // expects a plain text which is an XPath function. The XPath
+            // function is first once applied to the current XML document from
+            // the storage and the result is put like the Content-Type
+            // text/plain. Even if the target is mutable, the XPath function is
+            // executed only once and the result is put on all targets.
+            if (media === Storage.CONTENT_TYPE_XPATH) {
+                if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
+                    const message = "Invalid XPath (Axes are not supported)"
+                    this.quit(422, "Unprocessable Entity", {Message: message})
+                }
+                input = XPath.select(input, this.xml)
+                if (!Object.exists(input)
+                        || input instanceof Error) {
+                    let message = "Invalid XPath function"
+                    if (input instanceof Error)
+                        message += ` (${input.message})`
+                    this.exit(422, "Unprocessable Entity", {Message: message})
+                }
+            }
+
+            const targets = XPath.select(xpath, this.xml)
+            if (targets instanceof Error) {
+                const message = `Invalid XPath axis (${targets.message})`
+                this.quit(400, "Bad Request", {Message: message})
+            }
+            if (!Object.exists(targets)
+                    || targets.length <= 0)
+                this.quit(304, "Not Modified")
+
+            targets.forEach((target) => {
+                // Overwriting of the root element is not possible, as it is an
+                // essential part of the storage, and is ignored. It does not
+                // cause to an error, so the behaviour is analogous to putting
+                // attributes.
+                if (target.nodeType !== XML_ATTRIBUTE_NODE)
+                    return
+                const replace = target.cloneNode(false)
+                replace.appendChild(this.xml.createTextNode(input))
+                target.parentNode.replaceChild(this.xml.importNode(replace, true), target)
+                // Because text nodes have no attributes, the serial must be
+                // increased manually, even if the change is then only partially
+                // traceable. But without incrementing the serial, there is no
+                // indicator that something has changed in the storage.
+                this.serial++
+                // The revision is updated at the parent nodes, so you can later
+                // determine which nodes have changed and with which revision.
+                // Partial access allows the client to check if the data or a
+                // tree is still up to date, because he can compare the
+                // revision.
+                Storage.updateNodeRevision(replace, this.unique)
+            })
+
+            if (this.serial <= 0)
+                this.quit(304, "Not Modified")
+
+            this.materialize()
+            this.quit(204, "No Content")
+        }
+
+        // Only an XML structure can be inserted, nothing else is supported. So
+        // only the Content-Type application/xml can be used.
+        if (media !== Storage.CONTENT_TYPE_XML)
+            this.quit(415, "Unsupported Media Type")
+
+        // The request body must also be a valid XML structure, otherwise the
+        // request is quit with an error.
+        let input = this.request.data
+        input = `<?xml version="1.0" encoding="UTF-8"?><data>${input}</data>`
+
+        // The XML is loaded, but what happens if an error occurs during
+        // parsing? Status 400 or 422 - The decision for 422, because 400 means
+        // faulty request. But this is a (semantic) error in the request body.
+        const xml = new DOMParser().parseFromString(input, Storage.CONTENT_TYPE_XML, true)
+        // TODO: $xml->preserveWhiteSpace = false
+        // TODO: $xml->formatOutput = Storage::DEBUG_MODE
+        if (!Object.exists(xml)
+                || input instanceof Error) {
+            let message = "Invalid XML document"
+            if (input instanceof Error)
+                message += ` (${input.message})`
+            this.quit(422, "Unprocessable Entity", {Message: message})
+        }
+
+        // The attributes ___rev and ___uid are essential for the internal
+        // organization and management of the data and cannot be changed. When
+        // inserting, the attributes ___rev and ___uid are set automatically.
+        // These attributes must not be  contained in the XML structure to be
+        // inserted, because all XML elements without ___uid attributes are
+        // determined after insertion and it is assumed that they have been
+        // newly inserted. This approach was chosen to avoid a recursive
+        // search/iteration in the XML structure to be inserted.
+        let nodes = XPath.select("//*[@___rev|@___uid]", xml)
+        nodes.forEach((node) => {
+            node.removeAttribute("___rev")
+            node.removeAttribute("___uid")
+        })
+
+        if (xml.documentElement.hasChildNodes()) {
+            const targets = XPath.select(xpath, this.xml)
+            if (targets instanceof Error) {
+                let message = "Invalid XPath axis (" + targets.message + ")"
+                this.exit(400, "Bad Request", {Message: message})
+            }
+
+            if (!Object.exists(targets)
+                    || targets.length <= 0)
+                this.quit(304, "Not Modified")
+
+            targets.forEach((target) => {
+
+                // Overwriting of the root element is not possible, as it is an
+                // essential part of the storage, and is ignored. It does not
+                // cause to an error, so the behaviour is analogous to putting
+                // attributes.
+                if (target.nodeType !== XML_ELEMENT_NODE)
+                    return
+
+                const inserts = Array.from(xml.documentElement.childNodes)
+                        .map(insert => insert.cloneNode(true))
+
+                // Pseudo elements can be used to put in an XML substructure
+                // relative to the selected element.
+                if (String.isEmpyt(pseudo)) {
+                    // A bug in common-xml-features sets the documentElement to
+                    // null when using replaceChild. Therefore the quick way:
+                    //     clone/add/replace -- is not possible.
+                    while (target.lastChild)
+                        target.removeChild(target.lastChild)
+                    inserts.forEach((insert) => {
+                        target.appendChild(insert)
+                    })
+                } else if (pseudo === "before") {
+                    if (target.parentNode.nodeType === XML_ELEMENT_NODE)
+                        inserts.forEach((insert) => {
+                            target.parentNode.insertBefore(insert, target)
+                        })
+                } else if (strcmp($pseudo, "after") === 0) {
+                    if (target.parentNode.nodeType === XML_ELEMENT_NODE) {
+                        const nodes = []
+                        inserts.forEach((node) => {
+                            nodes.unshift(node)
+                        })
+                        nodes.forEach((insert) => {
+                            if (target.nextSibling)
+                                target.parentNode.insertBefore(insert, target.nextSibling)
+                            else target.parentNode.appendChild(insert)
+                        })
+                    }
+                } else if (pseudo === "first") {
+                    for (let index = inserts.length -1; index >= 0; index--)
+                        target.insertBefore(inserts[index].cloneNode(true), target.firstChild)
+                } else if (strcmp($pseudo, "last") === 0) {
+                    inserts.forEach((insert) => {
+                        target.appendChild(insert.cloneNode(true))
+                    })
+                } else this.quit(400, "Bad Request", {Message: "Invalid XPath axis (Unsupported pseudo syntax found)"})
+            })
+        }
+
+        // The attribute ___uid of all newly inserted elements is set. It is
+        // assumed that all elements without the ___uid attribute are new. The
+        // revision of all affected nodes are updated, so you can later
+        // determine which nodes have changed and with which revision. Partial
+        // access allows the client to check if the data or a tree is still up
+        // to date, because he can compare the revision.
+        nodes = XPath.select("//*[not(@___uid)]", this.xml)
+        nodes.forEach((node) => {
+            node.setAttribute("___uid", this.getSerial())
+            Storage.updateNodeRevision(node, this.unique)
+        })
+
+        if (this.serial <= 0)
+            this.quit(304, "Not Modified")
+
+        this.materialize()
+        this.quit(204, "No Content")
     }
 
     /**
@@ -709,14 +1164,14 @@ class Storage {
         if (String.isEmpty(this.xpath))
             this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
-        // Storage.SPACE also limits the maximum size of writing request(-body).
+        // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
         if (this.request.data.length > Storage.SPACE)
             this.quit(413, "Payload Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
         // in XML structures and text is distinguished.
-        if ((this.request.headers["content-type"] || "") === "")
+        if (String.isEmpty(this.request.headers["content-type"]))
             this.quit(415, "Unsupported Media Type")
 
         if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
@@ -885,7 +1340,7 @@ class Storage {
                     target = this.xml.createElement(this.root)
                     target = this.xml.appendChild(target)
                     Storage.updateNodeRevision(target, this.unique)
-                    target.setAttribute("___uid", serial)
+                    target.setAttribute("___uid", this.getSerial())
                 } else Storage.updateNodeRevision(parent, this.unique)
             }
         })
@@ -982,26 +1437,26 @@ class ServerFactory {
 
         const method = request.method.toUpperCase()
         if (method === "OPTIONS")
-            response.exit(204, "No Content", {Allow: "OPTIONS, HEAD, GET"})
+            response.quit(204, "No Content", {Allow: "OPTIONS, HEAD, GET"})
 
         if (ServerFactory.CONTENT_REDIRECT) {
             let location = ServerFactory.CONTENT_REDIRECT
             if (location.match(/\.{3,}$/))
                 location = location.replace(/\.{3,}$/, request.url)
-            response.exit(301, "Moved Permanently", {Location: location})
+            response.quit(301, "Moved Permanently", {Location: location})
         }
 
         if (!ServerFactory.CONTENT_DIRECTORY)
-            response.exit(404, "Resource Not Found")
+            response.quit(404, "Resource Not Found")
 
         let target = path.normalize(decodeURI(request.url.replace(/\?.*$/, "")).trim()).replace(/\\+/g, "/")
         target = `${ServerFactory.CONTENT_DIRECTORY}/${target}`
         target = target.replace(/\/{2,}/g, "/")
         if (!fs.existsSync(target))
-            response.exit(404, "Resource Not Found")
+            response.quit(404, "Resource Not Found")
         if (!fs.lstatSync(target).isFile()
                 && !fs.lstatSync(target).isDirectory())
-            response.exit(404, "Resource Not Found")
+            response.quit(404, "Resource Not Found")
 
         if (fs.lstatSync(target).isDirectory()) {
             if (ServerFactory.CONTENT_DEFAULT) {
@@ -1015,13 +1470,13 @@ class ServerFactory {
                     files.shift()
                 }
                 if (files.length <= 0)
-                    response.exit(403, "Forbidden")
+                    response.quit(403, "Forbidden")
                 target += files[0]
-            } else response.exit(403, "Forbidden")
+            } else response.quit(403, "Forbidden")
         }
 
         if (!["OPTIONS", "HEAD", "GET"].includes(method))
-            response.exit(405, "Method Not Allowed", {Allow: "OPTIONS, HEAD, GET"})
+            response.quit(405, "Method Not Allowed", {Allow: "OPTIONS, HEAD, GET"})
 
         target = fs.realpathSync(target)
         const state = fs.lstatSync(target)
@@ -1031,7 +1486,7 @@ class ServerFactory {
             "Last-Modified": new Date(state.mtimeMs).toUTCString()
         }
         if (method === "HEAD")
-            response.exit(200, "Success", headers)
+            response.quit(200, "Success", headers)
         let file = fs.openSync(target, "r")
         try {
             if (state.size || 0 > 0)
@@ -1056,13 +1511,13 @@ class ServerFactory {
         if (method.toUpperCase() === "OPTIONS"
                 && request.headers.origin
                 && !request.headers.storage)
-            response.exit(204, "No Content")
+            response.quit(204, "No Content")
 
         if (Object.exists(request.headers.storage))
-            response.exit(400, "Bad Request", {Message: "Missing storage identifier"})
+            response.quit(400, "Bad Request", {Message: "Missing storage identifier"})
         let storage = request.headers.storage
         if (!storage.match(Storage.PATTERN_HEADER_STORAGE))
-            response.exit(400, "Bad Request", {Message: "Invalid storage identifier"})
+            response.quit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
         // The XPath is determined from REQUEST_URI.
         // The XPath starts directly after the context path. To improve visual
@@ -1077,7 +1532,7 @@ class ServerFactory {
         // As an alternative to CONNECT, PUT without a path can be used. CONNECT
         // is not supported by XMLHttpRequest, for example. That is why there
         // are three variants. Because PUT without XPath is always valid.
-        if (method == "PUT"
+        if (method === "PUT"
                 && xpath.length <= 0)
             method = "CONNECT"
 
@@ -1087,7 +1542,7 @@ class ServerFactory {
         // optionally to delimit the XML data for the transformation and works
         // also without. In the other cases an empty XPath is replaced by the
         // root slash.
-        if (xpath === ""
+        if (String.isEmpty(xpath)
                 && !["CONNECT", "OPTIONS", "POST"].includes(method))
             xpath = "/"
         let options = Storage.STORAGE_SHARE_NONE
@@ -1185,13 +1640,13 @@ class ServerFactory {
                     request.data = Object.exists(request.data) ? request.data : ""
 
                     if (Object.exists(request.error))
-                        response.exit(...request.error)
+                        response.quit(...request.error)
 
                     const requestUrl = decodeURI(request.url)
                     if (ServerFactory.ACME_CHALLENGE
                             && ServerFactory.ACME_TOKEN
                             && requestUrl.toLowerCase() === ServerFactory.ACME_CHALLENGE.toLowerCase())
-                        response.exit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
+                        response.quit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
 
                     // The API should always use a context path so that the
                     // separation between URI and XPath is also visually
@@ -1251,13 +1706,13 @@ class ServerFactory {
                 try {
                     const requestUrl = decodeURI(request.url)
                     if (requestUrl.toLowerCase() === ServerFactory.ACME_CHALLENGE.toLowerCase())
-                        response.exit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
+                        response.quit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
                     if (ServerFactory.ACME_REDIRECT <= 0)
-                        response.exit(404, "Resource Not Found")
+                        response.quit(404, "Resource Not Found")
                     let location = ServerFactory.ACME_REDIRECT
                     if (location.match(/\.{3,}$/))
                         location = location.replace(/\.{3,}$/, request.url)
-                    response.exit(301, "Moved Permanently", {Location: location})
+                    response.quit(301, "Moved Permanently", {Location: location})
                 } catch (error) {
                     if (error === http.ServerResponse.prototype.exit)
                         return
