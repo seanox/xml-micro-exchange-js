@@ -31,20 +31,19 @@
  *     TERMS / WORDING
  * TODO:
  */
-const child = require("child_process")
-const fs = require("fs")
-const http = require("http")
-const https = require("https")
-const path = require("path")
+import child from "child_process"
+import fs from "fs"
+import http from "http"
+import https from "https"
+import path from "path"
 
-const Codec = require("he")
-const DOM = require("xmldom")
-const DOMParser = require("xmldom").DOMParser
-const DOMImplementation = require("xmldom").DOMImplementation
-const EOL = require("os").EOL
-const Mime = require("mime/lite")
-const XMLSerializer = require("common-xml-features").XMLSerializer
-const XPath = require("xpath")
+import Codec from "he"
+import {EOL} from "os"
+import {DOMParser} from "xmldom"
+import {DOMImplementation} from "xmldom"
+import Mime from "mime/lite"
+import {XMLSerializer} from "xmldom"
+import XPath from "xpath"
 
 // For the environment variables, constants are created so that they can be
 // assigned as static values to the constants in the class!
@@ -57,35 +56,6 @@ class Runtime {
         return String(process.env[variable]).trim()
     }
 }
-
-const XMEX_DEBUG_MODE = Runtime.getEnv("XMEX_DEBUG_MODE", "off")
-const XMEX_CONTAINER_MODE = Runtime.getEnv("XMEX_CONTAINER_MODE", "off")
-
-const XMEX_CONNECTION_ADDRESS = Runtime.getEnv("XMEX_CONNECTION_ADDRESS", "0.0.0.0")
-const XMEX_CONNECTION_PORT = Runtime.getEnv("XMEX_CONNECTION_PORT", 80)
-const XMEX_CONNECTION_CONTEXT = Runtime.getEnv("XMEX_CONNECTION_CONTEXT", "/xmex!")
-const XMEX_CONNECTION_CERTIFICATE = Runtime.getEnv("XMEX_CONNECTION_CERTIFICATE")
-const XMEX_CONNECTION_SECRET = Runtime.getEnv("XMEX_CONNECTION_SECRET")
-
-const XMEX_ACME_CHALLENGE = Runtime.getEnv("XMEX_ACME_CHALLENGE")
-const XMEX_ACME_TOKEN = Runtime.getEnv("XMEX_ACME_TOKEN")
-const XMEX_ACME_REDIRECT = Runtime.getEnv("XMEX_ACME_REDIRECT", "https://...")
-
-const XMEX_REQUEST_XPATH_DELIMITER = Runtime.getEnv("XMEX_REQUEST_XPATH_DELIMITER", "!")
-
-const XMEX_CONTENT_DIRECTORY = Runtime.getEnv("XMEX_CONTENT_DIRECTORY", "./content")
-const XMEX_CONTENT_DEFAULT = Runtime.getEnv("XMEX_CONTENT_DEFAULT", "index.html openAPI.html")
-const XMEX_CONTENT_REDIRECT = Runtime.getEnv("XMEX_CONTENT_REDIRECT")
-
-const XMEX_STORAGE_DIRECTORY = Runtime.getEnv("XMEX_STORAGE_DIRECTORY", "./data")
-const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE", "256K"))
-const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s")) *1000
-const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
-const XMEX_STORAGE_REVISION_TYPE = Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "timestamp")
-
-const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
-const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
-const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
 // A different XMLSerializer is used because the &gt; is not encoded correctly
 // in the XMLSerializer of xmldom.
@@ -224,6 +194,54 @@ String.isEmpty = function(string) {
         || string.trim() === ""
 }
 
+const XMEX_DEBUG_MODE = Runtime.getEnv("XMEX_DEBUG_MODE", "off")
+const XMEX_CONTAINER_MODE = Runtime.getEnv("XMEX_CONTAINER_MODE", "off")
+
+const XMEX_CONNECTION_ADDRESS = Runtime.getEnv("XMEX_CONNECTION_ADDRESS", "0.0.0.0")
+const XMEX_CONNECTION_PORT = Runtime.getEnv("XMEX_CONNECTION_PORT", 80)
+const XMEX_CONNECTION_CONTEXT = Runtime.getEnv("XMEX_CONNECTION_CONTEXT", "/xmex!")
+const XMEX_CONNECTION_CERTIFICATE = Runtime.getEnv("XMEX_CONNECTION_CERTIFICATE")
+const XMEX_CONNECTION_SECRET = Runtime.getEnv("XMEX_CONNECTION_SECRET")
+
+const XMEX_ACME_CHALLENGE = Runtime.getEnv("XMEX_ACME_CHALLENGE")
+const XMEX_ACME_TOKEN = Runtime.getEnv("XMEX_ACME_TOKEN")
+const XMEX_ACME_REDIRECT = Runtime.getEnv("XMEX_ACME_REDIRECT", "https://...")
+
+const XMEX_REQUEST_XPATH_DELIMITER = Runtime.getEnv("XMEX_REQUEST_XPATH_DELIMITER", "!")
+
+const XMEX_CONTENT_DIRECTORY = Runtime.getEnv("XMEX_CONTENT_DIRECTORY", "./content")
+const XMEX_CONTENT_DEFAULT = Runtime.getEnv("XMEX_CONTENT_DEFAULT", "index.html openAPI.html")
+const XMEX_CONTENT_REDIRECT = Runtime.getEnv("XMEX_CONTENT_REDIRECT")
+
+const XMEX_STORAGE_DIRECTORY = Runtime.getEnv("XMEX_STORAGE_DIRECTORY", "./data")
+const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE", "256K"))
+const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s")) *1000
+const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
+const XMEX_STORAGE_REVISION_TYPE = Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "timestamp")
+
+const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
+const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
+const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
+
+class XML {
+
+    static get VERSION() {
+        return "1.0"
+    }
+
+    static get ENCODING() {
+        return "UTF-8"
+    }
+
+    static createDeclaration() {
+        return `<?xml version=\"${XML.VERSION}\" encoding=\"${XML.ENCODING}\"?>`
+    }
+
+    static createDocument() {
+        return new DOMParser().parseFromString(XML.createDeclaration())
+    }
+}
+
 class Storage {
 
     /** Directory of the data storage */
@@ -359,7 +377,7 @@ class Storage {
      * param  string   storage
      * param  string   xpath
      * param  number   options
-     * return Storage Instance of the Storage
+     * return Storage  Instance of the Storage
      */
     static share(request, response, storage, xpath, options = Storage.STORAGE_SHARE_NONE) {
 
@@ -426,6 +444,18 @@ class Storage {
      */
     getSerial() {
         return this.unique + ":" + (++this.serial)
+    }
+
+    /**
+     * Updates recursive the revision for an element and all parent elements.
+     * @param {Element} node
+     * @param {string}  revision
+     */
+    static updateNodeRevision(node, revision) {
+        while (node && node.nodeType === XML_ELEMENT_NODE) {
+            node.setAttribute("___rev", revision)
+            node = node.parentNode
+        }
     }
 
     /**
@@ -642,12 +672,12 @@ class Storage {
                 if (result[0].nodeType === XML_ATTRIBUTE_NODE) {
                     result = result[0].value
                 } else {
-                    let xml = Storage.XML.createDocument()
+                    let xml = XML.createDocument()
                     xml.appendChild(result[0].cloneNode(true))
                     result = xml
                 }
             } else if (result.length > 0) {
-                let xml = Storage.XML.createDocument()
+                let xml = XML.createDocument()
                 let collection = xml.createElement("collection")
                 result.forEach((entry) => {
                     if (entry.nodeType === XML_ATTRIBUTE_NODE) {
@@ -1381,12 +1411,40 @@ class Storage {
         this.quit(204, "No Content")
     }
 
+    /**
+     * Materializes the XML document from the memory in the file system. Unlike
+     * save, the file is not closed and the data can be modified without another
+     * (PHP)process being able to read the data before finalizing it by closing
+     * it. Materialization is only executed if there are changes in the XML
+     * document, which is determined by the revision of the root element. The
+     * size of the storage is limited by Storage::SPACE because it is a volatile
+     * micro datasource for short-term data exchange. An overrun causes the
+     * status 413.
+     */
     materialize() {
-        // TODO:
+
+        if (!Object.exists(this.share))
+            return
+        if (this.revision === this.xml.documentElement.getAttributeNumber("___rev")
+                && this.revision !== this.unique)
+            return
+
+        let output = this.serialize()
+        if (output.length > Storage.SPACE)
+            this.quit(413, "Payload Too Large")
+        fs.ftruncateSync(this.share, 0)
+        fs.writeSync(this.share, output)
+
+        if (Storage.DEBUG_MODE) {
+            const unique = this.unique.toString().padStart(3, "0")
+            const target = this.store.replace(/(\.\w+$)/, `___${unique}$1`)
+            fs.writeSync(target, output);
+        }
     }
 
     quit(status, message, headers = undefined, data = undefined) {
         // TODO:
+        throw Storage.prototype.quit;
     }
 
     /** Cleans up all files that have exceeded the maximum idle time. */
