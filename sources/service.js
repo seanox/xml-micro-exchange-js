@@ -31,13 +31,20 @@
  *     TERMS / WORDING
  * TODO:
  */
-import fs from "fs"
-import http from "http"
-import https from "https"
-import path from "path"
+const child = require("child_process")
+const fs = require("fs")
+const http = require("http")
+const https = require("https")
+const path = require("path")
 
-import Mime from "mime/lite"
-import XPath from "xpath"
+const Codec = require("he")
+const DOM = require("xmldom")
+const DOMParser = require("xmldom").DOMParser
+const DOMImplementation = require("xmldom").DOMImplementation
+const EOL = require("os").EOL
+const Mime = require("mime/lite")
+const XMLSerializer = require("common-xml-features").XMLSerializer
+const XPath = require("xpath")
 
 // For the environment variables, constants are created so that they can be
 // assigned as static values to the constants in the class!
@@ -296,8 +303,8 @@ class Storage {
      */
     constructor(request = null, response = null, storage = null, root = null, xpath = null) {
 
-        this.request  = request;
-        this.response = response;
+        this.request  = request
+        this.response = response
 
         // The storage identifier is case-sensitive.
         // To ensure that this also works with Windows, Base64 encoding is used.
@@ -411,6 +418,14 @@ class Storage {
         // TODO: $storage->xml->formatOutput = Storage.DEBUG_MODE
 
         return storage
+    }
+
+    /**
+     * Creates a unique incremental ID.
+     * @return string unique incremental ID
+     */
+    getSerial() {
+        return this.unique + ":" + (++this.serial)
     }
 
     /**
@@ -907,7 +922,7 @@ class Storage {
                     let message = "Invalid XPath function"
                     if (input instanceof Error)
                         message += ` (${input.message})`
-                    this.exit(422, "Unprocessable Entity", {Message: message})
+                    this.quit(422, "Unprocessable Entity", {Message: message})
                 }
             }
 
@@ -992,7 +1007,7 @@ class Storage {
             const targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
                 let message = "Invalid XPath axis (" + targets.message + ")"
-                this.exit(400, "Bad Request", {Message: message})
+                this.quit(400, "Bad Request", {Message: message})
             }
 
             if (!Object.exists(targets)
@@ -1364,6 +1379,14 @@ class Storage {
 
         this.materialize()
         this.quit(204, "No Content")
+    }
+
+    materialize() {
+        // TODO:
+    }
+
+    quit(status, message, headers = undefined, data = undefined) {
+        // TODO:
     }
 
     /** Cleans up all files that have exceeded the maximum idle time. */
