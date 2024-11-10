@@ -80,6 +80,80 @@ const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
+// A different XMLSerializer is used because the &gt; is not encoded correctly
+// in the XMLSerializer of xmldom.
+
+const XML_ELEMENT_NODE                = 1
+const XML_ATTRIBUTE_NODE              = 2
+const XML_TEXT_NODE                   = 3
+const XML_CDATA_SECTION_NODE          = 4
+const XML_ENTITY_REFERENCE_NODE       = 5
+const XML_ENTITY_NODE                 = 6
+const XML_PROCESSING_INSTRUCTION_NODE = 7
+const XML_COMMENT_NODE                = 8
+const XML_DOCUMENT_NODE               = 9
+const XML_DOCUMENT_TYPE_NODE          = 10
+const XML_DOCUMENT_FRAGMENT_NODE      = 11
+const XML_NOTATION_NODE               = 12
+
+/** Constants of used content types */
+const CONTENT_TYPE_TEXT  = "text/plain"
+const CONTENT_TYPE_XPATH = "text/xpath"
+const CONTENT_TYPE_HTML  = "text/html"
+const CONTENT_TYPE_XML   = "application/xml"
+const CONTENT_TYPE_XSLT  = "application/xslt+xml"
+const CONTENT_TYPE_JSON  = "application/json"
+
+/**
+ * Pattern for the Storage header
+ *     Group 0. Full match
+ *     Group 1. Storage
+ *     Group 2. Name of the root element (optional)
+ */
+const PATTERN_HEADER_STORAGE = /^(\w(?:[-\w]{0,62}\w)?)(?:\s+(\w{1,64}))?$/
+
+/**
+ * Pattern to determine options (optional directives) at the end of XPath
+ *     Group 0. Full match
+ *     Group 1. XPath
+ *     Group 2. options (optional)
+ */
+const PATTERN_XPATH_OPTIONS = /^(.*?)((?:!+\w+){0,})$/
+
+/** Pattern for detecting Base64 decoding */
+const PATTERN_BASE64 = /^\?(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/
+
+/** Pattern for detecting HEX decoding */
+const PATTERN_HEX = /^\?([A-Fa-f0-9]{2})+$/
+
+/** Pattern for recognizing non-numerical values */
+const PATTERN_NON_NUMERICAL = /^.*\D/
+
+/**
+ * Pattern to determine the structure of XPath axis expressions for attributes
+ *     Group 0. Full match
+ *     Group 1. XPath axis
+ *     Group 2. Attribute
+ */
+const PATTERN_XPATH_ATTRIBUTE = /((?:^\/+)|(?:^.*?))\/{0,}(?<=\/)(?:@|attribute::)(\w+)$/i
+
+/**
+ * Pattern to determine the structure of XPath axis expressions for pseudo elements
+ *     Group 0. Full match
+ *     Group 1. XPath axis
+ *     Group 2. Attribute
+ */
+const PATTERN_XPATH_PSEUDO = /^(.*?)(?:::(before|after|first|last)){0,1}$/i
+
+/**
+ * Pattern as indicator for XPath functions
+ * Assumption for interpretation: Slash and dot are indications of an axis
+ * notation, the round brackets can be ignored, the question remains, if the
+ * XPath starts with an axis symbol, then it is an axis, with other
+ * characters at the beginning must be a function.
+ */
+const PATTERN_XPATH_FUNCTION = /^[\(\s]*[^\/\.\s\(].*$/
+
 // TODO synchronize with php (quit + exit in the one function)
 http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
 
@@ -201,26 +275,6 @@ class Storage {
         "Access-Control-Expose-Headers": "*"
     }
 
-    /** Constants of used content types */
-    static get CONTENT_TYPE_TEXT() {
-        return "text/plain"
-    }
-    static get CONTENT_TYPE_XPATH() {
-        return "text/xpath"
-    }
-    static get CONTENT_TYPE_HTML() {
-        return "text/html"
-    }
-    static get CONTENT_TYPE_XML() {
-        return "application/xml"
-    }
-    static get CONTENT_TYPE_XSLT() {
-        return "application/xslt+xml"
-    }
-    static get CONTENT_TYPE_JSON() {
-        return "application/json"
-    }
-
     /** Constants of share options */
     static get STORAGE_SHARE_NONE() {
         return 0
@@ -233,65 +287,23 @@ class Storage {
     }
 
     /**
-     * Pattern for the Storage header
-     *     Group 0. Full match
-     *     Group 1. Storage
-     *     Group 2. Name of the root element (optional)
-     */
-    static get PATTERN_HEADER_STORAGE() {
-        return /^(\w(?:[-\w]{0,62}\w)?)(?:\s+(\w{1,64}))?$/
-    }
-
-    /**
-     * Pattern to determine options (optional directives) at the end of XPath
-     *     Group 0. Full match
-     *     Group 1. XPath
-     *     Group 2. options (optional)
-     */
-    static get PATTERN_XPATH_OPTIONS() {
-        return /^(.*?)((?:!+\w+){0,})$/
-    }
-
-    /** Pattern for detecting Base64 decoding */
-    static get PATTERN_BASE64() {
-        return /^\?(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/
-    }
-
-    /** Pattern for detecting HEX decoding */
-    static get PATTERN_HEX() {
-        return /^\?([A-Fa-f0-9]{2})+$/
-    }
-
-    static get XML() {
-        return class {
-            static get VERSION() {
-                return "1.0"
-            }
-            static get ENCODING() {
-                return "UTF-8"
-            }
-            static createDeclaration() {
-                return `<?xml version="${Storage.XML.VERSION}" encoding="${Storage.XML.ENCODING}"?>`
-            }
-            static createDocument() {
-                return new DOMParser().parseFromString(Storage.XML.createDeclaration())
-            }
-        }
-    }
-
-    /**
      * Constructor creates a new Storage object.
-     * @param string storage
-     * @param string root
-     * @param string xpath
+     * @param request  request
+     * @param response response
+     * @param string   storage
+     * @param string   root
+     * @param string   xpath
      */
-    constructor(storage = null, root = null, xpath = null) {
+    constructor(request = null, response = null, storage = null, root = null, xpath = null) {
+
+        this.request  = request;
+        this.response = response;
 
         // The storage identifier is case-sensitive.
         // To ensure that this also works with Windows, Base64 encoding is used.
 
         let options = []
-        const matches = (xpath || "").match(Storage.PATTERN_XPATH_OPTIONS)
+        const matches = (xpath || "").match(PATTERN_XPATH_OPTIONS)
         if (matches) {
             xpath = matches[1]
             options = matches[2].toLowerCase().split("!").filter(Boolean)
@@ -335,19 +347,21 @@ class Storage {
      * Storage.STORAGE_SHARE_INITIAL, otherwise the request will be terminated.
      * With option Storage.STORAGE_SHARE_EXCLUSIVE, simultaneous
      * requests must wait for a file lock.
-     * param  string  storage
-     * param  string  xpath
-     * param  number  options
+     * param  request  request
+     * param  response response
+     * param  string   storage
+     * param  string   xpath
+     * param  number   options
      * return Storage Instance of the Storage
      */
-    static share(storage, xpath, options = Storage.STORAGE_SHARE_NONE) {
+    static share(request, response, storage, xpath, options = Storage.STORAGE_SHARE_NONE) {
 
-        const root = storage.replace(Storage.PATTERN_HEADER_STORAGE, "$2")
-        storage = storage.replace(Storage.PATTERN_HEADER_STORAGE, "$1")
+        const root = storage.replace(PATTERN_HEADER_STORAGE, "$2")
+        storage = storage.replace(PATTERN_HEADER_STORAGE, "$1")
 
         if (!fs.existsSync(Storage.DIRECTORY))
             fs.mkdirSync(Storage.DIRECTORY, {recursive:true, mode:0o755})
-        storage = new Storage(storage, root, xpath)
+        storage = new Storage(request, response, storage, root, xpath)
 
         // The cleanup does not run permanently, so the possible expiry is
         // checked before access and the storage is deleted if necessary.
@@ -358,7 +372,7 @@ class Storage {
 
         let initial = (options & Storage.STORAGE_SHARE_INITIAL) === Storage.STORAGE_SHARE_INITIAL
         if (!initial && !storage.exists())
-            storage.exit(404, "Resource Not Found")
+            storage.quit(404, "Resource Not Found")
         initial = initial && (!fs.existsSync(storage.store) || fs.lstatSync(storage.store).size <= 0)
 
         const exclusive = (options & Storage.STORAGE_SHARE_EXCLUSIVE) === Storage.STORAGE_SHARE_EXCLUSIVE
@@ -375,7 +389,7 @@ class Storage {
                 .filter(file =>
                     fs.lstatSync(`${Storage.DIRECTORY}/${file}`).isFile())
             if (files.length >= Storage.QUANTITY)
-                storage.exit(507, "Insufficient Storage")
+                storage.quit(507, "Insufficient Storage")
             fs.writeSync(storage.share,
                 `<?xml version="1.0" encoding="UTF-8"?>`
                     + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`)
@@ -385,11 +399,11 @@ class Storage {
 
         const buffer = Buffer.alloc(fs.lstatSync(storage.store).size)
         fs.readSync(storage.share, buffer, {position:0})
-        storage.xml = new DOMParser().parseFromString(buffer.toString(), Storage.CONTENT_TYPE_XML)
+        storage.xml = new DOMParser().parseFromString(buffer.toString(), CONTENT_TYPE_XML)
         storage.revision = storage.xml.documentElement.getAttributeNumber("___rev")
         if (Storage.REVISION_TYPE === "serial") {
-            if (storage.revision.match(Storage.PATTERN_NON_NUMERICAL))
-                storage.exit(503, "Resource revision conflict")
+            if (storage.revision.match(PATTERN_NON_NUMERICAL))
+                storage.quit(503, "Resource revision conflict")
             storage.unique += storage.revision
         }
 
@@ -518,19 +532,19 @@ class Storage {
         let allow = "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"
         if (!String.isEmpty(this.xpath)) {
             const result = XPath.select(this.xpath, this.xml)
-            if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            if (this.xpath.match(PATTERN_XPATH_FUNCTION)) {
                 if (result instanceof Error) {
                     const message = `Invalid XPath function (${result.message})`
                     this.quit(400, "Bad Request", {Message: message})
                 }
                 allow = "CONNECT, OPTIONS, GET, POST"
             } else {
-                if (targets instanceof Error) {
-                    const message = `Invalid XPath axis (${targets.message})`
+                if (result instanceof Error) {
+                    const message = `Invalid XPath axis (${result.message})`
                     this.quit(400, "Bad Request", {Message: message})
                 }
-                if (!Object.exists(targets)
-                        || targets.length <= 0)
+                if (!Object.exists(result)
+                        || result.length <= 0)
                     allow = "CONNECT, OPTIONS, PUT"
             }
         }
@@ -598,12 +612,12 @@ class Storage {
         let result = XPath.select(this.xpath, this.xml)
         if (result instanceof Error) {
             let message = "Invalid XPath"
-            if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION))
+            if (this.xpath.match(PATTERN_XPATH_FUNCTION))
                 message = "Invalid XPath function"
             message += `(${result.message})`
             this.quit(400, "Bad Request", {Message: message})
         }
-        if (!this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)
+        if (!this.xpath.match(PATTERN_XPATH_FUNCTION)
                 && (!Object.exists(result) || result.length <= 0))
             this.quit(204, "No Content")
         if (Array.isArray(result)) {
@@ -755,7 +769,7 @@ class Storage {
         if (String.isEmpty(this.request.headers["content-type"]))
             this.quit(415, "Unsupported Media Type")
 
-        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+        if (this.xpath.match(PATTERN_XPATH_FUNCTION)) {
             const message = "Invalid XPath (Functions are not supported)"
             this.quit(400, "Bad Request", {Message: message})
         }
@@ -773,7 +787,7 @@ class Storage {
         // /attribute::<attribute> or /@<attribute> an attribute is expected,
         // in all other cases an element.
 
-        let matches = this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)
+        let matches = this.xpath.match(PATTERN_XPATH_ATTRIBUTE)
         if (matches) {
 
             // The following Content-Type is supported for attributes:
@@ -783,7 +797,7 @@ class Storage {
             // For attributes only the Content-Type text/plain and text/xpath
             // are supported, for other Content-Types no conversion exists.
             const media = (this.request.headers["content-type"] || "").toLowerCase()
-            if (![Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media))
+            if (![CONTENT_TYPE_TEXT, CONTENT_TYPE_XPATH].includes(media))
                 this.quit(415, "Unsupported Media Type")
 
             let input = this.request.data
@@ -794,8 +808,8 @@ class Storage {
             // the storage and the result is put like the Content-Type
             // text/plain. Even if the target is mutable, the XPath function is
             // executed only once and the result is put on all targets.
-            if (media === Storage.CONTENT_TYPE_XPATH) {
-                if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            if (media === CONTENT_TYPE_XPATH) {
+                if (!input.match(PATTERN_XPATH_FUNCTION)) {
                     const message = "Invalid XPath (Axes are not supported)"
                     this.quit(422, "Unprocessable Entity", {Message: message})
                 }
@@ -854,7 +868,7 @@ class Storage {
 
         // An XPath for element(s) is then expected here.
         // If this is not the case, the request is responded with status 400.
-        matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
+        matches = this.xpath.match(PATTERN_XPATH_PSEUDO)
         if (!matches)
             this.quit(400, "Bad Request", {Message: "Invalid XPath axis"})
 
@@ -867,11 +881,11 @@ class Storage {
         // - text/xpath for dynamic values, based on XPath functions
 
         const media = (this.request.headers["content-type"] || "").toLowerCase()
-        if ([Storage.CONTENT_TYPE_TEXT, Storage.CONTENT_TYPE_XPATH].includes(media)) {
+        if ([CONTENT_TYPE_TEXT, CONTENT_TYPE_XPATH].includes(media)) {
 
             // The combination with a pseudo element is not possible for a text
             // value. Response with status 415 (Unsupported Media Type).
-            if (String.isEmpty($pseudo))
+            if (String.isEmpty(pseudo))
                 this.quit(415, "Unsupported Media Type")
 
             let input = this.request.data
@@ -882,8 +896,8 @@ class Storage {
             // the storage and the result is put like the Content-Type
             // text/plain. Even if the target is mutable, the XPath function is
             // executed only once and the result is put on all targets.
-            if (media === Storage.CONTENT_TYPE_XPATH) {
-                if (!input.match(Storage.PATTERN_XPATH_FUNCTION)) {
+            if (media === CONTENT_TYPE_XPATH) {
+                if (!input.match(PATTERN_XPATH_FUNCTION)) {
                     const message = "Invalid XPath (Axes are not supported)"
                     this.quit(422, "Unprocessable Entity", {Message: message})
                 }
@@ -938,7 +952,7 @@ class Storage {
 
         // Only an XML structure can be inserted, nothing else is supported. So
         // only the Content-Type application/xml can be used.
-        if (media !== Storage.CONTENT_TYPE_XML)
+        if (media !== CONTENT_TYPE_XML)
             this.quit(415, "Unsupported Media Type")
 
         // The request body must also be a valid XML structure, otherwise the
@@ -949,7 +963,7 @@ class Storage {
         // The XML is loaded, but what happens if an error occurs during
         // parsing? Status 400 or 422 - The decision for 422, because 400 means
         // faulty request. But this is a (semantic) error in the request body.
-        const xml = new DOMParser().parseFromString(input, Storage.CONTENT_TYPE_XML, true)
+        const xml = new DOMParser().parseFromString(input, CONTENT_TYPE_XML, true)
         // TODO: $xml->preserveWhiteSpace = false
         // TODO: $xml->formatOutput = Storage::DEBUG_MODE
         if (!Object.exists(xml)
@@ -999,7 +1013,7 @@ class Storage {
 
                 // Pseudo elements can be used to put in an XML substructure
                 // relative to the selected element.
-                if (String.isEmpyt(pseudo)) {
+                if (String.isEmpty(pseudo)) {
                     // A bug in common-xml-features sets the documentElement to
                     // null when using replaceChild. Therefore the quick way:
                     //     clone/add/replace -- is not possible.
@@ -1013,7 +1027,7 @@ class Storage {
                         inserts.forEach((insert) => {
                             target.parentNode.insertBefore(insert, target)
                         })
-                } else if (strcmp($pseudo, "after") === 0) {
+                } else if (pseudo === "after") {
                     if (target.parentNode.nodeType === XML_ELEMENT_NODE) {
                         const nodes = []
                         inserts.forEach((node) => {
@@ -1028,7 +1042,7 @@ class Storage {
                 } else if (pseudo === "first") {
                     for (let index = inserts.length -1; index >= 0; index--)
                         target.insertBefore(inserts[index].cloneNode(true), target.firstChild)
-                } else if (strcmp($pseudo, "last") === 0) {
+                } else if (pseudo === "last") {
                     inserts.forEach((insert) => {
                         target.appendChild(insert.cloneNode(true))
                     })
@@ -1174,7 +1188,7 @@ class Storage {
         if (String.isEmpty(this.request.headers["content-type"]))
             this.quit(415, "Unsupported Media Type")
 
-        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+        if (this.xpath.match(PATTERN_XPATH_FUNCTION)) {
             let message = "Invalid XPath (Functions are not supported)"
             this.quit(400, "Bad Request", {Message: message})
         }
@@ -1258,17 +1272,17 @@ class Storage {
         if (String.isEmpty(this.xpath))
             this.quit(400, "Bad Request", {Message: "Invalid XPath"})
 
-        if (this.xpath.match(Storage.PATTERN_XPATH_FUNCTION)) {
+        if (this.xpath.match(PATTERN_XPATH_FUNCTION)) {
             const message = "Invalid XPath (Functions are not supported)"
             this.quit(400, "Bad Request", {Message: message})
         }
 
         let xpath = this.xpath
         let pseudo = false
-        if (!this.xpath.match(Storage.PATTERN_XPATH_ATTRIBUTE)) {
+        if (!this.xpath.match(PATTERN_XPATH_ATTRIBUTE)) {
             // An XPath for element(s) is then expected here.
             // If this is not the case, the request is responded with status 400.
-            let matches = this.xpath.match(Storage.PATTERN_XPATH_PSEUDO)
+            let matches = this.xpath.match(PATTERN_XPATH_PSEUDO)
             if (!matches)
                 this.quit(400, "Bad Request", {Message: "Invalid XPath axis"})
             xpath = matches[1]
@@ -1516,16 +1530,16 @@ class ServerFactory {
         if (Object.exists(request.headers.storage))
             response.quit(400, "Bad Request", {Message: "Missing storage identifier"})
         let storage = request.headers.storage
-        if (!storage.match(Storage.PATTERN_HEADER_STORAGE))
+        if (!storage.match(PATTERN_HEADER_STORAGE))
             response.quit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
         // The XPath is determined from REQUEST_URI.
         // The XPath starts directly after the context path. To improve visual
         // recognition, the context path should always end with a symbol.
         let xpath = request.url.substring(context.length)
-        if (xpath.match(Storage.PATTERN_HEX))
+        if (xpath.match(PATTERN_HEX))
             xpath = String.fromCharCode(parseInt(xpath.substring(1), 16)).trim()
-        else if (xpath.match(Storage.PATTERN_BASE64))
+        else if (xpath.match(PATTERN_BASE64))
             xpath = Buffer.from(xpath.substring(1), "base64").toString("ascii").trim()
         else xpath = decodeURIComponent(xpath).trim()
 
@@ -1550,7 +1564,7 @@ class ServerFactory {
             options |= Storage.STORAGE_SHARE_EXCLUSIVE
         if (["CONNECT"].includes(method))
             options |= Storage.STORAGE_SHARE_INITIAL
-        storage = Storage.share(storage, xpath, options)
+        storage = Storage.share(request, response, storage, xpath, options)
 
         try {
             switch (method) {
@@ -1569,7 +1583,7 @@ class ServerFactory {
                 case "DELETE":
                     storage.doDelete()
                 default:
-                    storage.exit(405, "Method Not Allowed", {Allow: "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
+                    storage.quit(405, "Method Not Allowed", {Allow: "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE"})
             }
         } finally {
             storage.close()
@@ -1612,7 +1626,7 @@ class ServerFactory {
                 let storage
                 if (request.headers.storage)
                     storage = request.headers.storage
-                if (!storage || !storage.match(Storage.PATTERN_HEADER_STORAGE))
+                if (!storage || !storage.match(PATTERN_HEADER_STORAGE))
                     return
 
                 // Loading RequestBody is limited to the API only.
