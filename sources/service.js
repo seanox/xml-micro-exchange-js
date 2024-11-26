@@ -31,7 +31,7 @@
  *     TERMS / WORDING
  * TODO:
  */
-import child from "child_process"
+import crypto from "crypto"
 import fs from "fs"
 import http from "http"
 import https from "https"
@@ -1429,7 +1429,7 @@ class Storage {
                 && this.revision !== this.unique)
             return
 
-        let output = this.serialize()
+        let output = new XMLSerializer().serializeToString(this.xml)
         if (output.length > Storage.SPACE)
             this.quit(413, "Payload Too Large")
         fs.ftruncateSync(this.share, 0)
@@ -1442,9 +1442,156 @@ class Storage {
         }
     }
 
+    /**
+     * Quit sends a response and ends the connection and closes the storage. The
+     * behavior of the method is hard. A response status and a response message
+     * are expected. Optionally, additional headers and data for the response
+     * body can be passed. Headers for storage and data length are set
+     * automatically. Data from the response body is only sent to the client if
+     * the response status is in class 2xx. This also affects the dependent
+     * headers Content-Type and Content-Length.
+     * @param int    status
+     * @param string message
+     * @param array  headers
+     * @param string data
+     */
     quit(status, message, headers = undefined, data = undefined) {
-        // TODO:
-        throw Storage.prototype.quit;
+
+        if (this.response.headersSent) {
+            // The response are already complete.
+            // The storage can be closed and the requests can be terminated.
+            this.close()
+            throw Storage.prototype.quit
+        }
+
+        // Workaround to remove all default headers.
+        // Some must be set explicitly before removing works.
+        // Not relevant headers are removed.
+        ["X-Powered-By", "Content-Type", "Content-Length"].forEach(header => {
+            this.response.removeHeader(header)
+        })
+
+        Storage.CORS.forEach((key, value) => {
+            this.response.setHeader(key, value)
+        })
+
+        // Access-Control headers are received during preflight OPTIONS request
+        if (this.request.method.toUpperCase() === "OPTIONS") {
+            if (this.request.headers["access-control-request-method"])
+                this.response.setHeader("Access-Control-Allow-Methods",
+                    "CONNECT, OPTIONS, GET, POST, PUT, PATCH, DELETE")
+            if (this.request.headers["access-control-request-headers"])
+                this.response.setHeader("Access-Control-Allow-Headers",
+                    this.request.headers["access-control-request-headers"])
+        }
+
+        if (Object.exists(headers))
+            headers = []
+
+        // For status class 2xx + 304 the storage headers are added.
+        // The revision is read from the current storage because it can change.
+        if (((status >= 200 && status < 300) || status == 304)
+                && this.storage
+                && this.xml) {
+            headers = {...headers, ...{
+                "Storage": this.storage,
+                "Storage-Revision": this.xml.documentElement.getAttribute("___rev"),
+                "Storage-Space": Storage.SPACE + "/" + this.getSize() + " bytes",
+                "Storage-Last-Modified": new Date().toUTCString(),
+                "Storage-Expiration": new Date(Date.now() +Storage.EXPIRATION).toUTCString(),
+                "Storage-Expiration-Time": Storage.EXPIRATION + " ms"
+            }}
+
+            if (status !== 200)
+                data = null
+            if (typeof data === "string"
+                    && String.isEmpty(data))
+                data = null
+
+            if (Object.exists(data)) {
+                if (this.options.includes("json")) {
+                    headers["Content-Type"] = Storage.CONTENT_TYPE_JSON
+                    if (data instanceof Document
+                            || data instanceof XMLDocument)
+                        data = new XMLSerializer().serializeToString(data)
+                    data = JSON.stringify(data)
+                } else {
+                    if (!headers.hasOwnProperty("Content-Type"))
+                        headers["Content-Type"] = (data instanceof Document
+                                || data instanceof XMLDocument)
+                            ? CONTENT_TYPE_XML
+                            : CONTENT_TYPE_TEXT
+                    if ($data instanceof DOMDocument
+                            || $data instanceof SimpleXMLElement)
+                        data = new XMLSerializer().serializeToString(data)
+                }
+                headers["Content-Length"] = data.length
+            }
+        } else data = null
+
+        for (let [key, value] of Object.entries(headers)) {
+            value = value.trim().replace(/[\r\n]+/g, " ")
+            if (value.trim().length > 0)
+                this.response.setHeader(key, value)
+            else this.removeHeader(key)
+        }
+
+        if (Storage.DEBUG_MODE) {
+            const hash = string => crypto
+                .createHash("md5")
+                .update(string)
+                .digest("hex")
+
+            const filter = (object, value = undefined) =>
+                Object.exists(object) ? object : value !== undefined ? value: ""
+
+            const request = `${this.request.method} ${this.request.url} HTTP/${this.request.httpVersion}`;
+            this.response.setHeader("Trace-Request-Hash", hash(request));
+            let header = [
+                filter(this.request.headers["storage"], "null"),
+                filter(this.request.headers["content-type"], "null"),
+                filter(this.request.headers["content-length"], "null")].join("\t")
+            this.response.setHeader("Trace-Request-Header-Hash", hash(header))
+            this.response.setHeader("Trace-Request-Data-Hash", hash(filter(this.request.data)))
+            this.response.setHeader("Trace-Response-Hash", hash(`${status} ${message}`))
+            header = [
+                filter(headers["Storage"], "null"),
+                filter(headers["Storage-Revision"], "null"),
+                filter(headers["Storage-Space"], "null"),
+                filter(headers["Error"], "null"),
+                filter(headers["Message"], "null"),
+                filter(headers["Content-Type"], "null"),
+                filter(headers["Content-Length"], "null")].join("\t")
+            this.response.setHeader("Trace-Response-Header-Hash", hash(header))
+            this.response.setHeader("Trace-Response-Data-Hash", hash(strval($data)))
+            header = this.storage && this.xml
+                ? filter(new XMLSerializer().serializeToString(this.xml), "") : "";
+            this.response.setHeader("Trace-Storage-Hash", hash(header))
+        }
+
+        this.response.setHeader("Execution-Time", `${$Date.now() -request.timing} ms`);
+
+        this.response.writeHead(status, message)
+        if (!String.isEmpty(data))
+            this.response.end(data)
+
+        // The function and the response are complete.
+        // The storage can be closed and the requests can be terminated.
+        this.close()
+
+        throw Storage.prototype.quit
+    }
+
+    /** Closes the storage for the current request. */
+    close() {
+
+        if (!Object.exists(this.share))
+            return
+
+        fs.closeSync(this.share)
+
+        delete this.share
+        delete this.xml
     }
 
     /** Cleans up all files that have exceeded the maximum idle time. */
@@ -1765,7 +1912,7 @@ class ServerFactory {
                     if (!response.headersSent)
                         response.quit(500, "Internal Server Error", {"Error": `#${unique}`})
                 } finally {
-
+                    // TODO
                 }
             })
         })
