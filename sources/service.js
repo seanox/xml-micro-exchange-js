@@ -2042,6 +2042,27 @@ class ServerFactory {
             })
         })
 
+        // Internal redirect without network, because the CONNECT method in
+        // Node.js is not intended for this purpose and so CONNECT is changed
+        // internally to PUT.
+        server.on("connect", (request, socket, head) => {
+
+            const redirect = new http.IncomingMessage(socket);
+            redirect.method = "PUT";
+            redirect.url = request.url;
+            redirect.headers = request.headers;
+            redirect.socket = request.socket;
+
+            const response = new http.ServerResponse(redirect);
+            response.assignSocket(socket);
+            server.emit("request", redirect, response);
+            response.on("finish", () => {
+                socket.end();
+            });
+            redirect.emit("data", head)
+            redirect.emit("end")
+        });
+
         server.on("error", (error) => {
             console.error(error.stack || error)
             process.exit(1)
