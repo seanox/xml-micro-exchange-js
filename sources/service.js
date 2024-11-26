@@ -131,27 +131,9 @@ const PATTERN_XPATH_PSEUDO = /^(.*?)(?:::(before|after|first|last)){0,1}$/i
  */
 const PATTERN_XPATH_FUNCTION = /^[\(\s]*[^\/\.\s\(].*$/
 
-// TODO synchronize with php (quit + exit in the one function)
-http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
-
-    if (this.headersSent)
-        return
-
-    // Directly set headers (e.g. for CORS) are read
-    // Names are converted to camel case, pure cosmetics -- Node.js uses only lower case
-    if (typeof headers !== "object")
-        headers = {}
-
-    for (const [header, value] of Object.entries(this.getHeaders()))
-        headers[header.replace(/\b[a-z]/g, match =>
-            match.toUpperCase())] = value
-
-    this.writeHead(status, message, headers)
-    if (Object.exists(data))
-        this.contentLength = data.length
-    this.end(data)
-    throw http.ServerResponse.prototype.exit
-}
+// Some things of the API are adjusted.
+// These are only small changes, but they greatly simplify the use.
+// Curse and blessing of JavaScript :-)
 
 Date.parseDuration = function(text) {
     if (String.isEmpty(text))
@@ -219,9 +201,106 @@ const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
 const XMEX_STORAGE_REVISION_TYPE = Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "timestamp")
 
+const XMEX_TEMP_DIRECTORY = Runtime.getEnv("XMEX_TEMP_DIRECTORY", "./temp")
+
 const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
+
+// The evaluate method of the Document differs from PHP in behavior.
+// The following things have been changed to simplify migration:
+// - Additional third parameter
+//   true catches errors as return value without throwing an exception
+DOMParser.prototype.parseFromString$ = DOMParser.prototype.parseFromString
+DOMParser.prototype.parseFromString = function(...variable) {
+    if (variable.length < 3)
+        return this.parseFromString$(...variable)
+    else if (!variable[2])
+        return this.parseFromString$(...variable.slice(0, 2))
+    try {return this.parseFromString$(...variable.slice(0, 2))
+    } catch (error) {
+        return error
+    }
+}
+
+XPath.select$ = XPath.select
+XPath.select = function(...variable) {
+    try {return XPath.select$(...variable)
+    } catch (error) {
+        return error
+    }
+}
+
+// DOM serialization is implemented very differently.
+// So that the result is the same and all rules are known, the
+// serialization itself was implemented.
+// - Considered are: DOCUMENT_NODE, ELEMENT_NODE, ATTRIBUTE_NODE, CDATA_SECTION_NODE
+// - Non-existing values (undefined / null) are used as null
+// - DOCUMENT_NODE uses as starting point document element
+// - Attributes are hold only for elements in the sub-object @attributes
+// - CDATA_SECTION_NODE are used as text elements
+// - Empty text elements (no printable characters) are ignored
+// - If an element contains only text elements as children,
+//   these are combined as one value, separated by a simple line break \n,
+//   also here empty text elements (no printable characters) will be ignored
+// - if an element contains text elements mixed with other elements,
+//   the contents of the text elements are combined in the sub-object #text,
+//   separated by a simple line break \n,
+//   also here empty text elements (no printable characters) will be ignored
+JSON.stringify$ = JSON.stringify
+JSON.stringify = function(...variable) {
+    if (variable.length > 0
+            && Object.getClassName(variable[0]) === "Document")
+        return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
+    return JSON.stringify$(...variable)
+}
+JSON.stringify$xml = function(xml) {
+    let result = {}
+    if (!Object.exists(xml))
+        return null
+    if (xml.nodeType === XML_TEXT_NODE
+            || xml.nodeType === XML_CDATA_SECTION_NODE)
+        return xml.nodeValue.trim()
+    if (xml.nodeType === XML_DOCUMENT_NODE)
+        xml = xml.documentElement
+    if (xml.nodeType !== XML_ELEMENT_NODE)
+        return null
+    if (xml.attributes.length > 0) {
+        result["@attributes"] = {}
+        Array.from(xml.attributes).forEach((attribute) => {
+            result["@attributes"][attribute.nodeName] = attribute.nodeValue
+        })
+    }
+    let buffer = {text:"", mixed:Object.exists(result["@attributes"])}
+    Array.from(xml.childNodes).forEach((item) => {
+        if (item.nodeType === XML_TEXT_NODE
+                || item.nodeType === XML_CDATA_SECTION_NODE) {
+            let text = item.nodeValue.trim()
+            if (text.length <= 0)
+                return
+            if (buffer.text.length > 0)
+                buffer.text += "\n"
+            buffer.text += text
+            return
+        }
+        if (item.nodeType !== XML_ELEMENT_NODE)
+            return
+        buffer.mixed = true
+        let nodeName = item.nodeName
+        if (result[nodeName] === undefined) {
+            result[nodeName] = JSON.stringify$xml(item)
+            return
+        }
+        if (!Array.isArray(result[nodeName]))
+            result[nodeName] = [result[nodeName]]
+        result[nodeName].push(JSON.stringify$xml(item))
+    })
+    if (!buffer.mixed)
+        return buffer.text
+    if (buffer.text.length > 0)
+        result["#text"] = buffer.text
+    return result
+}
 
 class XML {
 
@@ -425,7 +504,7 @@ class Storage {
         const buffer = Buffer.alloc(fs.lstatSync(storage.store).size)
         fs.readSync(storage.share, buffer, {position:0})
         storage.xml = new DOMParser().parseFromString(buffer.toString(), CONTENT_TYPE_XML)
-        storage.revision = storage.xml.documentElement.getAttributeNumber("___rev")
+        storage.revision = storage.xml.documentElement.getAttribute("___rev")
         if (Storage.REVISION_TYPE === "serial") {
             if (storage.revision.match(PATTERN_NON_NUMERICAL))
                 storage.quit(503, "Resource revision conflict")
@@ -444,6 +523,22 @@ class Storage {
      */
     getSerial() {
         return this.unique + ":" + (++this.serial)
+    }
+
+    /**
+     * Determines the current size of the storage with the current data and can
+     * therefore differ from the size in the file system.
+     * @return {number} current size of the storage
+     */
+    getSize() {
+        if (Object.exists(this.xml))
+            return new XMLSerializer().serializeToString(this.xml).length
+        if (Object.exists(this.share))
+            return fs.fstatSync(this.share).size
+        if (Object.exists(this.store)
+                && fs.existsSync(this.store))
+            return fs.lstatSync(this.store).size
+        return 0
     }
 
     /**
@@ -1412,6 +1507,15 @@ class Storage {
     }
 
     /**
+     * Return TRUE if the storage already exists.
+     * @return {boolean} TRUE if the storage already exists
+     */
+    exists() {
+        return fs.existsSync(this.store)
+            && fs.lstatSync(this.store).size > 0
+    }
+
+    /**
      * Materializes the XML document from the memory in the file system. Unlike
      * save, the file is not closed and the data can be modified without another
      * (PHP)process being able to read the data before finalizing it by closing
@@ -1425,7 +1529,7 @@ class Storage {
 
         if (!Object.exists(this.share))
             return
-        if (this.revision === this.xml.documentElement.getAttributeNumber("___rev")
+        if (this.revision === this.xml.documentElement.getAttribute("___rev")
                 && this.revision !== this.unique)
             return
 
@@ -1533,7 +1637,7 @@ class Storage {
             value = value.trim().replace(/[\r\n]+/g, " ")
             if (value.trim().length > 0)
                 this.response.setHeader(key, value)
-            else this.removeHeader(key)
+            else this.response.removeHeader(key)
         }
 
         if (Storage.DEBUG_MODE) {
@@ -1624,6 +1728,27 @@ class Storage {
             }
         })
     }
+}
+
+http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
+
+    if (this.headersSent)
+        return
+
+    // Directly set headers (e.g. for CORS) are read
+    // Names are converted to camel case, pure cosmetics -- Node.js uses only lower case
+    if (typeof headers !== "object")
+        headers = {}
+
+    for (const [header, value] of Object.entries(this.getHeaders()))
+        headers[header.replace(/\b[a-z]/g, match =>
+            match.toUpperCase())] = value
+
+    this.writeHead(status, message, headers)
+    if (Object.exists(data))
+        this.contentLength = data.length
+    this.end(data)
+    throw http.ServerResponse.prototype.quit
 }
 
 class ServerFactory {
