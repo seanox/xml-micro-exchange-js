@@ -82,6 +82,18 @@ const CONTENT_TYPE_XSLT  = "application/xslt+xml"
 const CONTENT_TYPE_JSON  = "application/json"
 
 /**
+ * Optional CORS response headers as associative array.
+ * For the preflight OPTIONS the following headers are added automatically:
+ *     Access-Control-Allow-Methods, Access-Control-Allow-Headers
+ */
+const CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400",
+    "Access-Control-Expose-Headers": "*"
+}
+
+/**
  * Pattern for the Storage header
  *     Group 0. Full match
  *     Group 1. Storage
@@ -130,6 +142,15 @@ const PATTERN_XPATH_PSEUDO = /^(.*?)(?:::(before|after|first|last)){0,1}$/i
  * characters at the beginning must be a function.
  */
 const PATTERN_XPATH_FUNCTION = /^[\(\s]*[^\/\.\s\(].*$/
+
+process.on("uncaughtException", (error) => {
+    console.log(error);
+    console.error(error.stack || error)
+})
+
+process.on("exit", () => {
+    console.log("Service", "Stopped")
+})
 
 // Some things of the API are adjusted.
 // These are only small changes, but they greatly simplify the use.
@@ -364,19 +385,6 @@ class Storage {
     /** Defines the revision type (serial, timestamp) */
     static get REVISION_TYPE() {
         return XMEX_STORAGE_REVISION_TYPE
-    }
-
-    /**
-     * TODO:
-     * Optional CORS response headers as associative array.
-     * For the preflight OPTIONS the following headers are added automatically:
-     *     Access-Control-Allow-Methods, Access-Control-Allow-Headers
-     */
-    static CORS = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": "86400",
-        "Access-Control-Expose-Headers": "*"
     }
 
     /** Constants of share options */
@@ -1542,7 +1550,7 @@ class Storage {
         if (Storage.DEBUG_MODE) {
             const unique = this.unique.toString().padStart(3, "0")
             const target = this.store.replace(/(\.\w+$)/, `___${unique}$1`)
-            fs.writeSync(target, output);
+            fs.writeSync(target, output)
         }
     }
 
@@ -1568,16 +1576,13 @@ class Storage {
             throw Storage.prototype.quit
         }
 
-        // Workaround to remove all default headers.
-        // Some must be set explicitly before removing works.
-        // Not relevant headers are removed.
+        // Not relevant default headers are removed.
         ["X-Powered-By", "Content-Type", "Content-Length"].forEach(header => {
             this.response.removeHeader(header)
         })
 
-        Storage.CORS.forEach((key, value) => {
-            this.response.setHeader(key, value)
-        })
+        for (const key in CORS)
+            this.response.setHeader(key, CORS[key])
 
         // Access-Control headers are received during preflight OPTIONS request
         if (this.request.method.toUpperCase() === "OPTIONS") {
@@ -1589,7 +1594,7 @@ class Storage {
                     this.request.headers["access-control-request-headers"])
         }
 
-        if (Object.exists(headers))
+        if (!Object.exists(headers))
             headers = []
 
         // For status class 2xx + 304 the storage headers are added.
@@ -1649,8 +1654,8 @@ class Storage {
             const filter = (object, value = undefined) =>
                 Object.exists(object) ? object : value !== undefined ? value: ""
 
-            const request = `${this.request.method} ${this.request.url} HTTP/${this.request.httpVersion}`;
-            this.response.setHeader("Trace-Request-Hash", hash(request));
+            const request = `${this.request.method} ${this.request.url} HTTP/${this.request.httpVersion}`
+            this.response.setHeader("Trace-Request-Hash", hash(request))
             let header = [
                 filter(this.request.headers["storage"], "null"),
                 filter(this.request.headers["content-type"], "null"),
@@ -1667,17 +1672,17 @@ class Storage {
                 filter(headers["Content-Type"], "null"),
                 filter(headers["Content-Length"], "null")].join("\t")
             this.response.setHeader("Trace-Response-Header-Hash", hash(header))
-            this.response.setHeader("Trace-Response-Data-Hash", hash(strval($data)))
+            this.response.setHeader("Trace-Response-Data-Hash", hash(String(data)))
             header = this.storage && this.xml
-                ? filter(new XMLSerializer().serializeToString(this.xml), "") : "";
+                ? filter(new XMLSerializer().serializeToString(this.xml), "") : ""
             this.response.setHeader("Trace-Storage-Hash", hash(header))
         }
 
-        this.response.setHeader("Execution-Time", `${$Date.now() -request.timing} ms`);
+        this.response.setHeader("Execution-Time", `${Date.now() -this.request.timing} ms`)
 
-        this.response.writeHead(status, message)
-        if (!String.isEmpty(data))
-            this.response.end(data)
+        this.response
+            .writeHead(status, message)
+            .end(data)
 
         // The function and the response are complete.
         // The storage can be closed and the requests can be terminated.
@@ -1739,6 +1744,14 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
     // Names are converted to camel case, pure cosmetics -- Node.js uses only lower case
     if (typeof headers !== "object")
         headers = {}
+
+    // Not relevant default headers are removed.
+    ["X-Powered-By", "Content-Type", "Content-Length"].forEach(header => {
+        this.removeHeader(header)
+    })
+
+    for (const key in CORS)
+        this.setHeader(key, CORS[key])
 
     for (const [header, value] of Object.entries(this.getHeaders()))
         headers[header.replace(/\b[a-z]/g, match =>
@@ -1866,7 +1879,7 @@ class ServerFactory {
         } finally {
             fs.closeSync(file)
         }
-        throw http.ServerResponse.prototype.exit
+        throw http.ServerResponse.prototype.quit
     }
 
     static onServiceRequest(request, response) {
@@ -1878,13 +1891,13 @@ class ServerFactory {
         if (method.toUpperCase() === "OPTIONS"
                 && request.headers.origin
                 && !request.headers.storage)
-            response.quit(204, "No Content")
+            (new Storage(request, response)).quit(204, "No Content")
 
         if (Object.exists(request.headers.storage))
-            response.quit(400, "Bad Request", {Message: "Missing storage identifier"})
-        let storage = request.headers.storage
+            (new Storage(request, response)).quit(400, "Bad Request", {Message: "Missing storage identifier"})
+        let storage = request.headers.storage || ""
         if (!storage.match(PATTERN_HEADER_STORAGE))
-            response.quit(400, "Bad Request", {Message: "Invalid storage identifier"})
+            (new Storage(request, response)).quit(400, "Bad Request", {Message: "Invalid storage identifier"})
 
         // The XPath is determined from REQUEST_URI.
         // The XPath starts directly after the context path. To improve visual
@@ -2029,8 +2042,8 @@ class ServerFactory {
                     ServerFactory.onServiceRequest(request, response)
 
                 } catch (error) {
-                    if (error === Storage.prototype.exit
-                            || error === http.ServerResponse.prototype.exit)
+                    if (error === Storage.prototype.quit
+                            || error === http.ServerResponse.prototype.quit)
                         return
                     const unique = Date.now().toString(36).toUpperCase()
                     console.error("Service", `#${unique}`, error)
@@ -2043,25 +2056,25 @@ class ServerFactory {
         })
 
         // Internal redirect without network, because the CONNECT method in
-        // Node.js is not intended for this purpose and so CONNECT is changed
-        // internally to PUT.
+        // Node.js is not intended for this purpose.
         server.on("connect", (request, socket, head) => {
 
-            const redirect = new http.IncomingMessage(socket);
-            redirect.method = "PUT";
-            redirect.url = request.url;
-            redirect.headers = request.headers;
-            redirect.socket = request.socket;
+            const redirect = new http.IncomingMessage(socket)
+            redirect.method = request.method
+            redirect.url = request.url
+            redirect.httpVersion = request.httpVersion
+            redirect.headers = request.headers
+            redirect.socket = request.socket
 
-            const response = new http.ServerResponse(redirect);
-            response.assignSocket(socket);
-            server.emit("request", redirect, response);
+            const response = new http.ServerResponse(redirect)
+            response.assignSocket(socket)
+            server.emit("request", redirect, response)
             response.on("finish", () => {
-                socket.end();
-            });
+                socket.end()
+            })
             redirect.emit("data", head)
             redirect.emit("end")
-        });
+        })
 
         server.on("error", (error) => {
             console.error(error.stack || error)
@@ -2102,7 +2115,7 @@ class ServerFactory {
                         location = location.replace(/\.{3,}$/, request.url)
                     response.quit(301, "Moved Permanently", {Location: location})
                 } catch (error) {
-                    if (error === http.ServerResponse.prototype.exit)
+                    if (error === http.ServerResponse.prototype.quit)
                         return
                     const unique = Date.now().toString(36).toUpperCase()
                     console.error("Service", `#${unique}`, error)
