@@ -250,25 +250,24 @@ XMLSerializer.prototype.serializeToString = function(node, isHtml, nodeFilter) {
     if (!XMEX_DEBUG_MODE)
         return output
     return (xml => {
-        let output = ""
-        xml = xml.replace(/(>)(<)(\/*)/g, "$1\n$2$3")
-        let pad = 0
-        xml.split("[\r\n]+").forEach((node) => {
-            let indent = 0
-            if (node.match(/.+<\/\w[^>]*>$/))
-                indent = 0
-            else if (node.match(/^<\/\w/))
+        let formatted = "";
+        let pad = 0;
+        xml = xml.replace(/(>)\s*(<)(\/*)/g, "$1\n$2$3");
+        xml.split(/[\r\n]+/).forEach(node => {
+            let indent = 0;
+            if (node.match(/.+<\/\w[^>]*>$/)) {
+                indent = 0;
+            } else if (node.match(/^<\/\w/)) {
                 if (pad !== 0)
                     pad -= 1;
-            else if (node.match(/^<\w[^>]*[^\/]>.*$/))
+            } else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
                 indent = 1;
-            else indent = 0;
-
-            const padding = new Array(pad + 1).join("  ");
-            output += padding + node + "\n"
+            }
+            const padding = ("  ").repeat(pad);
+            formatted += padding + node + "\n";
             pad += indent;
         });
-        return output
+        return formatted;
     })(output);
 }
 
