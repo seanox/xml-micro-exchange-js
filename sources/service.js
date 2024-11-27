@@ -1651,30 +1651,32 @@ class Storage {
                 .update(string)
                 .digest("hex")
 
-            const filter = (object, value = undefined) =>
-                Object.exists(object) ? object : value !== undefined ? value: ""
+            // Nullish works differently in Node.js than in PHP with regard to
+            // empty strings. Therefore the customized function.
+            const nullish = (object, value = undefined) =>
+                Object.exists(object) && object !== "" ? object : value !== undefined ? value: ""
 
             const request = `${this.request.method} ${this.request.url} HTTP/${this.request.httpVersion}`
             this.response.setHeader("Trace-Request-Hash", hash(request))
             let header = [
-                filter(this.request.headers["storage"], "null"),
-                filter(this.request.headers["content-type"], "null"),
-                filter(this.request.headers["content-length"], "null")].join("\t")
+                nullish(this.request.headers["storage"], "null"),
+                nullish(this.request.headers["content-type"], "null"),
+                nullish(this.request.headers["content-length"], "null")].join("\t")
             this.response.setHeader("Trace-Request-Header-Hash", hash(header))
-            this.response.setHeader("Trace-Request-Data-Hash", hash(filter(this.request.data)))
+            this.response.setHeader("Trace-Request-Data-Hash", hash(this.request.data ?? ""))
             this.response.setHeader("Trace-Response-Hash", hash(`${status} ${message}`))
             header = [
-                filter(headers["Storage"], "null"),
-                filter(headers["Storage-Revision"], "null"),
-                filter(headers["Storage-Space"], "null"),
-                filter(headers["Error"], "null"),
-                filter(headers["Message"], "null"),
-                filter(headers["Content-Type"], "null"),
-                filter(headers["Content-Length"], "null")].join("\t")
+                nullish(headers["Storage"], "null"),
+                nullish(headers["Storage-Revision"], "null"),
+                nullish(headers["Storage-Space"], "null"),
+                nullish(headers["Error"], "null"),
+                nullish(headers["Message"],"null"),
+                nullish(headers["Content-Type"], "null"),
+                nullish(headers["Content-Length"], "null")].join("\t")
             this.response.setHeader("Trace-Response-Header-Hash", hash(header))
-            this.response.setHeader("Trace-Response-Data-Hash", hash(String(data)))
+            this.response.setHeader("Trace-Response-Data-Hash", hash(String(data ?? "")))
             header = this.storage && this.xml
-                ? filter(new XMLSerializer().serializeToString(this.xml), "") : ""
+                ? nullish(new XMLSerializer().serializeToString(this.xml), "") : ""
             this.response.setHeader("Trace-Storage-Hash", hash(header))
         }
 
@@ -1890,7 +1892,7 @@ class ServerFactory {
                 && !request.headers.storage)
             (new Storage(request, response)).quit(204, "No Content")
 
-        if (Object.exists(request.headers.storage))
+        if (!Object.exists(request.headers.storage))
             (new Storage(request, response)).quit(400, "Bad Request", {Message: "Missing storage identifier"})
         let storage = request.headers.storage || ""
         if (!storage.match(PATTERN_HEADER_STORAGE))
@@ -1899,7 +1901,7 @@ class ServerFactory {
         // The XPath is determined from REQUEST_URI.
         // The XPath starts directly after the context path. To improve visual
         // recognition, the context path should always end with a symbol.
-        let xpath = request.url.substring(context.length)
+        let xpath = request.url.substring(ServerFactory.CONNECTION_CONTEXT)
         if (xpath.match(PATTERN_HEX))
             xpath = String.fromCharCode(parseInt(xpath.substring(1), 16)).trim()
         else if (xpath.match(PATTERN_BASE64))
