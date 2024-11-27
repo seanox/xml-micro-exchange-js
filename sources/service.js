@@ -220,7 +220,7 @@ const XMEX_STORAGE_DIRECTORY = Runtime.getEnv("XMEX_STORAGE_DIRECTORY", "./data"
 const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE", "256K"))
 const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s")) *1000
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
-const XMEX_STORAGE_REVISION_TYPE = Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "timestamp")
+const XMEX_STORAGE_REVISION_TYPE = (XMEX_DEBUG_MODE || Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "").toLowerCase() === "serial") ? "serial" : "timestamp";
 
 const XMEX_TEMP_DIRECTORY = Runtime.getEnv("XMEX_TEMP_DIRECTORY", "./temp")
 
@@ -242,6 +242,34 @@ DOMParser.prototype.parseFromString = function(...variable) {
     } catch (error) {
         return error
     }
+}
+
+XMLSerializer.prototype.serializeToString$ = XMLSerializer.prototype.serializeToString
+XMLSerializer.prototype.serializeToString = function(node, isHtml, nodeFilter) {
+    const output = this.serializeToString$(node, isHtml, nodeFilter)
+    if (!XMEX_DEBUG_MODE)
+        return output
+    return (xml => {
+        let output = ""
+        xml = xml.replace(/(>)(<)(\/*)/g, "$1\n$2$3")
+        let pad = 0
+        xml.split("[\r\n]+").forEach((node) => {
+            let indent = 0
+            if (node.match(/.+<\/\w[^>]*>$/))
+                indent = 0
+            else if (node.match(/^<\/\w/))
+                if (pad !== 0)
+                    pad -= 1;
+            else if (node.match(/^<\w[^>]*[^\/]>.*$/))
+                indent = 1;
+            else indent = 0;
+
+            const padding = new Array(pad + 1).join("  ");
+            output += padding + node + "\n"
+            pad += indent;
+        });
+        return output
+    })(output);
 }
 
 XPath.select$ = XPath.select
@@ -271,7 +299,8 @@ XPath.select = function(...variable) {
 JSON.stringify$ = JSON.stringify
 JSON.stringify = function(...variable) {
     if (variable.length > 0
-            && Object.getClassName(variable[0]) === "Document")
+            && (variable[0] instanceof Document
+                    || variable[0] instanceof XMLDocument))
         return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
     return JSON.stringify$(...variable)
 }
@@ -435,8 +464,8 @@ class Storage {
             // idea of simply converting everything to hexadecimal was rejected
             // due to the length of the file name.
             store = `${storage}[${root}]`
-            store = store.replace(/(^|[^a-z])([a-z])/, "$1'$2")
-            store = store.replace(/([a-z])([^a-z]|$)/, "$1'$2")
+            store = store.replace(/(^|[^a-z])([a-z])/g, "$1'$2");
+            store = store.replace(/([a-z])([^a-z]|$)/g, "$1'$2");
             store = `${Storage.DIRECTORY}/${store.toLowerCase()}`
             if (Storage.DEBUG_MODE)
                 store += ".xml"
@@ -485,14 +514,16 @@ class Storage {
         let initial = (options & Storage.STORAGE_SHARE_INITIAL) === Storage.STORAGE_SHARE_INITIAL
         if (!initial && !storage.exists())
             storage.quit(404, "Resource Not Found")
-        initial = initial && (!fs.existsSync(storage.store) || fs.lstatSync(storage.store).size <= 0)
+        initial = initial && (!fs.existsSync(storage.store) || fs.statSync(storage.store).size <= 0)
 
+        let now = new Date()
+        if (storage.exists())
+            fs.utimesSync(storage.store, now, now)
+        else fs.closeSync(fs.openSync(storage.store, "as+"))
         const exclusive = (options & Storage.STORAGE_SHARE_EXCLUSIVE) === Storage.STORAGE_SHARE_EXCLUSIVE
-        storage.share = fs.openSync(storage.store, initial ? "as+" : exclusive ? "rs+" : "r")
-        const now = Date.now()
-        fs.utimesSync(storage.store, now, now)
+        storage.share = fs.openSync(storage.store, initial || exclusive ? "rs+" : "r")
 
-        if (Storage.REVISION_TYPE === "serial") {
+        if (Storage.REVISION_TYPE !== "serial") {
             storage.unique = Date.now().toString(36).toUpperCase()
         } else storage.unique = 1
 
@@ -504,7 +535,8 @@ class Storage {
                 storage.quit(507, "Insufficient Storage")
             fs.writeSync(storage.share,
                 `<?xml version="1.0" encoding="UTF-8"?>`
-                    + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`)
+                + `${Storage.DEBUG_MODE ? "\n" : ""}`
+                + `<${storage.root} ___rev="${storage.unique}" ___uid="${storage.getSerial()}"/>`)
             if (Storage.REVISION_TYPE === "serial")
                 storage.unique = 0
         }
@@ -516,11 +548,8 @@ class Storage {
         if (Storage.REVISION_TYPE === "serial") {
             if (storage.revision.match(PATTERN_NON_NUMERICAL))
                 storage.quit(503, "Resource revision conflict")
-            storage.unique += storage.revision
+            storage.unique = String(storage.unique + Number(storage.revision))
         }
-
-        // TODO: $storage->xml->preserveWhiteSpace = false
-        // TODO: $storage->xml->formatOutput = Storage.DEBUG_MODE
 
         return storage
     }
@@ -1112,8 +1141,6 @@ class Storage {
         // parsing? Status 400 or 422 - The decision for 422, because 400 means
         // faulty request. But this is a (semantic) error in the request body.
         const xml = new DOMParser().parseFromString(input, CONTENT_TYPE_XML, true)
-        // TODO: $xml->preserveWhiteSpace = false
-        // TODO: $xml->formatOutput = Storage::DEBUG_MODE
         if (!Object.exists(xml)
                 || input instanceof Error) {
             let message = "Invalid XML document"
@@ -1548,9 +1575,9 @@ class Storage {
         fs.writeSync(this.share, output)
 
         if (Storage.DEBUG_MODE) {
-            const unique = this.unique.toString().padStart(3, "0")
+            const unique = this.unique.padStart(3, "0")
             const target = this.store.replace(/(\.\w+$)/, `___${unique}$1`)
-            fs.writeSync(target, output)
+            fs.writeFileSync(target, output)
         }
     }
 
@@ -1604,7 +1631,7 @@ class Storage {
                 && this.xml) {
             headers = {...headers, ...{
                 "Storage": this.storage,
-                "Storage-Revision": this.xml.documentElement.getAttribute("___rev"),
+                "Storage-Revision": this.xml.documentElement.getAttribute("___rev") + "/" + this.serial,
                 "Storage-Space": Storage.SPACE + "/" + this.getSize() + " bytes",
                 "Storage-Last-Modified": new Date().toUTCString(),
                 "Storage-Expiration": new Date(Date.now() +Storage.EXPIRATION).toUTCString(),
@@ -1719,7 +1746,7 @@ class Storage {
         if (fs.existsSync(marker)
                 && (Date.now() -fs.statSync(marker).mtime.getTime() < 60 *1000))
             return
-        fs.writeFileSync(marker, '')
+        fs.writeFileSync(marker, "")
 
         const expiration = Date.now() -Storage.EXPIRATION
         const files = fs.readdirSync(Storage.DIRECTORY)
@@ -1901,7 +1928,7 @@ class ServerFactory {
         // The XPath is determined from REQUEST_URI.
         // The XPath starts directly after the context path. To improve visual
         // recognition, the context path should always end with a symbol.
-        let xpath = request.url.substring(ServerFactory.CONNECTION_CONTEXT)
+        let xpath = request.url.substring(ServerFactory.CONNECTION_CONTEXT.length)
         if (xpath.match(PATTERN_HEX))
             xpath = String.fromCharCode(parseInt(xpath.substring(1), 16)).trim()
         else if (xpath.match(PATTERN_BASE64))
@@ -2089,7 +2116,7 @@ class ServerFactory {
                     && ServerFactory.ACME_CHALLENGE
                     && ServerFactory.ACME_TOKEN)
                 options.push("ACME")
-            console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? ' (' + options.join(" + ") + ')' : ''}`)
+            console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? " (" + options.join(" + ") + ")" : ""}`)
         })
 
         return server
