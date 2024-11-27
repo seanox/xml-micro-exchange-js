@@ -1746,12 +1746,9 @@ http.ServerResponse.prototype.quit = function(status, message, headers = undefin
         headers = {}
 
     // Not relevant default headers are removed.
-    ["X-Powered-By", "Content-Type", "Content-Length"].forEach(header => {
-        this.removeHeader(header)
-    })
-
-    for (const key in CORS)
-        this.setHeader(key, CORS[key])
+    const defaults = ["X-Powered-By", "Content-Type", "Content-Length"]
+    for (const header in defaults)
+        this.removeHeader(defaults[header]);
 
     for (const [header, value] of Object.entries(this.getHeaders()))
         headers[header.replace(/\b[a-z]/g, match =>
