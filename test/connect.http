@@ -1,0 +1,358 @@
+# CONNECT is not an HTTP standard, alternative OPTIONS without path can be used.
+# The behavior is the same.
+
+# The following sequence is to test that requests to a storage with a custom
+# root element, the storage and the name of the root element must be correctly
+# specified in the request header.
+
+###
+# Header Storage is missing
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Missing storage identifier
+CONNECT {{service}} HTTP/1.0
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "0c5c8ae6f93483159a1600ceba66f8fc");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "19a7f1465142c59716af818217569f4b");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Header Storage is empty
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+CONNECT {{service}} HTTP/1.0
+Storage:
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "0c5c8ae6f93483159a1600ceba66f8fc");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "558858853137af6dbb89bb6c721ad3c1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Header Storage is to long/invalid
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+CONNECT {{service}} HTTP/1.0
+Storage: C________10________20________30________40________50________60____
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4c8d2a976d0361229ef9d7000b125bf6");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "558858853137af6dbb89bb6c721ad3c1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: C________10________20________30________40________50________60___
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "0db53ba5818a567d9b575a230aead53f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "48415979eeb02e8e98a760d8be631bd0");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
+
+###
+# The storage identifier with the max. length
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: C________10________20________30________40________50________60__A
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "ccbab89c8b1338c8211f4629fbd1779e");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "2ef2c66e78730dba4fa9fddb66ff28c3");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
+
+###
+# The storage identifier is case-sensitive
+# Expectations:
+# - Status code 304 Not Modified
+# - Storage-Revision: 1/0
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: C________10________20________30________40________50________60__A
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "ccbab89c8b1338c8211f4629fbd1779e");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f051f311769a4e61d6cbc1e42962c553");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
+
+###
+# The storage identifier is case-sensitive
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: C________10________20________30________40________50________60__a
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "411e650820497ef3598351c81687b724");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "79121834fc35b5d72be2baaf917276c5");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
+
+###
+# The storage identifier with the min. length
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: C
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "1792a4b4cf93dada6d29c75b1d11746a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "85868a9fe17292b7617a5d1e666601f9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
+
+###
+# The storage identifier with with invalid character(s)
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+CONNECT {{service}} HTTP/1.0
+Storage: ?
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a347d58b94bb7c3463b094a0e8cc9695");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "558858853137af6dbb89bb6c721ad3c1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Header Storage with a minus is valid
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: UnitTest_Storage-C0
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "31de2bd4fdf9b254556a5c96560cfb7d");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c2f7d14680efbe56562d9372d01fa4ba");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
+
+###
+# Header Storage invalid storage identifier with a minus at the end
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+CONNECT {{service}} HTTP/1.0
+Storage: UnitTest_Storage-
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f15a9337d33a32c11f7ff0f01324cbee");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "558858853137af6dbb89bb6c721ad3c1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Header Storage invalid storage identifier with a minus at beginning
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+CONNECT {{service}} HTTP/1.0
+Storage: -UnitTest_Storage
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "67a49aea254358914e640ff15718679c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "558858853137af6dbb89bb6c721ad3c1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Everything is correct, storage and name of the root element are transmitted
+# correctly, the storage can be created.
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/72 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: {{storage_connect}} books
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f17ae5355c039a4d0374480e4d2e630b");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "36208fdc578a382dde74d94a48198735");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "90e5f8a2884ecb0f5669c01376905d97");
+});
+%}
+
+###
+# Everything is correct, storage and name of the root element are transmitted
+# correctly, the storage can be shared.
+# Expectations:
+# - Status code 304 Not Modified
+# - Storage-Revision: 1/0
+# - Storage-Space: 262144/72 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: {{storage_connect}} books
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f17ae5355c039a4d0374480e4d2e630b");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "a3621036e95b7eabfa989664454311c9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "90e5f8a2884ecb0f5669c01376905d97");
+});
+%}
+
+###
+# Name of the root element is part of the storage file name.
+# book vs. bookS opens a new/different storage.
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/72 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: {{storage_connect}} bookS
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "effb4fe1fea78f5a5007318c7aa334fb");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "36208fdc578a382dde74d94a48198735");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c2a867b98b8f2d4414977db2cd8cb56d");
+});
+%}
+
+###
+# Storage header is not correct.
+# Expectations:
+# - Status code 400 Bad Request
+# - Message: Invalid storage identifier
+CONNECT {{service}} HTTP/1.0
+Storage: {{storage_connect}} books x
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "0b5b2af3717a9cc7b1ca9c9f23379ba1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "558858853137af6dbb89bb6c721ad3c1");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+});
+%}
+
+###
+# Name of the root element is not defined and is different with the default name
+# data. Therefore, a new storage is created for 'data'.
+# Expectations:
+# - Status code 201 Resource Created
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/71 bytes
+CONNECT {{service}} HTTP/1.0
+Storage: {{storage_connect}}
+
+> {%
+client.test("unittest", function() {
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fac0bf5eb85f32af856f8d88ce7bf0c");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2a8bd2015afba6eca105f14b6e445eb");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "9fde5eb94b2dac18052e55fb3e4b65e0");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d595a5d42fc187736630d5890711e383");
+});
+%}
