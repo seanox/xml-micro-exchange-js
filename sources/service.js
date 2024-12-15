@@ -267,21 +267,24 @@ XMLSerializer.prototype.serializeToString = function(node, isHtml, nodeFilter) {
     if (!XMEX_DEBUG_MODE)
         return output
     return (xml => {
-        let formatted = "";
-        let pad = 0;
-        xml = xml.replace(/(>)\s*(<)(\/*)/g, "$1\n$2$3");
+        let formatted = ""
+        let pad = 0
+        let space = "  "
+        xml = xml.replace(/(>)\s*(<)/g, "$1\n$2")
+        xml = xml.replace(/(>)\s*([^\s\<])/g, "$1\n$2")
+        xml = xml.replace(/([^\>\s])\s*(<)/g, "$1\n$2")
         xml.split(/[\r\n]+/).forEach(node => {
-            let indent = 0;
+            let indent = 0
             if (node.match(/.+<\/\w[^>]*>$/)) {
-                indent = 0;
+                indent = 0
             } else if (node.match(/^<\/\w/)) {
                 if (pad !== 0)
-                    pad -= 1;
+                    pad -= 1
             } else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
-                indent = 1;
+                indent = 1
             }
-            const padding = ("  ").repeat(pad);
-            formatted += padding + node + "\n";
+            const padding = space.repeat(pad)
+            formatted += padding + node + "\n"
             pad += indent;
         });
         return formatted;
@@ -1077,7 +1080,7 @@ class Storage {
 
             // The combination with a pseudo element is not possible for a text
             // value. Response with status 415 (Unsupported Media Type).
-            if (String.isEmpty(pseudo))
+            if (!String.isEmpty(pseudo))
                 this.quit(415, "Unsupported Media Type")
 
             let input = this.request.data
@@ -1117,11 +1120,12 @@ class Storage {
                 // essential part of the storage, and is ignored. It does not
                 // cause to an error, so the behaviour is analogous to putting
                 // attributes.
-                if (target.nodeType !== XML_ATTRIBUTE_NODE)
+                if (target.nodeType !== XML_ELEMENT_NODE)
                     return
-                const replace = target.cloneNode(false)
+                let replace = target.cloneNode(false)
                 replace.appendChild(this.xml.createTextNode(input))
-                target.parentNode.replaceChild(this.xml.importNode(replace, true), target)
+                replace = this.xml.importNode(replace, true)
+                target.parentNode.replaceChild(replace, target)
                 // Because text nodes have no attributes, the serial must be
                 // increased manually, even if the change is then only partially
                 // traceable. But without incrementing the serial, there is no
@@ -1661,9 +1665,7 @@ class Storage {
 
             if (Object.exists(data)) {
                 if (this.options.includes("json")) {
-                    headers["Content-Type"] = Storage.CONTENT_TYPE_JSON
-                    if (Object.getClassName(data) === "Document")
-                        data = new XMLSerializer().serializeToString(data)
+                    headers["Content-Type"] = CONTENT_TYPE_JSON
                     data = JSON.stringify(data)
                 } else {
                     if (!headers.hasOwnProperty("Content-Type"))
@@ -2050,7 +2052,7 @@ class ServerFactory {
                     return
                 if (request.data.length +data.length > ServerFactory.STORAGE_SPACE) {
                     request.data = ""
-                    request.error = [415, "Payload Too Large"]
+                    request.error = [413, "Payload Too Large"]
                 } else request.data = data
             })
 
