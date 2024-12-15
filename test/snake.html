@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Snake for Seanox XML-Micro-Exchange</title>
+    <style>
+      body {
+        font: 16px sans-serif;
+      }
+      p {
+        margin: 0px;
+      }
+      table {
+        border-collapse: collapse;
+        display:         none;
+      }
+      table td {
+        background: #A0A0A0;
+        width:      12px;
+        height:     12px;
+      }
+      nav {
+        margin-top: 12px;
+        display:    none;
+      }
+      span.player {
+        display: inline-block;
+        width:   12px;
+        height:  12px;
+      }
+      button {
+        width:      25px;
+        height:     25px;
+        visibility: hidden;
+      }
+      button[id] {
+        visibility: visible;
+      }
+    </style>
+    <script type="text/javascript">
+      window.addEventListener("load", () => {
+
+          const BASE = !window.location.protocol.match(/^file(:?)$/)
+                  ? window.location.toString().replace(/([a-z]+:\/\/.*?)(?:\/.*|$)/i, "$1")
+                  : "http://127.0.0.1";
+
+          // Proof of concept for a multiplayer game
+          // Problems that had to be solved or their function had to be proven:
+          // - Multiple data access
+          // - State control and change without transaction
+          // - Conditional data change in a request only via XPath expressions
+          // - Partial data changes
+          // - Transformation in JSON
+          // - Performance and resource requirements of the API
+          // - CORS policy / support
+
+          const SnakeService = {
+
+              DATASOURCE_URL: `${BASE}/xmex!`,
+              DATASOURCE_STORAGE: "Example_of_Snake snake",
+              BOARD_ROWS: 31,
+              BOARD_COLS: 41,
+              PLAYERS_TIMEOUT: 5000,
+              PLAYERS_TIMEOUT_JOIN: 1000 *15,
+              INTERRUPT: 250,
+              WAIT:      250 *4,
+
+              ticks:     0,
+              players:   null,
+              board:     null,
+              player:    null,
+              direction: null,
+              points:    null,
+
+              getTime() {
+                  const now = new Date();
+                  return now.getTime() -(now.getTimezoneOffset() *60 *1000);
+              },
+
+              showMessage(message, append) {
+                  if (typeof message === "object"
+                          && !!message.message
+                          && !!message.request) {
+                      const request = message.request;
+                      message = `${message.message}\nStatus: ${request.status}`;
+                      if (request.getResponseHeader("Message"))
+                          message += `\nMessage: ${request.getResponseHeader("Message")}`;
+                      if (request.getResponseHeader("Error"))
+                          message += `\nError: ${request.getResponseHeader("Error")}`;
+                  }
+                  message = `<p>${message}</p>`;
+                  if (append)
+                      document.body.innerHTML += message;
+                  else document.body.innerHTML = message;
+              },
+
+              initDatasource() {
+                  SnakeService.showMessage("Creating storage", true);
+                  const request = new XMLHttpRequest();
+                  request.open("PUT", SnakeService.DATASOURCE_URL, false);
+                  request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                  request.send();
+                  if (request.status === 201
+                          || request.status === 304)
+                      return;
+                  throw {message: "Datasource not available", request: request};
+              },
+
+              initStorage() {
+                  SnakeService.showMessage("Creating data structure in storage", true);
+                  const request = new XMLHttpRequest();
+                  request.open("PUT", `${SnakeService.DATASOURCE_URL}/snake[not(players)][not(board)]::last`, false);
+                  request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                  request.setRequestHeader("Content-Type", "application/xml");
+                  request.send(""
+                          + `<players timeout="${SnakeService.PLAYERS_TIMEOUT}">`
+                          + `  <a color="#000000" touch=""/>`
+                          + `  <b color="#0000FF" touch=""/>`
+                          + `  <c color="#00FF00" touch=""/>`
+                          + `  <d color="#00FFFF" touch=""/>`
+                          + `  <e color="#FF0000" touch=""/>`
+                          + `  <f color="#FF00FF" touch=""/>`
+                          + `  <g color="#FFFF00" touch=""/>`
+                          + `  <h color="#FFFFFF" touch=""/>`
+                          + `</players>`
+                          + `<board rows="${SnakeService.BOARD_ROWS}" cols="${SnakeService.BOARD_COLS}"/>`
+                  );
+                  if (request.status !== 204
+                          && request.status !== 304)
+                      throw {message: "Service storage failed", request: request};
+              },
+
+              readPlayers() {
+                  SnakeService.showMessage("Reading player data", true);
+                  const request = new XMLHttpRequest();
+                  request.overrideMimeType("application/json");
+                  request.open("GET", `${SnakeService.DATASOURCE_URL}/snake/players!json`, false);
+                  request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                  request.send();
+                  if (request.status !== 200)
+                      throw {message: "Service players initialization failed", request: request};
+                  const players = JSON.parse(request.responseText);
+                  SnakeService.players = {};
+                  SnakeService.players.timeout = parseInt(players["@attributes"].timeout);
+                  SnakeService.players.list= {};
+                  let colors = "";
+                  for (let alias in players) {
+                      if (alias === "@attributes")
+                          continue;
+                      const player = players[alias];
+                      SnakeService.players.list[player["@attributes"].___uid] = {alias: alias, color: player["@attributes"].color};
+                      colors += ` *.${alias}{background:${player["@attributes"].color}}`;
+                  }
+                  const style = document.createElement("style");
+                  style.setAttribute("type", "text/css");
+                  style.innerHTML = colors;
+                  document.querySelector("html head").appendChild(style);
+              },
+
+              readBoard() {
+                  SnakeService.showMessage("Reading board data", true);
+                  const request = new XMLHttpRequest();
+                  request.overrideMimeType("application/json");
+                  request.open("GET", `${SnakeService.DATASOURCE_URL}/snake/board!json`, false);
+                  request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                  request.send();
+                  if (request.status !== 200)
+                      throw {message: "Service board initialization failed", request: request};
+                  const board = JSON.parse(request.responseText);
+                  SnakeService.board = {rows: parseInt(board["@attributes"].rows), cols: parseInt(board["@attributes"].cols)};
+              },
+
+              drawBord() {
+                  SnakeService.showMessage("Drawing board", true);
+                  let markup = "";
+                  for (let row = 0; row < SnakeService.board.rows; row++) {
+                      markup += "<tr>";
+                      for (let col = 0; col < SnakeService.board.cols; col++)
+                          markup += `<td id="${((row *SnakeService.board.cols) +col +1)}"></td>`;
+                      markup += "</tr>";
+                  }
+                  document.body.innerHTML += `<table id="board">${markup}</table>`
+                          + `<nav>`
+                          + `<button disabled>&nbsp;</button>`
+                          + `<button id=\"ArrowUp\">&#11205;</button>`
+                          + `<button disabled>&nbsp;</button>`
+                          + `<br/>`
+                          + `<button id=\"ArrowLeft\">&#11207;</button>`
+                          + `<button disabled>&nbsp;</button>`
+                          + `<button id=\"ArrowRight\">&#11208;</button>`
+                          + `<br/>`
+                          + `<button disabled>&nbsp;</button>`
+                          + `<button id=\"ArrowDown\">&#11206;</button>`
+                          + `<button disabled>&nbsp;</button>`
+                          + `</nav>`;
+              },
+
+              initScreenUpdate() {
+                  SnakeService.showMessage("Initializing screen update", true);
+                  window.setInterval(() => {
+                      const request = new XMLHttpRequest();
+                      request.overrideMimeType("application/json");
+                      request.open("GET", `${SnakeService.DATASOURCE_URL}//players//field!json`, false);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.send();
+                      if (request.status !== 200)
+                          return;
+
+                      let update = JSON.parse(request.responseText);
+                      if (!update.field)
+                          update = {field: [update]};
+
+                      window.setTimeout((updates) => {
+                          updates = updates.map((field) => {
+                              return field["@attributes"].id;
+                          });
+                          const fields = document.querySelectorAll("table td[class]");
+                          for (let loop = 0; loop < fields.length ; loop++)
+                              if (!updates.includes(fields[loop].id))
+                                  fields[loop].className = "";
+                      }, 0, update.field);
+
+                      window.setTimeout((updates) => {
+                          updates.forEach((field) => {
+                             field = field["@attributes"];
+                             (document.getElementById(field.id) || {}).className = field.player;
+                          });
+                      }, 0, update.field);
+                  }, 150);
+              },
+
+              initServerTouch() {
+                  SnakeService.showMessage("Initializing server touch", true);
+                  window.setInterval(() => {
+                      if (!SnakeService.player)
+                          return;
+                      const request = new XMLHttpRequest();
+                      request.open("PATCH", `${SnakeService.DATASOURCE_URL}//${SnakeService.player.alias}/@touch`, true);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.setRequestHeader("Content-Type", "text/plain");
+                      request.send(SnakeService.getTime());
+                  }, SnakeService.PLAYERS_TIMEOUT /2);
+              },
+
+              initPlayersCleanUp() {
+                  SnakeService.showMessage("Initializing players clean up", true);
+                  window.setInterval(() => {
+                      const timeout = SnakeService.getTime() -SnakeService.PLAYERS_TIMEOUT;
+                      const request = new XMLHttpRequest();
+                      request.open("PATCH", `${SnakeService.DATASOURCE_URL}//players/*[@touch<${timeout}]|//players/*[@touch='']`, true);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.setRequestHeader("Content-Type", "text/plain");
+                      request.send("");
+
+                      request.open("PATCH", `${SnakeService.DATASOURCE_URL}//players/*[@touch<${timeout}]/@touch`, true);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.setRequestHeader("Content-Type", "text/plain");
+                      request.send("");
+                  }, SnakeService.PLAYERS_TIMEOUT);
+              },
+
+              initKeyboardControl() {
+                  SnakeService.showMessage("Initializing keyboard control", true);
+                  const listener = (event) => {
+                      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key))
+                          SnakeService.direction = event.key;
+                  };
+                  document.addEventListener("keydown", listener);
+                  document.addEventListener("keyup", listener);
+                  document.addEventListener("click", (event) => {
+                      const key = event.target.id;
+                      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key))
+                          SnakeService.direction = key;
+                  });
+
+                  const action = () => {
+                      if (!SnakeService.player)
+                          return;
+                      if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(SnakeService.direction)
+                              || !SnakeService.points
+                              || SnakeService.points.length <= 0)
+                          return;
+                      let point = SnakeService.points[0];
+                      let reset = SnakeService.points[0];
+                      if (SnakeService.direction === "ArrowUp") {
+                          point -= SnakeService.board.cols;
+                          if (point < 1)
+                              point += SnakeService.board.rows *SnakeService.board.cols;
+                      } else if (SnakeService.direction === "ArrowDown") {
+                          point += SnakeService.board.cols;
+                          if (point > SnakeService.board.rows *SnakeService.board.cols)
+                              point -= SnakeService.board.rows *SnakeService.board.cols;
+                      } else if (SnakeService.direction === "ArrowLeft") {
+                          if (point % SnakeService.board.cols === 1)
+                              point += SnakeService.board.cols;
+                          point -= 1;
+                      } else if (SnakeService.direction === "ArrowRight") {
+                          if (point % SnakeService.board.cols === 0)
+                              point -= SnakeService.board.cols;
+                          point += 1;
+                      }
+
+                      const leap = Math.round((SnakeService.board.rows +SnakeService.board.cols) /2);
+                      SnakeService.points.unshift(point);
+                      if (++SnakeService.ticks % leap !== 0)
+                          SnakeService.points.pop();
+
+                      let update = "";
+                      for (let loop = 0; loop < SnakeService.points.length; loop++)
+                          update += `<field id="${SnakeService.points[loop]}" player="${SnakeService.player.alias}"/>`;
+
+                      const request = new XMLHttpRequest();
+                      request.open("PATCH", `${SnakeService.DATASOURCE_URL}//players[not(//field[@id=${SnakeService.points[0]}])]//${SnakeService.player.alias}`, false);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.setRequestHeader("Content-Type", "application/xml");
+                      request.send(update);
+                      if (request.status === 304) {
+                          SnakeService.points = [reset];
+                          SnakeService.direction = null;
+                          SnakeService.ticks = 0;
+                          SnakeService.interrupt = SnakeService.INTERRUPT;
+
+                          update = `<field id="${reset}" player="${SnakeService.player.alias}"/>`;
+                          request.open("PATCH", `${SnakeService.DATASOURCE_URL}//players//${SnakeService.player.alias}`, false);
+                          request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                          request.setRequestHeader("Content-Type", "application/xml");
+                          request.send(update);
+                      }
+
+                      // The speed increases with the length of the snake.
+                      if (SnakeService.points) {
+                          const interrupt = Math.max(100, SnakeService.INTERRUPT -((SnakeService.points.length -1) *2));
+                          if (SnakeService.interrupt != interrupt) {
+                              SnakeService.interrupt = interrupt;
+                              clearInterval(SnakeService.action);
+                              SnakeService.action = window.setInterval(action, SnakeService.interrupt);
+                          }
+                      }
+                  }
+
+                  SnakeService.interrupt = SnakeService.INTERRUPT;
+                  SnakeService.action = window.setInterval(action, SnakeService.interrupt);
+              },
+
+              join() {
+                  SnakeService.showMessage("Waiting to join (a free player place is required)", true);
+                  const timeout = new Date().getTime() +SnakeService.PLAYERS_TIMEOUT_JOIN;
+                  const join = (timeout) => {
+                      if (new Date().getTime() > timeout)
+                          throw "No free player place found."
+                      const request = new XMLHttpRequest();
+                      request.open("PATCH", `${SnakeService.DATASOURCE_URL}//players/*[@touch=''][1]/@touch`, false);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.setRequestHeader("Content-Type", "text/plain");
+                      request.send(SnakeService.getTime());
+                      if (request.status === 304) {
+                          window.setTimeout(join, SnakeService.WAIT, timeout);
+                          return;
+                      }
+                      if (request.status !== 204)
+                          throw {message: "Service join failed", request: request};
+
+                      const revision = request.getResponseHeader("Storage-Revision").replaceAll(/\/.*$/g, "");
+                      request.open("GET", `${SnakeService.DATASOURCE_URL}//players/*[@___rev='${revision}']/@___uid`, false);
+                      request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.send();
+                      if (request.status !== 200)
+                          throw {message: "Service join failed", request: request};
+
+                      const player = SnakeService.players.list[request.responseText];
+                      SnakeService.showMessage(`You joined as player ${player.alias.toUpperCase()}`
+                              + ` <span class="player ${player.alias}"></span>`, true);
+                      SnakeService.player = player;
+
+                      SnakeService.showMessage("Waiting for the free start position (center of the pitch)", true);
+                      const start = () => {
+                          const center = Math.ceil(SnakeService.board.rows *SnakeService.board.cols /2);
+                          const patch = `<field id="${center}" player="${SnakeService.player.alias}"/>`;
+                          const request = new XMLHttpRequest();
+                          request.open("PATCH", `${SnakeService.DATASOURCE_URL}/snake[not(//field/@id='${center}')]//${SnakeService.player.alias}`, false);
+                          request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                          request.setRequestHeader("Content-Type", "application/xml");
+                          request.send(patch);
+                          if (request.status === 304) {
+                              window.setTimeout(start, SnakeService.WAIT);
+                              return;
+                          }
+                          if (request.status !== 204)
+                              throw {message: "Service player start failed", request: request};
+                          SnakeService.showMessage("Position is free, you can start", true);
+                          SnakeService.points = [center];
+                          SnakeService.initKeyboardControl();
+                          SnakeService.initServerTouch();
+                          window.setTimeout(() => {
+                              document.querySelectorAll("p").forEach((paragraph) => {
+                                  paragraph.parentNode.removeChild(paragraph);
+                              });
+                              document.querySelector("table").style.display = "block";
+                              document.querySelector("nav").style.display = "block";
+                          }, 1000);
+                      };
+                      start();
+                  };
+                  join(timeout);
+              }
+          };
+
+          window.addEventListener("error", (message) => {
+              SnakeService.showMessage(message);
+          });
+
+          SnakeService.initDatasource();
+          SnakeService.initStorage();
+          SnakeService.readPlayers();
+          SnakeService.readBoard();
+          SnakeService.drawBord();
+          SnakeService.initScreenUpdate();
+          SnakeService.initPlayersCleanUp();
+          SnakeService.join();
+      });
+    </script>
+  </head>
+  <body/>
+</html>
