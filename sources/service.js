@@ -235,7 +235,7 @@ const XMEX_CONTENT_REDIRECT = Runtime.getEnv("XMEX_CONTENT_REDIRECT")
 
 const XMEX_STORAGE_DIRECTORY = Runtime.getEnv("XMEX_STORAGE_DIRECTORY", "./data")
 const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE", "256K"))
-const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s")) *1000
+const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s"))
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
 const XMEX_STORAGE_REVISION_TYPE = (XMEX_DEBUG_MODE || Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "").toLowerCase() === "serial") ? "serial" : "timestamp";
 
@@ -1491,7 +1491,7 @@ class Storage {
 
         // Pseudo elements can be used to delete in an XML substructure relative
         // to the selected element.
-        if (!String.isEmpty(pseudo)) {
+        if (pseudo) {
             if (pseudo === "before") {
                 const childs = []
                 targets.forEach((target) => {
@@ -1533,7 +1533,7 @@ class Storage {
                 if (!Object.exists(target.parentNode)
                         || ![XML_ELEMENT_NODE, XML_DOCUMENT_NODE].includes(target.parentNode.nodeType))
                     return
-                parent = target.parentNode
+                const parent = target.parentNode
                 parent.removeChild(target)
                 this.serial++
                 if (parent.nodeType === XML_DOCUMENT_NODE) {
@@ -1672,7 +1672,7 @@ class Storage {
                             : CONTENT_TYPE_TEXT
                     if (Object.getClassName(data) === "Document")
                         data = new XMLSerializer().serializeToString(data)
-                    if (typeof data === "string")
+                    if (typeof data !== "string")
                         data = String(data)
                 }
                 headers["Content-Length"] = data.byteLength()
