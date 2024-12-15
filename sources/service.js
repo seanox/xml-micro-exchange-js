@@ -192,9 +192,26 @@ Object.exists = function(object) {
         && object !== null
 }
 
-String.isEmpty = function(string) {
-    return !Object.exists(string)
-        || string.trim() === ""
+Object.getClassName = function(object) {
+    if (typeof object === "object"
+            && Object.getPrototypeOf(object)
+            && Object.getPrototypeOf(object).constructor)
+        return Object.getPrototypeOf(object).constructor.name
+    return null
+}
+
+String.isEmpty = function(object) {
+    return !Object.exists(object)
+        || (typeof object === "string" && object.trim() === "")
+}
+
+// In JavaScript, the length of a UTF-8 encoded string can sometimes appear
+// incorrect, especially when using characters that require more than one byte.
+// Unicode characters that are outside the Basic Multilingual Plan (BMP) are
+// stored as multiple bytes in UTF-8, which can lead to confusion when
+// calculating the string length.
+String.prototype.byteLength = function() {
+    return Buffer.byteLength(this, "utf8")
 }
 
 const XMEX_DEBUG_MODE = Runtime.getEnv("XMEX_DEBUG_MODE", "off")
@@ -298,10 +315,9 @@ XPath.select = function(...variable) {
 JSON.stringify$ = JSON.stringify
 JSON.stringify = function(...variable) {
     if (variable.length > 0
-            && (variable[0] instanceof Document
-                    || variable[0] instanceof XMLDocument))
-        return JSON.stringify$(JSON.stringify$xml(variable[0].documentElement))
-    return JSON.stringify$(...variable)
+            && Object.getClassName(variable[0]) === "Document")
+        return String(JSON.stringify$(JSON.stringify$xml(variable[0].documentElement)))
+    return String(JSON.stringify$(...variable))
 }
 JSON.stringify$xml = function(xml) {
     let result = {}
@@ -568,7 +584,7 @@ class Storage {
      */
     getSize() {
         if (Object.exists(this.xml))
-            return new XMLSerializer().serializeToString(this.xml).length
+            return new XMLSerializer().serializeToString(this.xml).byteLength()
         if (Object.exists(this.share))
             return fs.fstatSync(this.share).size
         if (Object.exists(this.store)
@@ -1568,7 +1584,7 @@ class Storage {
             return
 
         let output = new XMLSerializer().serializeToString(this.xml)
-        if (output.length > Storage.SPACE)
+        if (output.byteLength() > Storage.SPACE)
             this.quit(413, "Payload Too Large")
         fs.ftruncateSync(this.share, 0)
         fs.writeSync(this.share, output)
@@ -1646,27 +1662,26 @@ class Storage {
             if (Object.exists(data)) {
                 if (this.options.includes("json")) {
                     headers["Content-Type"] = Storage.CONTENT_TYPE_JSON
-                    if (data instanceof Document
-                            || data instanceof XMLDocument)
+                    if (Object.getClassName(data) === "Document")
                         data = new XMLSerializer().serializeToString(data)
                     data = JSON.stringify(data)
                 } else {
                     if (!headers.hasOwnProperty("Content-Type"))
-                        headers["Content-Type"] = (data instanceof Document
-                                || data instanceof XMLDocument)
+                        headers["Content-Type"] = Object.getClassName(data) === "Document"
                             ? CONTENT_TYPE_XML
                             : CONTENT_TYPE_TEXT
-                    if ($data instanceof DOMDocument
-                            || $data instanceof SimpleXMLElement)
+                    if (Object.getClassName(data) === "Document")
                         data = new XMLSerializer().serializeToString(data)
+                    if (typeof data === "string")
+                        data = String(data)
                 }
-                headers["Content-Length"] = data.length
+                headers["Content-Length"] = data.byteLength()
             }
         } else data = null
 
         for (let [key, value] of Object.entries(headers)) {
-            value = value.trim().replace(/[\r\n]+/g, " ")
-            if (value.trim().length > 0)
+            value = String(value).replace(/[\r\n]+/g, " ").trim()
+            if (value.length > 0)
                 this.response.setHeader(key, value)
             else this.response.removeHeader(key)
         }
@@ -1929,7 +1944,7 @@ class ServerFactory {
         // recognition, the context path should always end with a symbol.
         let xpath = request.url.substring(ServerFactory.CONNECTION_CONTEXT.length)
         if (xpath.match(PATTERN_HEX))
-            xpath = String.fromCharCode(parseInt(xpath.substring(1), 16)).trim()
+            xpath = Buffer.from(xpath.substring(1), "hex").toString("ascii").trim()
         else if (xpath.match(PATTERN_BASE64))
             xpath = Buffer.from(xpath.substring(1), "base64").toString("ascii").trim()
         else xpath = decodeURIComponent(xpath).trim()
@@ -2009,8 +2024,11 @@ class ServerFactory {
                 // Loading RequestBody is limited to the methods PATH/PUT/POST.
                 // It does not cause HTTP error status, the data is ignored.
                 let method = request.method.toUpperCase()
-                if (!["PATCH", "POST", "PUT"].includes(method))
+                if (!["PATCH", "POST", "PUT"].includes(method)) {
+                    if (XMEX_DEBUG_MODE)
+                        request.data = data
                     return
+                }
 
                 // It must be a valid storage, existence will be checked later.
                 // It does not cause HTTP error status, the data is ignored.
@@ -2033,7 +2051,7 @@ class ServerFactory {
                 if (request.data.length +data.length > ServerFactory.STORAGE_SPACE) {
                     request.data = ""
                     request.error = [415, "Payload Too Large"]
-                } else request.data += data
+                } else request.data = data
             })
 
             request.on("end", () => {
