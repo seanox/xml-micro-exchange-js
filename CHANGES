@@ -1,4 +1,4 @@
-1.5.0 2024xxxx
+1.6.0 2024xxxx
 BF: Build: Optimization / correction
 BF: Build: Optimization / correction of the release info process
 BF: Build: Update of dependencies
@@ -7,6 +7,21 @@ CR: Service: A missing certificate file only causes a warning
 CR: Documentation: Update of OpenAPI
 CR: Service: Optimization of the configuration via environment variables
     Simplifies the provision as a container.
+    - XMEX_URI_XPATH_DELIMITER: XPath delimiter in the URI (!)
+    - XMEX_STORAGE_DIRECTORY: Directory of the data storage (./data)
+    - XMEX_STORAGE_QUANTITY: Maximum number of files in data storage (65535)
+    - XMEX_STORAGE_SPACE: Maximum data size of files in data storage in bytes (256 *1024)
+    - XMEX_STORAGE_EXPIRATION: Maximum idle time of the files in seconds (15 *60)
+    - XMEX_STORAGE_REVISION_TYPE: Basis of the revision number (timestamp)
+    - XMEX_DEBUG_MODE: Activates debug mode for unit tests (off)
+    - XMEX_CONTAINER_MODE: Activates debug mode for unit tests (off)
+    TODO:
+CR: Service: Added HTTP method CONNECT (analog to the PHP version)
+CR: Service: Review and optimization of OPTIONS
+    - Omission of the response header Storage-Effects.
+    - Omission as an alternative to CONNECT.
+      If CONNECT is not allowed use TOUCH.
+      If TOUCH is not allowed use PUT without XPath.
 CR: Storage: Review and optimization
   - The name now allows word characters and minus, if the minus is not at the
     beginning and not at the end.
