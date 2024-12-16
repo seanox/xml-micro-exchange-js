@@ -2028,7 +2028,7 @@ class ServerFactory {
                 let method = request.method.toUpperCase()
                 if (!["PATCH", "POST", "PUT"].includes(method)) {
                     if (XMEX_DEBUG_MODE)
-                        request.data = data
+                        request.data += data
                     return
                 }
 
@@ -2053,7 +2053,7 @@ class ServerFactory {
                 if (request.data.length +data.length > ServerFactory.STORAGE_SPACE) {
                     request.data = ""
                     request.error = [413, "Payload Too Large"]
-                } else request.data = data
+                } else request.data += data
             })
 
             request.on("end", () => {
@@ -2064,13 +2064,28 @@ class ServerFactory {
                     request.timing = Date.now()
                     request.data = Object.exists(request.data) ? request.data : ""
 
-                    if (Object.exists(request.error))
-                        response.quit(...request.error)
+                    const REQUEST_TYPE_SERVICE = 0
+                    const REQUEST_TYPE_ACME = 1
+                    const REQUEST_TYPE_CONTENT = 2
 
                     const requestUrl = decodeURI(request.url)
-                    if (ServerFactory.ACME_CHALLENGE
-                            && ServerFactory.ACME_TOKEN
-                            && requestUrl.toLowerCase() === ServerFactory.ACME_CHALLENGE.toLowerCase())
+                    const requestType = ((requestUrl) => {
+                        if (ServerFactory.ACME_CHALLENGE
+                                && ServerFactory.ACME_TOKEN
+                                && requestUrl === ServerFactory.ACME_CHALLENGE)
+                            return REQUEST_TYPE_ACME
+                        if (!requestUrl.startsWith(ServerFactory.CONNECTION_CONTEXT))
+                            return REQUEST_TYPE_CONTENT
+                        return REQUEST_TYPE_SERVICE
+                    })(requestUrl)
+
+                    if (Object.exists(request.error)) {
+                        if (requestType === REQUEST_TYPE_SERVICE)
+                            (new Storage(request, response)).quit(...request.error)
+                        else response.quit(...request.error)
+                    }
+
+                    if (requestType === REQUEST_TYPE_ACME)
                         response.quit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
 
                     // The API should always use a context path so that the
@@ -2081,7 +2096,7 @@ class ServerFactory {
                     // normal HTTP server. Otherwise the requests are answered
                     // with status 404.
 
-                    if (!decodeURI(request.url).startsWith(ServerFactory.CONNECTION_CONTEXT))
+                    if (requestType === REQUEST_TYPE_CONTENT)
                         ServerFactory.onContentRequest(request, response)
 
                     ServerFactory.onServiceRequest(request, response)
