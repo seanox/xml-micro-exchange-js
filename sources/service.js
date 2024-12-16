@@ -1125,7 +1125,10 @@ class Storage {
                 let replace = target.cloneNode(false)
                 replace.appendChild(this.xml.createTextNode(input))
                 replace = this.xml.importNode(replace, true)
-                target.parentNode.replaceChild(replace, target)
+                if (this.xml.documentElement === target) {
+                    this.xml.removeChild(target);
+                    this.xml.appendChild(replace);
+                } else target.parentNode.replaceChild(replace, target)
                 // Because text nodes have no attributes, the serial must be
                 // increased manually, even if the change is then only partially
                 // traceable. But without incrementing the serial, there is no
