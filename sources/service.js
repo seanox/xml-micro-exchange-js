@@ -1188,7 +1188,7 @@ class Storage {
         if (xml.documentElement.hasChildNodes()) {
             const targets = XPath.select(xpath, this.xml)
             if (targets instanceof Error) {
-                let message = "Invalid XPath axis (" + targets.message + ")"
+                let message = `Invalid XPath axis (${targets.message})`
                 this.quit(400, "Bad Request", {Message: message})
             }
 
@@ -1488,7 +1488,7 @@ class Storage {
 
         let targets = XPath.select(xpath, this.xml)
         if (targets instanceof Error) {
-            const message = "Invalid XPath axis (" + targets.message + ")"
+            const message = `Invalid XPath axis (${targets.message})`
             this.quit(400, "Bad Request", {Message: message})
         }
 
