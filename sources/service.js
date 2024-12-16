@@ -1591,7 +1591,7 @@ class Storage {
         if (output.byteLength() > Storage.SPACE)
             this.quit(413, "Payload Too Large")
         fs.ftruncateSync(this.share, 0)
-        fs.writeSync(this.share, output)
+        fs.writeSync(this.share, output, 0, output.length, 0)
 
         if (Storage.DEBUG_MODE) {
             const unique = this.unique.padStart(3, "0")
