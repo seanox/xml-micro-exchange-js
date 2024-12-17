@@ -2031,7 +2031,7 @@ class ServerFactory {
                 let method = request.method.toUpperCase()
                 if (!["PATCH", "POST", "PUT"].includes(method)) {
                     if (XMEX_DEBUG_MODE)
-                        request.data += data
+                        request.data = (request.data ?? "") + data
                     return
                 }
 
@@ -2056,7 +2056,7 @@ class ServerFactory {
                 if (request.data.length +data.length > ServerFactory.STORAGE_SPACE) {
                     request.data = ""
                     request.error = [413, "Payload Too Large"]
-                } else request.data += data
+                } else request.data = (request.data ?? "") + data
             })
 
             request.on("end", () => {
