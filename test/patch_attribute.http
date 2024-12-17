@@ -1,10 +1,9 @@
 # Test sequence for putting of attributes to storage elements.
 
-# PATCH changes existing elements and attributes in storage.
-# The position for the insert is defined via an XPath.
-# The method works almost like PUT, but the XPath axis of the request
-# always expects an existing target.
-# XPath uses different notations for elements and attributes.
+# PATCH changes existing elements and attributes in storage. The position for
+# the insert is defined via an XPath. The method works almost like PUT, but the
+# XPath axis of the request always expects an existing target. XPath uses
+# different notations for elements and attributes.
 
 ###
 # Storage is not establish 
@@ -18,7 +17,13 @@ test
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4db0d1a70080997eaf69635725c7dbac");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "1cddf083c4efaecb0b6fda39895c955e");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "098f6bcd4621d373cade4e832627b4f6");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1a3b8937cde8aa40ce5ffe8d389146ec");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
 });
 %}
 
@@ -26,19 +31,29 @@ client.test("unittest", function() {
 # Initial request to establish the storage
 # Expectations:
 # - Status code 201 Resource Created
-OPTIONS {{service}} HTTP/1.0
+# - Storage-Revision: 1/1
+#- Storage-Space: 262144/72 bytes
+PUT {{service}} HTTP/1.0
 Storage: {{storage_patch_attribute}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1e7e3cafb22f498cfb644e1aec425e28");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b064518214ba578ef590d162ae445172");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "def45bd3412ae4318e0584ec3fe05b43");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "9b848a02e2215be15f5327c191eadab3");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "90e5f8a2884ecb0f5669c01376905d97");
 });
 %}
 
 ###
 # Attribute does not exist
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 1/0
+# - Storage-Space: 262144/72 bytes
 PATCH {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -47,18 +62,25 @@ test_value<1>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1f863939383ae3a79f0ab9918ecee4c1");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2f60efc8bc9449802775b699b2596a1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "7708845ab23191f75648bb48f761f082");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "7ef61ccbfcbebc95f981f22a6aa56534");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "90e5f8a2884ecb0f5669c01376905d97");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
+# - Storage-Revision: 2/1
+# - Storage-Space: 262144/100 bytes
 # - In the storage the attribute is added
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
-# - Storage-Effects: 1x UID
 PUT {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -67,18 +89,25 @@ test_value<1>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c72b47d21e3735e124cfc9637a53fa8a");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "08cea1cc47a20ce28b1025bfd579921a");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2f60efc8bc9449802775b699b2596a1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "7708845ab23191f75648bb48f761f082");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "20635ca88598d484d8a854d37f71e811");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "89b8c47c594a9013c6dcb887d3ba6de9");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
+# - Storage-Revision: 3/1
+# - Storage-Space: 262144/100 bytes
 # - In the storage the attribute is patched
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
-# - Storage-Effects: 1x UID
 PATCH {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -87,7 +116,13 @@ test_value<2>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e10bd75c85ecbc9a3fe40e74b559f911");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2f60efc8bc9449802775b699b2596a1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "5a027a72abf28e88dc29549b6ed8958b");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "31ac84f2667cb2c491f2169bcf88c0af");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0d7163af3725faa7cf9abce4528221a6");
 });
 %}
 
@@ -96,13 +131,14 @@ client.test("unittest", function() {
 # Use of brackets should not be a problem
 # Expectations:
 # - Status code 204 No Content
+# - Storage-Revision: 4/1
+# - Storage-Space: 262144/141 bytes
 # - In the storage the attribute is patched
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
 # - Double quotation marks and the & are encoded correctly
 # - Unicode characters are inserted as UTF-8
-# - Storage-Effects: 1x UID
 PATCH {{service}}(/books)/attribute::attrA HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -111,7 +147,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7147dbd3ea2f3732501fe89f85584f39");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "a3161e6e67d7bb5264259d8e8e16e751");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "5a4d9644fcbb15e41cf553a87291e212");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "91c95f22c1d5a4ddfda3913e07905712");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e9f0a1abc8bc9ff7785538e085078bf7");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "230b5889b14c6856c411a0cc40eea7aa");
 });
 %}
 
@@ -119,11 +161,12 @@ client.test("unittest", function() {
 # Using XPath function should work.
 # Expectations:
 # - Status code 204 No Content
+# - Storage-Revision: 5/1
+# - Storage-Space: 262144/91 bytes
 # - In the storage the attribute is patched
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
-# - Storage-Effects: 1x UID
 # - Double quotation marks and the & are encoded correctly
 # - As value books is used
 PATCH {{service}}/books/attribute::attrA HTTP/1.0
@@ -134,7 +177,13 @@ concat(name(/*), "-Test")
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4d67457addafa7729095cea2e28081be");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "8fb8cefdd17d9777d74d1f461c93031d");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "71653560d3ec1998ee14b70dea65a4e3");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c25202c0091184cc37ffe2beb1835d38");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "32dbe7add06aab85ed026d081b72b4fd");
 });
 %}
 
@@ -142,7 +191,7 @@ client.test("unittest", function() {
 # Using invalid XPath function should not cause problems.
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Invalid XPath function (Invalid expression)
+# - Message: Invalid XPath function (XPath parse error)
 PATCH {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/xpath
@@ -151,7 +200,13 @@ name(/+)
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "aa3105d382552e03558145e452bee431");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "765135bf530dfe743f99550dddee3f21");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "1bc14c022d435505a531c29b225265c3");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "cfbf344b7a9ad579705c30c6a90f91e0");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "32dbe7add06aab85ed026d081b72b4fd");
 });
 %}
 
@@ -161,11 +216,12 @@ client.test("unittest", function() {
 # the previously inserted unicode.
 # Expectations:
 # - Status code 204 No Content
+# - Storage-Revision: 6/1
+# - Storage-Space: 262144/100 bytes
 # - In the storage the attribute is patched
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
-# - Storage-Effects: 1x UID
 PATCH {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -174,7 +230,13 @@ test_value<1>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c7c7182d41b6fa0ca6d0d50c23e71be3");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2f60efc8bc9449802775b699b2596a1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "7708845ab23191f75648bb48f761f082");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "5b02eb7b35336b181f067543eda4e2e6");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "5d29ab658da9623152522ecf416f8b76");
 });
 %}
 
@@ -185,7 +247,8 @@ client.test("unittest", function() {
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
-# - Storage-Effects: 1x UID
+# - Storage-Revision: 7/1
+# - Storage-Space: 262144/124 bytes
 # - Double quotation marks and the & are encoded correctly
 # - As value books is used
 PUT {{service}}/books/@attrB HTTP/1.0
@@ -196,7 +259,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fd71aee047bdb3c46bd358859ef14f1b");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "8e06f172d26bba01683878eb66762ae7");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b4c61d297ab1069bd9f1914608666258");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "a3e7cfc1f93473ff00d4e2dfa483248e");
 });
 %}
 
@@ -212,7 +281,13 @@ Content-Type: text/plain-x
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a605415fb004de81e1cddb3bc4c0eec4");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "599942796ed18401c00fc85ff6affdd5");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "b44c8240027faac61d1a35bfc3c953ea");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "8add73aba839b154b44c7121cd173803");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "a3e7cfc1f93473ff00d4e2dfa483248e");
 });
 %}
 
@@ -220,7 +295,8 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - In the storage the attribute is patched
-# - Storage-Effects: 1x UID
+# - Storage-Revision: 8/1
+# - Storage-Space: 262144/128 bytes
 # - Storage-Revision is increased
 # - Storage-Space is used more
 # - Storage-Expiration is extended
@@ -233,14 +309,22 @@ test_value<2>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "209ca501d9a49a0c182558a4284ad202");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "599942796ed18401c00fc85ff6affdd5");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2f60efc8bc9449802775b699b2596a1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "5a027a72abf28e88dc29549b6ed8958b");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b9a495f97d1471f34897e5b66775a3ab");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # Everything is case sensitive and therefore the attribute can't be found.
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 PATCH {{service}}/books/@attrb HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -249,15 +333,22 @@ test_value<2>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a4a9327742d5074c6c4d7962c962bb0f");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "99f375545c3aa534ff52d4a638988aa5");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c2f60efc8bc9449802775b699b2596a1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "5a027a72abf28e88dc29549b6ed8958b");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # Expectations:
-# - Status code 204 No Content
+# - Status code 304 Not Modified
 #   attribute ___rev is ignored, but does not cause errors
-# - Response without Storage-Effects header
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 # - Storage-Revision is not increased
 # - Storage-Expiration is extended
 PATCH {{service}}/books/@___rev HTTP/1.0
@@ -268,15 +359,22 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0b5edcf7e43b7731ca06a5e19a5db57b");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "c01d954b2f5d8c0826eb08b573bf1498");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # Expectations:
-# - Status code 204 No Content
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 #   attribute ___uid is ignored, but does not cause errors
-# - Response without Storage-Effects header
 # - Storage-Revision is not increased
 # - Storage-Expiration is extended
 PATCH {{service}}/books/@___uid HTTP/1.0
@@ -287,16 +385,23 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "64acfe28e145b837ac0c97971a62e1bd");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "c51bd33388a7d4f74a64ca0aef64a739");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # No attributes can be set in the document.
 # Expectations:
-# - Status code 204 No Content
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 #   the addressing of the XML document is detected
-# - Response without Storage-Effects header, such a request has no effect
 # - Storage-Revision is not increased
 # - Storage-Expiration is extended
 PUT {{service}}/@attrF HTTP/1.0
@@ -307,7 +412,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f3504649622e6e5291077d1fcad53e7c");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4e1076d7de50c0c273bff5b991020b36");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
@@ -315,7 +426,9 @@ client.test("unittest", function() {
 # No attributes can be set in the document.
 # Therefore none is found and status 404 occurs.
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 PATCH {{service}}/@attrF HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -324,14 +437,22 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c1478c4eb0247e434e43608343741c5f");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "2e075ca15836d46db71a9ac07ca16841");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # PATCH can only set attributes that exist
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 PATCH {{service}}/books/@attrE HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/xpath
@@ -340,7 +461,13 @@ Content-Type: text/xpath
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6d76423a6f322e023cad674438462828");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "ddb5ec8dc496516ae4a36da4657b8f6e");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "568f6045c4fe7aaae01b260ab2f44ddd");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "96ce033aedb11790a7b97aa65b9013c9");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
@@ -357,7 +484,13 @@ Content-Type: text/xpath
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6c1dd999b7c266c850534699342528f4");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "599942796ed18401c00fc85ff6affdd5");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "568f6045c4fe7aaae01b260ab2f44ddd");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "96ce033aedb11790a7b97aa65b9013c9");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "86d8fd87c9219e91407a387312139796");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
@@ -365,7 +498,7 @@ client.test("unittest", function() {
 # XPath with wrong function
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Invalid XPath function (Unregistered function)
+# - Message: Invalid XPath function (Unknown function wrong)
 PATCH {{service}}/books/@attrB HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/xpath
@@ -374,7 +507,13 @@ wrong(.)
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "290e7490aa6f39c00416d9e2292a081b");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "599942796ed18401c00fc85ff6affdd5");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "765135bf530dfe743f99550dddee3f21");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "1c9aa69a02e388d260e0dc1583a63a08");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "43bfaf862c907e060503b3ac0ba23515");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
@@ -382,9 +521,11 @@ client.test("unittest", function() {
 # PATCH outside the root element, shall be ignored
 # but PATCH can only set attributes that exist
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 # - URI: //books/../@___xxx
-PATCH {{service}}0x2f2f626f6f6b732f2e2e2f405f5f5f787878 HTTP/1.0
+PATCH {{service}}?2f2f626f6f6b732f2e2e2f405f5f5f787878 HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
 
@@ -392,7 +533,13 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "255cd05dec3888021f0cf5958f6e0480");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "c248c75c0a632cd5a5551c14f1a17294");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
@@ -400,9 +547,12 @@ client.test("unittest", function() {
 # PATCH outside the root element, shall be ignored
 # but PATCH can only set attributes that exist
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
+# - Message: Invalid XPath (Functions are not supported)
 # - URI: /*/../@___xxx
-PATCH {{service}}0x2f2a2f2e2e2f405f5f5f787878 HTTP/1.0
+PATCH {{service}}?2f2a2f2e2e2f405f5f5f787878 HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
 
@@ -410,14 +560,22 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b3f37b9f279ffa88bc319c01c2af62fa");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "db469fbc0d1c7d58da27c98e3c75bfeb");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # XPath without target
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 PATCH {{service}}/wrong/@new HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -426,14 +584,22 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "540dac367dfaaa402afd34a240627448");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "ac90d4443d56e84cf90ca176b6a9156a");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
 
 ###
 # XPath without target
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 8/0
+# - Storage-Space: 262144/128 bytes
 PATCH {{service}}/wrong/wrong/@new HTTP/1.0
 Storage: {{storage_patch_attribute}}
 Content-Type: text/plain
@@ -442,8 +608,12 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "84451cd2f991a4ade9d686e9952a194b");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "3761132e9b0fa7ee2526b0223ee38c3f");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "529a22c4357bbb8ba0ecbdafc8a8226f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "148e84514e712a6732eda6f11ae9a0ac");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
 });
 %}
-
-###
