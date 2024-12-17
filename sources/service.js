@@ -239,8 +239,6 @@ const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
 const XMEX_STORAGE_REVISION_TYPE = (XMEX_DEBUG_MODE || Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "").toLowerCase() === "serial") ? "serial" : "timestamp";
 
-const XMEX_TEMP_DIRECTORY = Runtime.getEnv("XMEX_TEMP_DIRECTORY", "./temp")
-
 const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
@@ -847,6 +845,144 @@ class Storage {
             result = result ? "true" : "false"
 
         this.quit(200, "Success", null, result)
+    }
+
+    /**
+     * POST queries data about XPath axes and functions via transformation. For
+     * this, an XSLT stylesheet is sent with the request-body, which is then
+     * applied by the XSLT processor to the data in storage. Thus the content
+     * type application/xslt+xml is always required. The client defines the
+     * content type for the output with the output-tag and the method-attribute.
+     * The XPath is optional for this method and is used to limit and preselect
+     * the data. The processing is strict and does not accept unnecessary
+     * spaces.
+     *
+     *     Request:
+     * POST /<xpath> HTTP/1.0
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+     * Content-Length: (bytes)
+     * Content-Type: application/xslt+xml
+     *     Request-Body:
+     * XSLT stylesheet
+     *
+     *     Response:
+     * HTTP/1.0 200 Success
+     * Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+     * Storage-Revision: Revision (number/changes)
+     * Storage-Space: Total/Used (bytes)
+     * Storage-Last-Modified: Timestamp (RFC822)
+     * Storage-Expiration: Timestamp (RFC822)
+     * Storage-Expiration-Time: Expiration (milliseconds)
+     * Content-Length: (bytes)
+     *     Response-Body:
+     * The result of the transformation
+     *
+     *     Response codes / behavior:
+     *         HTTP/1.0 200 Success
+     * - Request was successfully executed
+     *         HTTP/1.0 204 Success
+     * - Request was successfully, but without content
+     *         HTTP/1.0 400 Bad Request
+     * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
+     * - XPath is missing or malformed
+     * - XSLT Stylesheet is erroneous
+     *         HTTP/1.0 404 Resource Not Found
+     * - Storage file does not exist
+     *         HTTP/1.0 415 Unsupported Media Type
+     * - Attribute request without Content-Type text/plain
+     *         HTTP/1.0 422 Unprocessable Entity
+     * - Data in the request body cannot be processed
+     *         HTTP/1.0 500 Internal Server Error
+     * - An unexpected error has occurred
+     * - Response header Error contains an unique error number as a reference to
+     *   the log file with more details
+     */
+    doPost() {
+
+        // POST always expects an valid XSLT template for transformation.
+        const media = (this.request.headers["content-type"] || "").toLowerCase()
+        if (![CONTENT_TYPE_XSLT].includes(media))
+            this.quit(415, "Unsupported Media Type")
+
+        if (this.xpath.match(PATTERN_XPATH_FUNCTION)) {
+            const message = "Invalid XPath (Functions are not supported)"
+            this.quit(400, "Bad Request", {Message: message})
+        }
+
+        // POST always expects an valid XSLT template for transformation.
+        if (this.request.data.trim().length <= 0)
+            this.quit(422, "Unprocessable Entity", {Message: "Unprocessable Entity"})
+
+        let xml = this.xml
+        if (this.xpath !== "") {
+            xml = new XML.createDocument()
+            let targets = XPath.select(this.xpath, this.xml)
+            if (targets instanceof Error) {
+                let message = `Invalid XPath axis (${targets.message})`
+                this.quit(400, "Bad Request", {Message: message})
+            }
+            if (!Object.exists(targets)
+                    || targets.length <= 0)
+                this.quit(204, "No Content")
+            if (targets.length === 1) {
+                let target = targets[0]
+                if (target.nodeType === XML_ATTRIBUTE_NODE)
+                    target = xml.createElement(target.name, target.value)
+                xml.appendChild(target.cloneNode(true))
+            } else {
+                let collection = xml.createElement("collection")
+                targets.forEach((target) => {
+                    if (target.nodeType === XML_ATTRIBUTE_NODE)
+                        target = xml.createElement(target.name, target.value)
+                    collection.appendChild(target.cloneNode(true))
+                })
+                xml.appendChild(collection)
+            }
+        }
+
+        let style = new DOMParser().parseFromString(this.request.data)
+        if (!Object.exists(style)
+                || style instanceof Error) {
+            let message = "Invalid XSLT stylesheet"
+            if (xml instanceof Error)
+                message += ` (${xml.message})`
+            this.quit(422, "Unprocessable Entity", {Message: message})
+        }
+
+        let tempStyle = this.createTempFile()
+        fs.writeFileSync(tempStyle, this.request.data)
+
+        let tempXml = this.createTempFile()
+        fs.writeFileSync(tempXml, new XMLSerializer().serializeToString(xml))
+
+        // XML/XSLT support in node-js is not the best.
+        // Therefore the indirection via libxml2 :-|
+        let output = child.spawnSyncExt(XsltProc, [tempStyle, tempXml], Storage.XML.ENCODING)
+        if (output instanceof Error) {
+            let message = output.message.split(/[\r\n]+/)[0]
+            message = message.replace(/\s*(file\s+)?([\.\/\w]+\/)?___temp_[\w\:]+\s*/ig, " ").trim()
+            message = message.replace(/\s+(?=:)/g, "")
+            message = `Transformation failed (${message.trim()})`
+            this.quit(422, "Unprocessable Entity", {Message: message})
+        }
+
+        let header = {}
+        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", style)
+        if (Object.exists(output)
+                && output.trim() !== "") {
+            method = method.toLowerCase()
+            if (method !== "text")
+                output = Codec.encode(output, {allowUnsafeSymbols: true})
+            if (method === "xml"
+                    || method === "")
+                if (this.options.includes("json"))
+                    output = new DOMParser().parseFromString(output)
+                else header["Content-Type"] = CONTENT_TYPE_XML
+            else if (method === "html")
+                header["Content-Type"] = CONTENT_TYPE_HTML
+        }
+
+        this.quit(200, "Success", header, output)
     }
 
     /**
@@ -1655,7 +1791,7 @@ class Storage {
 
         // For status class 2xx + 304 the storage headers are added.
         // The revision is read from the current storage because it can change.
-        if (((status >= 200 && status < 300) || status == 304)
+        if (((status >= 200 && status < 300) || status === 304)
                 && this.storage
                 && this.xml) {
             headers = {...headers, ...{
