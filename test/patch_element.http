@@ -1,10 +1,9 @@
 # Test sequence for patching elements in the storage.
 
-# PATCH changes existing elements and attributes in storage.
-# The position for the insert is defined via an XPath.
-# The method works almost like PUT, but the XPath axis of the request
-# always expects an existing target.
-# XPath uses different notations for elements and attributes.
+# PATCH changes existing elements and attributes in storage. The position for
+# the insert is defined via an XPath. The method works almost like PUT, but the
+# XPath axis of the request always expects an existing target. XPath uses
+# different notations for elements and attributes.
 
 ###
 # Storage is not establish 
@@ -18,7 +17,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "482ce7ae4d70db89fb47fb43d374fada");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "9c8eda4cf8f05f434daf1a7f1f76a979");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "2c023947d3617d06931697f38f447881");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "8080adb3d0e36ad280a5800174507060");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1a3b8937cde8aa40ce5ffe8d389146ec");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
 });
 %}
 
@@ -26,19 +31,28 @@ client.test("unittest", function() {
 # Initial request to establish the storage
 # Expectations:
 # - Status code 201 Resource Created
-OPTIONS {{service}} HTTP/1.0
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/72 bytes
+PUT {{service}} HTTP/1.0
 Storage: {{storage_patch_element}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "95783cb7d6657cbb9659e38a47d90c83");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b064518214ba578ef590d162ae445172");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "857eae232f9b3755a1e9e2f5042343d3");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e52d58bd945d7e4bdea035ba8463ca20");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "90e5f8a2884ecb0f5669c01376905d97");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 4x UID-A 1x UID-M
+# - Storage-Revision: 2/4
+# - Storage-Space: 262144/260 bytes
 # - 4 books are overwritten
 # - all new elements have the attributes ___rev and ___uid
 PUT {{service}}/books HTTP/1.0
@@ -52,14 +66,21 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b996108112c8d5f661d6bc055fa4b2d7");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4bd05ace5a00af112d25bd18b9b5e0d0");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "13389d9beb4a08b72db0a4eb939aaad2");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "43348d4ab0ff08366e46882decaf1f0c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "8326d93ac715cf907615b89d6f834832");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "1cb8e8a710c4da45750652197847a4e6");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 9x UID
+# - Storage-Revision: 3/8
+# - Storage-Space: 262144/564 bytes
 # - 4 books are overwritten
 # - 4 books with chapter are created
 # - all new elements have the attributes ___rev and ___uid
@@ -82,14 +103,21 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "94a18f201463aabe9c4419a1eae57f9c");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "9c8eda4cf8f05f434daf1a7f1f76a979");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "813831e4da9ac7090dc57b76b27efba7");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "0ffb6b05eafff036b9f1ad58009867ed");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b65b9e03767aeaf49b38bee8ce2b969d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "22b71402a9a5962e5015e50c5e3c39df");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 9x UID
+# - Storage-Revision: 4/8
+# - Storage-Space: 262144/612 bytes
 # - 4 books are overwritten
 # - 4 books with chapter are created
 # - all new elements have the attributes ___rev and ___uid
@@ -112,7 +140,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3d1f3d7b776e0f3f4d168cc78372256a");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "9c8eda4cf8f05f434daf1a7f1f76a979");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "57fe21c53830085b3ce7c0cbe7ed856a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "50669638fa678f9b6f52e51dc43a5343");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "50e88f5de803daa2f0da504363d2ace0");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "b3bba9da0be04fe6dc34ac0a0615f3df");
 });
 %}
 
@@ -120,7 +154,8 @@ client.test("unittest", function() {
 # Use of brackets should not be a problem
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 8x UID
+# - Storage-Revision: 5/4
+# - Storage-Space: 262144/660 bytes
 # - 4 books are overwritten
 # - 4 books with chapter are created
 # - all new elements have the attributes ___rev and ___uid
@@ -132,19 +167,26 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c653832501da9f11f7ff82f9994f47f9");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "fe31bfa0fea658789ecac9c32f2a95b6");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "dda8baad2d6cc7a61f69acdbdf1aeca1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f1430934c390c118ed2f148e1d44d36c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c6a591294504113ae2bcbd8ec20d082d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c59b00d7ef415d256164bb9768e22b27");
 });
 %}
 
 ###
 # PATCH outside the root element, shall be ignored
 # Expectations:
-# - Status code 204 No Content
-# - Without Storage-Effects
+# - Status code 304 Not Modified
+# - Storage-Revision: 5/0
+# - Storage-Space: 262144/660 bytes
 # - No changes in the storage
 # - Storage-Revision is not increased
 # - URI: /books/..
-PATCH {{service}}0x2f626f6f6b732f2e2e HTTP/1.0
+PATCH {{service}}?2f626f6f6b732f2e2e HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
 
@@ -152,19 +194,26 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "20f4de589ac6368562848b992e2a81d6");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "1cd2f7493a0e1564c728488eddfa1a8e");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "dda8baad2d6cc7a61f69acdbdf1aeca1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f1430934c390c118ed2f148e1d44d36c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "15cf66749f985d9494c48870b6bba142");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c59b00d7ef415d256164bb9768e22b27");
 });
 %}
 
 ###
 # PATCH outside the root element, shall be ignored
 # Expectations:
-# - Status code 204 No Content
-# - Without Storage-Effects
+# - Status code 304 Not Modified
+# - Storage-Revision: 5/0
+# - Storage-Space: 262144/660 bytes
 # - No changes in the storage
 # - Storage-Revision is not increased
 # - URI: /*/..
-PATCH {{service}}0x2f2a2f2e2e HTTP/1.0
+PATCH {{service}}?2f2a2f2e2e HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
 
@@ -172,14 +221,22 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "206076577ba16e0f9f9652ad1ad9434f");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "c8d514b7df64c37bb78a71ba0cf1638b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "dda8baad2d6cc7a61f69acdbdf1aeca1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f1430934c390c118ed2f148e1d44d36c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "15cf66749f985d9494c48870b6bba142");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c59b00d7ef415d256164bb9768e22b27");
 });
 %}
 
 ###
 # XPath without target
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 5/0
+# - Storage-Space: 262144/660 bytes
 PATCH {{service}}/wrong HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: text/plain
@@ -188,14 +245,22 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "5e98756d9200c2047229f41a3c885459");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "bb8627e0cf2b99914ca0a07eb7dc1252");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c55946a8cd49e7d2bea4c868f432cbf2");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "15cf66749f985d9494c48870b6bba142");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c59b00d7ef415d256164bb9768e22b27");
 });
 %}
 
 ###
 # XPath without target
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 304 Not Modified
+# - Storage-Revision: 5/0
+# - Storage-Space: 262144/660 bytes
 PATCH {{service}}/wrong/wrong HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: text/plain
@@ -204,14 +269,21 @@ Content-Type: text/plain
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8860ab0a58751073ccfec2b56462a539");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "ba28105367b8fe57933251b0f7915782");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c55946a8cd49e7d2bea4c868f432cbf2");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "41794affac60babf37a05ca5b3168737");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "15cf66749f985d9494c48870b6bba142");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c59b00d7ef415d256164bb9768e22b27");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 2x UID
+# - Storage-Revision: 6/1
+# - Storage-Space: 262144/604 bytes
 # - xxx was created in the first book
 PATCH {{service}}/books/book%5B1%5D HTTP/1.0
 Storage: {{storage_patch_element}}
@@ -221,7 +293,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "06f6ca9a40e3291fc73ab026ae0b8c1e");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "76c96ad8d50f1ba076fbeff86c590a26");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "04278caccfcf043be96db98b8abe7a8c");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
@@ -229,7 +307,7 @@ client.test("unittest", function() {
 # PATCH does not support pseudo elements in XPath
 # Expectations:
 # - Status code 400 Bad Request
-# - Message: Invalid XPath axis (Invalid expression)
+# - Message: Invalid XPath axis (XPath parse error)
 PATCH {{service}}/books/book%5B1%5D::before HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
@@ -238,7 +316,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "90a84d28d600c561bd294414e5ef3499");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "e541f5115e2bce82a88603cb34b79601");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "41b33ccdada8b2d9d98be8430a83eb0d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
@@ -255,16 +339,25 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a60905adf38c57699e4e7aebe47a8619");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "e1fd34503fb755968cd3f937d84d71f6");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "41b33ccdada8b2d9d98be8430a83eb0d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
 ###
 # PATCH does not support pseudo elements in XPath
-# Other than PHP, it does not detect XPath errors.
 # Expectations:
-# - Status code 400 Bad Request
-# - Message: Invalid XPath axis
+# - Status code 304 Not Modified
+# - Storage-Revision: 6/0
+# - Storage-Space: 262144/604 bytes
+# Actual expectation: 400 Bad Request + Invalid XPath axis (Invalid expression)
+# But xpath does not recognize the incorrect XPath, the term before :: is not a
+# valid axis :-(
 PATCH {{service}}/books::first HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
@@ -273,16 +366,25 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b0d6a8a5cd92ba8f589cc2b3835f8402");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "be0ebfb3e1b7b3796d593d3aee51f89a");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c9a639bb77e55a757c34311d23252fe9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
 ###
 # PATCH does not support pseudo elements in XPath
-# Other than PHP, it does not detect XPath errors.
 # Expectations:
-# - Status code 400 Bad Request
-# - Message: Invalid XPath axis
+# - Status code 304 Not Modified
+# - Storage-Revision: 6/0
+# - Storage-Space: 262144/604 bytes
+# Actual expectation: 400 Bad Request + Invalid XPath axis (Invalid expression)
+# But xpath does not recognize the incorrect XPath, the term before :: is not a
+# valid axis :-(
 PATCH {{service}}/books::last HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
@@ -291,16 +393,25 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "9e9f3833cd575174827f385e57b0a3af");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "a835fb7f8034241ab859885650c7b544");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c9a639bb77e55a757c34311d23252fe9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
 ###
 # PATCH does not support pseudo elements in XPath
-# Other than PHP, it does not detect XPath errors.
 # Expectations:
-# - Status code 400 Bad Request
-# - Message: Invalid XPath axis
+# - Status code 304 Not Modified
+# - Storage-Revision: 6/0
+# - Storage-Space: 262144/604 bytes
+# Actual expectation: 400 Bad Request + Invalid XPath axis (Invalid expression)
+# But xpath does not recognize the incorrect XPath, the term before :: is not a
+# valid axis :-(
 PATCH {{service}}/books::wrong HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
@@ -309,7 +420,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "78ce67dfe37cb06f08b24b6ffe2256c4");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "a75e8e8b2ef2a3d58b87114654b8db07");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "252335a4e294acfa119704fa344ec477");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c9a639bb77e55a757c34311d23252fe9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
@@ -319,7 +436,7 @@ client.test("unittest", function() {
 # - Status code 400 Bad Request
 # - Message: Invalid XPath (Functions are not supported)
 # - URI: name(.)
-PATCH {{service}}0x6e616d65282e29 HTTP/1.0
+PATCH {{service}}6e616d65282e29 HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
 
@@ -327,7 +444,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "fdac624b78a01780b7a4f1abe476d5cd");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "496c645192680c3be01b45ec6c07d49a");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b0dc0b357fdc347f6f9e804978870bf6");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
@@ -335,7 +458,7 @@ client.test("unittest", function() {
 # INvalid XPath /books/book[1]x
 # Expectations:
 # - Status code 400 Bad Request
-# - Message: Invalid XPath axis (XPath parse error)
+# - Message: Invalid XPath axis (Invalid expression)
 PATCH {{service}}/books/book%5B1%5Dx HTTP/1.0
 Storage: {{storage_patch_element}}
 Content-Type: application/xml
@@ -344,7 +467,13 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4052dea47c1439afe7893e1cff0f3562");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "15b58f0a0b83e9b5261d8389aa250a4f");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "3345557c41ccdb7a713679879f7f9076");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "333e9b59f97bbd496ec91d671bcbf437");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "41b33ccdada8b2d9d98be8430a83eb0d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "0bdb6951b41c7fa111d145add67dffcf");
 });
 %}
 
@@ -352,7 +481,8 @@ client.test("unittest", function() {
 # Preparation of the storage for the tests
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 36x UID-A 1x UID-M
+# - Storage-Revision: 7/36
+# - Storage-Space: 262144/2313 bytes
 # - 4 books are overwritten
 # - 4 books with chapter are created
 # - all new elements have the attributes ___rev and ___uid
@@ -411,20 +541,25 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4cae82f8813e5d2a0aedde047e531283");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4bd05ace5a00af112d25bd18b9b5e0d0");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "c32eec60115935c1f4b4ffec24d7957d");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "00e2c359698f8dcfcbcc96d374841383");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "153bbecb76fe96d2cd91b80e52f97ded");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "763d813cb4675ea97003507011a11845");
 });
 %}
 
 ###
 # Overwriting an element must work
-# The indirectly deleted UIDs must be contained in Storage-Effect
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 8x UID-A, 8x UID-D, 1x UID-M
+# - Storage-Revision: 8/8
+# - Storage-Space: 262144/2315 bytes
 # - Storage-Revision is increased
 PATCH {{service}}/books/book%5B1%5D HTTP/1.0
 Storage: {{storage_patch_element}}
-Accept-Effects: ALL
 Content-Type: application/xml
 
 <chapter title="Chapter-X-A">
@@ -440,28 +575,39 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "312e89b5368d919fbc9b81ead664498e");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "76c96ad8d50f1ba076fbeff86c590a26");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "10f67ae10da293fcd2d575891893c257");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "40598b51c679809967d47e9f90085fce");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "d0b08b9033db986ea71de0d543859c5c");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "c2857bab885ebb8e2a32ae1f1c140617");
 });
 %}
 
 ###
 # Recursive patching of all elements by a relative and generous XPath.
-# The Storage-Effects must be optimized and obsolete entries must be cleaned up.
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 36x UID-D, 1x UID-A, 1x UID-M
+# - Storage-Revision: 9/1
+# - Storage-Space: 262144/114 bytes
 # - Storage-Revision is increased
 # - URI: //*[@___uid]
-PATCH {{service}}0x2f2f2a5b405f5f5f7569645d HTTP/1.0
+PATCH {{service}}?2f2f2a5b405f5f5f7569645d HTTP/1.0
 Storage: {{storage_patch_element}}
-Accept-Effects: ALL
 Content-Type: application/xml
 
 <test/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8a31fff873b507710c945c99e7ba19c2");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "0fadbdfedc5846804c62ac9761499d4e");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "dda8baad2d6cc7a61f69acdbdf1aeca1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f1430934c390c118ed2f148e1d44d36c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "0d42ff623cb966bbe83241a039781240");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "13a048befab77ed003d1ea080cac6adb");
 });
 %}
 
@@ -469,11 +615,11 @@ client.test("unittest", function() {
 # Preparation for the next test
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 10x UID-A, 1x UID-D, 1x UID-M
+# - Storage-Revision: 10/10
+# - Storage-Space: 262144/690 bytes
 # - Storage-Revision is increased
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_element}}
-Accept-Effects: ALL
 Content-Type: application/xml
 
 <chapter title="Chapter-X-A">
@@ -494,27 +640,37 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2b33896299b090a30df5c283bd602871");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "9c8eda4cf8f05f434daf1a7f1f76a979");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "ea2f4e4a06b8221bcffff7264fea2e3a");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "48e3f908ddbc4bc3911825b1ec39e934");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "21cd8ccfd933235a5d0bf7e28fa5e384");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "ccd181264b6740b80d4aaa3505f29d4a");
 });
 %}
 
 ###
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: 1x UID-A, 2x UID-D, 1x UID-M
+# - Storage-Revision: 11/1
+# - Storage-Space: 262144/598 bytes
 # - Storage-Revision is increased
 # - Storage: text title="Text X6" includes only <test/>, comments and text were deleted
 PATCH {{service}}/books/chapter%5B2%5D/text%5B3%5D HTTP/1.0
 Storage: {{storage_patch_element}}
-Accept-Effects: ALL
 Content-Type: application/xml
 
 <test/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3f6efa8d6fa088378decfdddf8c2bd73");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "30ccbe5e2817833508589017824cd9dc");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "dda8baad2d6cc7a61f69acdbdf1aeca1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "f1430934c390c118ed2f148e1d44d36c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "8dfde68d10598dac0088a69bd7654ea4");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "57febf6a73b9f6e1ac26cd84bb397811");
 });
 %}
-
-###
