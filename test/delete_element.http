@@ -444,7 +444,7 @@ client.test("unittest", function() {
 # Expectations:
 # - Status code 204 No Content
 # - Storage-Revision: 10/2
-# - Storage-Space: 262144/164 bytes
+# - Storage-Space: 262144/155 bytes
 # - Storage-Revision is increased
 DELETE {{service}}/books/book/chapter HTTP/1.0
 Storage: {{storage_delete_element}}
@@ -455,8 +455,8 @@ client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "5f4ab9f70afc3fa81dec01252f657ac2");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
-    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "0814d429cf67f8794ffc9f334d06eb3a");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "6a0d71445af086a85d26d984c7f7b32d");
     client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
-    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "688f1fd4e7631d21707f8d929548ba5f");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f0cf488a477d78ea132a44afbaa439a5");
 });
 %}
