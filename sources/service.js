@@ -561,7 +561,10 @@ class Storage {
 
         const buffer = Buffer.alloc(fs.lstatSync(storage.store).size)
         fs.readSync(storage.share, buffer, {position:0})
-        storage.xml = new DOMParser().parseFromString(buffer.toString(), CONTENT_TYPE_XML)
+        const storageContent = Storage.DEBUG_MODE
+                ? buffer.toString().replace(/\s*([<>])\s*/g, "$1")
+                : buffer.toString();
+        storage.xml = new DOMParser().parseFromString(storageContent, CONTENT_TYPE_XML)
         storage.revision = storage.xml.documentElement.getAttribute("___rev")
         if (Storage.REVISION_TYPE === "serial") {
             if (storage.revision.match(PATTERN_NON_NUMERICAL))
@@ -1527,6 +1530,10 @@ class Storage {
         }
 
         targets.forEach((target) => {
+            // Ignore the initial PROCESSING_INSTRUCTION_NODE <?xml..
+            if (target.nodeType === XML_PROCESSING_INSTRUCTION_NODE
+                   && target.tagName.toLowerCase() === "xml")
+                return
             if (target.nodeType === XML_ATTRIBUTE_NODE) {
                 if (!target.ownerElement
                         || target.ownerElement.nodeType !== XML_ELEMENT_NODE
