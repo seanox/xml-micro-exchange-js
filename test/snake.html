@@ -133,8 +133,9 @@
                   SnakeService.showMessage("Reading player data", true);
                   const request = new XMLHttpRequest();
                   request.overrideMimeType("application/json");
-                  request.open("GET", `${SnakeService.DATASOURCE_URL}/snake/players!json`, false);
+                  request.open("GET", `${SnakeService.DATASOURCE_URL}/snake/players`, false);
                   request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                  request.setRequestHeader("Accept", "application/json");
                   request.send();
                   if (request.status !== 200)
                       throw {message: "Service players initialization failed", request: request};
@@ -160,8 +161,9 @@
                   SnakeService.showMessage("Reading board data", true);
                   const request = new XMLHttpRequest();
                   request.overrideMimeType("application/json");
-                  request.open("GET", `${SnakeService.DATASOURCE_URL}/snake/board!json`, false);
+                  request.open("GET", `${SnakeService.DATASOURCE_URL}/snake/board`, false);
                   request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                  request.setRequestHeader("Accept", "application/json");
                   request.send();
                   if (request.status !== 200)
                       throw {message: "Service board initialization failed", request: request};
@@ -199,8 +201,9 @@
                   window.setInterval(() => {
                       const request = new XMLHttpRequest();
                       request.overrideMimeType("application/json");
-                      request.open("GET", `${SnakeService.DATASOURCE_URL}//players//field!json`, false);
+                      request.open("GET", `${SnakeService.DATASOURCE_URL}//players//field`, false);
                       request.setRequestHeader("Storage", SnakeService.DATASOURCE_STORAGE);
+                      request.setRequestHeader("Accept", "application/json");
                       request.send();
                       if (request.status !== 200)
                           return;

@@ -1,4 +1,4 @@
-1.6.0 2024xxxx
+1.6.0 2025xxxx
 BF: Build: Optimization / correction
 BF: Build: Optimization / correction of the release info process
 BF: Build: Update of dependencies
@@ -22,6 +22,8 @@ CR: Service: Review and optimization of OPTIONS
     - Omission as an alternative to CONNECT.
       If CONNECT is not allowed use TOUCH.
       If TOUCH is not allowed use PUT without XPath.
+CR: Service: JSON transformation uses the Accept header
+    Option !json in the URI is omitted!
 CR: Storage: Review and optimization
   - The name now allows word characters and minus, if the minus is not at the
     beginning and not at the end.

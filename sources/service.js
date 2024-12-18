@@ -101,14 +101,6 @@ const CORS = {
  */
 const PATTERN_HEADER_STORAGE = /^(\w(?:[-\w]{0,62}\w)?)(?:\s+(\w{1,64}))?$/
 
-/**
- * Pattern to determine options (optional directives) at the end of XPath
- *     Group 0. Full match
- *     Group 1. XPath
- *     Group 2. options (optional)
- */
-const PATTERN_XPATH_OPTIONS = /^(.*?)((?:!+\w+){0,})$/
-
 /** Pattern for detecting Base64 decoding */
 const PATTERN_BASE64 = /^\?(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/
 
@@ -155,6 +147,14 @@ process.on("exit", () => {
 // Some things of the API are adjusted.
 // These are only small changes, but they greatly simplify the use.
 // Curse and blessing of JavaScript :-)
+
+http.IncomingMessage.prototype.acceptMediaType = function(media, strict = false) {
+    if (!this.headers["accept"])
+        return !strict
+    let accept = this.headers["accept"].toLowerCase()
+    accept = accept.split(",").map(entry => entry.trim())
+    return accept.includes(media.toLowerCase())
+}
 
 Date.parseDuration = function(text) {
     if (String.isEmpty(text))
@@ -459,13 +459,6 @@ class Storage {
         // The storage identifier is case-sensitive.
         // To ensure that this also works with Windows, Base64 encoding is used.
 
-        let options = []
-        const matches = (xpath || "").match(PATTERN_XPATH_OPTIONS)
-        if (matches) {
-            xpath = matches[1]
-            options = matches[2].toLowerCase().split("!").filter(Boolean)
-        }
-
         if (!String.isEmpty(storage))
             root = root ? root: "data"
         else root = null
@@ -491,7 +484,6 @@ class Storage {
         this.root     = root
         this.store    = store
         this.xpath    = xpath
-        this.options  = options
         this.serial   = 0
         this.unique   = null
         this.revision = null
@@ -909,13 +901,13 @@ class Storage {
             this.quit(400, "Bad Request", {Message: message})
         }
 
-        // POST always expects an valid XSLT template for transformation.
+        // POST always expects a valid XSLT template for transformation.
         if (this.request.data.trim().length <= 0)
             this.quit(422, "Unprocessable Entity", {Message: "Unprocessable Entity"})
 
         let xml = this.xml
         if (this.xpath !== "") {
-            xml = new XML.createDocument()
+            xml = XML.createDocument()
             let targets = XPath.select(this.xpath, this.xml)
             if (targets instanceof Error) {
                 let message = `Invalid XPath axis (${targets.message})`
@@ -949,40 +941,7 @@ class Storage {
             this.quit(422, "Unprocessable Entity", {Message: message})
         }
 
-        let tempStyle = this.createTempFile()
-        fs.writeFileSync(tempStyle, this.request.data)
-
-        let tempXml = this.createTempFile()
-        fs.writeFileSync(tempXml, new XMLSerializer().serializeToString(xml))
-
-        // XML/XSLT support in node-js is not the best.
-        // Therefore the indirection via libxml2 :-|
-        let output = child.spawnSyncExt(XsltProc, [tempStyle, tempXml], Storage.XML.ENCODING)
-        if (output instanceof Error) {
-            let message = output.message.split(/[\r\n]+/)[0]
-            message = message.replace(/\s*(file\s+)?([\.\/\w]+\/)?___temp_[\w\:]+\s*/ig, " ").trim()
-            message = message.replace(/\s+(?=:)/g, "")
-            message = `Transformation failed (${message.trim()})`
-            this.quit(422, "Unprocessable Entity", {Message: message})
-        }
-
-        let header = {}
-        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", style)
-        if (Object.exists(output)
-                && output.trim() !== "") {
-            method = method.toLowerCase()
-            if (method !== "text")
-                output = Codec.encode(output, {allowUnsafeSymbols: true})
-            if (method === "xml"
-                    || method === "")
-                if (this.options.includes("json"))
-                    output = new DOMParser().parseFromString(output)
-                else header["Content-Type"] = CONTENT_TYPE_XML
-            else if (method === "html")
-                header["Content-Type"] = CONTENT_TYPE_HTML
-        }
-
-        this.quit(200, "Success", header, output)
+        // TODO
     }
 
     /**
@@ -1810,7 +1769,7 @@ class Storage {
                 data = null
 
             if (Object.exists(data)) {
-                if (this.options.includes("json")) {
+                if (this.request.acceptMediaType(CONTENT_TYPE_JSON, true)) {
                     headers["Content-Type"] = CONTENT_TYPE_JSON
                     data = JSON.stringify(data)
                 } else {

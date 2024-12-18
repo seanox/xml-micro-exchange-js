@@ -1054,12 +1054,13 @@ client.test("unittest", function() {
 # - Storage-Space: 262144/13333 bytes
 # - Content-Type: application/json
 # - Content-Length: 13834
-GET {{service}}/statistic!JSON HTTP/1.0
+GET {{service}}/statistic HTTP/1.0
 Storage: {{storage_get}}
+Accept: application/JSON
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "6defe649bfc5bec917fba3c128fe0b31");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "186545091827400bbcadd3e3fab83a13");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6b076e3bc35ccf56dc94e523bc08e07b");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
@@ -1078,13 +1079,14 @@ client.test("unittest", function() {
 # - Storage-Space: 262144/13333 bytes
 # - Content-Type: application/json
 # - Content-Length: 1072
-# - URI: //district[1]|//district[1]/@name!JSon
-GET {{service}}?2f2f64697374726963745b315d7c2f2f64697374726963745b315d2f406e616d65214a536f6e HTTP/1.0
+# - URI: //district[1]|//district[1]/@name
+GET {{service}}?2f2f64697374726963745b315d7c2f2f64697374726963745b315d2f406e616d65 HTTP/1.0
 Storage: {{storage_get}}
+Accept: application/JSon
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "6d1ae002a10a50227e8722b1ff68d043");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "9dbb358d0040573500e27b83c65afe35");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6b076e3bc35ccf56dc94e523bc08e07b");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
@@ -1104,12 +1106,13 @@ client.test("unittest", function() {
 # - Content-Length: 2
 # - Content-Type: application/json
 # - Response-Body: -2
-GET {{service}}1-3!jsON HTTP/1.0
+GET {{service}}1-3 HTTP/1.0
 Storage: {{storage_get}}
+Accept: application/jsON
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "84cdbba59f19ebcb6afe5c21956e459e");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "42a4a317f8f8a19cc1bea23a739e756f");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6b076e3bc35ccf56dc94e523bc08e07b");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
@@ -1129,13 +1132,14 @@ client.test("unittest", function() {
 # - Content-Length: 8
 # - Content-Type: application/json
 # - Value: "Berlin"
-# - URI: //city[1]/@name!jSOn
-GET {{service}}?2f2f636974795b315d2f406e616d65216a534f6e HTTP/1.0
+# - URI: //city[1]/@name
+GET {{service}}?2f2f636974795b315d2f406e616d65 HTTP/1.0
 Storage: {{storage_get}}
+Accept: application/jSOn
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "f517db7dd8a0a1a2a5e2eef64fe7fb8e");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "551e594a265a281a91b96c979c451bc0");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6b076e3bc35ccf56dc94e523bc08e07b");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
@@ -1177,13 +1181,14 @@ client.test("unittest", function() {
 # - Storage-Space: 262144/13333 bytes
 # - Content-Type: application/json
 # - Content-Length: 122
-# - URI: //quarter[@name='Rahnsdorf']!json
-GET {{service}}?2f2f717561727465725b406e616d653d275261686e73646f7266275d216a736f6e HTTP/1.0
+# - URI: //quarter[@name='Rahnsdorf']
+GET {{service}}?2f2f717561727465725b406e616d653d275261686e73646f7266275d HTTP/1.0
 Storage: {{storage_get}}
+Accept: application/json
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "8ae67341de51502452e67017c0c8e42e");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "d407d13c0b8bd87f61454a3cede45a74");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6b076e3bc35ccf56dc94e523bc08e07b");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");

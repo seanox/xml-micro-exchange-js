@@ -120,12 +120,13 @@ client.test("unittest", function() {
 # - Storage-Space: 262144/664 bytes
 # - Content-Type: application/json
 # - Content-Length: 634
-GET {{service}}/snake/players!json HTTP/1.0
+GET {{service}}/snake/players HTTP/1.0
 Storage: {{storage_snake}}
+Accept: application/json
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "db0c9ce5719010f8fc60b3de84efafd2");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "663298bfa11a915561199c638778af4e");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f55648bc0f0428ea6e2e0d63c6c58483");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
@@ -143,12 +144,13 @@ client.test("unittest", function() {
 # - Storage-Space: 262144/664 bytes
 # - Content-Type: application/json
 # - Content-Length: 70
-GET {{service}}/snake/board!json HTTP/1.0
+GET {{service}}/snake/board HTTP/1.0
 Storage: {{storage_snake}}
+Accept: application/json
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "c6e96cd274483434204d2c61b748ee84");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "a47d46a692736874844ce59ea7a634d2");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f55648bc0f0428ea6e2e0d63c6c58483");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
@@ -341,13 +343,14 @@ client.test("unittest", function() {
 # - Storage-Space: 262144/1040 bytes
 # - Content-Type: application/json
 # - Content-Length: 425
-# - URI: //players//field!json
-GET {{service}}?2f2f706c61796572732f2f6669656c64216a736f6e HTTP/1.0
+# - URI: //players//field
+GET {{service}}?2f2f706c61796572732f2f6669656c64 HTTP/1.0
 Storage: {{storage_snake}}
+Accept: application/json
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b14dc2a7675b3f1da0e638569bd3c57d");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "594a45bdcc99a443fce179473c9e4a60");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f55648bc0f0428ea6e2e0d63c6c58483");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");

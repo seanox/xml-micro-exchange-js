@@ -203,14 +203,13 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 externalDocs:
   description: Find out more about Seanox XMEX (incl. Manual and Getting Started)
-  url: https://github.com/seanox/xml-micro-exchange-js/blob/master/manual/README.md
+  url: https://github.com/seanox/xml-micro-exchange-php/blob/master/manual/README.md
 servers:
 - url: https://xmex.seanox.com
 - url: http://localhost
 tags:
 - name: Storage Initialization
 - name: Data Exchange
-- name: JSON Transformation
 paths:
   /xmex!:
     connect:
@@ -1014,6 +1013,11 @@ paths:
         If the XPath addresses only one attribute, the value is returned as
         plain text. Also the result of XPath functions is returned as plain
         text. Decimal results use float, booleans the values true and false.
+
+        ## application/json
+        The media type `application/json` in the Accept header can be used to
+        request the conversion of XML and simple data types to JSON. See also
+        the section JSON transformation. 
         
         The XPath processing is strict and does not accept unnecessary spaces.
 
@@ -1085,6 +1089,18 @@ paths:
         
         ...
         ```
+
+        ## JSON Transformation
+        With the optional Accept header: `application/json`, XML data and simple
+        data types for the response are converted to the content type
+        `application/json`.
+        
+        ## Request
+        ```
+        GET /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Accept: application/json
+        ```
       parameters:
       - name: Storage
         in: header
@@ -1116,12 +1132,25 @@ paths:
         schema:
           type: string
           example: /books
+      - name: Accept
+        in: header
+        description: |
+          The media type `application/json` activates the conversion of XML and
+          simple data types to JSON. Other media types are ignored.
+        required: false
+        schema:
+          type: string
+          example: application/json
       responses:
         200:
           description: |
             Request was successfully executed
           content:
             application/xml:
+              schema:
+                type: object
+                example: "TODO:"
+            application/json:
               schema:
                 type: object
                 example: "TODO:"
@@ -1244,6 +1273,20 @@ paths:
         <?xml version="1.0"?>
         ...
         ```
+        
+        ## JSON Transformation
+        With the optional Accept header: `application/json`, XML data and simple
+        data types for the response are converted to the content type
+        `application/json`.
+        
+        ## Request
+        ```
+        POST /<xpath> HTTP/1.0
+        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
+        Content-Length: (bytes)
+        Content-Type: application/xslt+xml
+        Accept: application/json
+        ```
       parameters:
       - name: Storage
         in: header
@@ -1274,6 +1317,15 @@ paths:
         schema:
           type: string
           example: /books
+      - name: Accept
+        in: header
+        description: |
+          The media type `application/json` activates the conversion of XML and
+          simple data types to JSON. Other media types are ignored.
+        required: false
+        schema:
+          type: string
+          example: application/json
       requestBody:
         content:
           application/xslt+xml:
@@ -1292,13 +1344,17 @@ paths:
               schema:
                 type: object
                 example: "TODO:"
+            application/json:
+              schema:
+                type: object
+                example: "TODO:"
             text/plain:
               schema:
                 type: string
                 example: Text output, see examples in description
             text/html:
               schema:
-                type: object
+                type: string
                 example: "TODO:"
         204:
           description: |
@@ -1444,307 +1500,6 @@ paths:
         404:
           description: |
             Storage file does not exist
-        500:
-          description: |
-            Internal server error
-            - An unexpected error has occurred
-            - Response header Error contains an unique error number as a
-              reference to the log file with more details
-  /xmex!{xpath}!json:
-    get:
-      tags:
-      - JSON Transformation
-      summary: |
-        Queries data about XPath axes and functions as JSON output
-      description: |
-        GET queries data about XPath axes and functions. For this, the XPath
-        axis or function is sent with URI. If the XPath addresses multiple
-        targets, their XML structure is combined in the root element collection.
-        
-        With the directive `!json` at the end of the URL, the content type of
-        the response is always `application/json`.
-        
-        The XPath processing is strict and does not accept unnecessary spaces.
-
-        ## Request
-        ```
-        GET /<xpath> HTTP/1.0
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
-        ```
-
-        ### Example
-        ```
-        GET /xmex!/books/attribute::genre HTTP/1.0
-        Storage: BookReview books
-        ```
-        ```
-        GET /xmex!/books/@genre HTTP/1.0
-        Storage: BookReview books
-        ```
-        ```
-        GET /xmex!count(/books/book) HTTP/1.0
-        Storage: BookReview books
-        ```
-
-        ## Response
-        ```
-        HTTP/1.0 200 Success
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        Storage-Revision: Revision/Changes (number/number)
-        Storage-Space: Total/Used (bytes)
-        Storage-Last-Modified: Timestamp (RFC822)
-        Storage-Expiration: Timestamp (RFC822)
-        Storage-Expiration-Time: Timeout (milliseconds)
-        Content-Length: (bytes)
-        
-        The result of the XPath request
-        ```
-
-        ### Example
-        ```
-        HTTP/1.0 200 Success
-        Date: Wed, 11 Nov 2020 12:00:00 GMT
-        Access-Control-Allow-Origin: *
-        Storage: BookReview
-        Storage-Revision: 123
-        Storage-Space: 262144/1363 bytes
-        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
-        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
-        Storage-Expiration-Time: 900000 ms
-        Content-Length: 26
-        Content-Type: application/xml
-        Execution-Time: 4 ms
-        
-        <?xml version="1.0"?>
-        ...
-        ```
-        ```
-        HTTP/1.0 200 Success
-        Date: Wed, 11 Nov 2020 12:00:00 GMT
-        Access-Control-Allow-Origin: *
-        Storage: BookReview
-        Storage-Revision: 123
-        Storage-Space: 262144/1363 bytes
-        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
-        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
-        Storage-Expiration-Time: 900000 ms
-        Content-Length: 26
-        Content-Type: text/plain
-        Execution-Time: 4 ms
-        
-        ...
-        ```
-      parameters:
-      - name: Storage
-        in: header
-        description: |
-          Each storage has an identifier. The Storage Identifier is used as
-          filename of the corresponding XML file and must be specified with each
-          request so that the datasource uses the correct storage. Optionally,
-          the storage identifier can be followed by the name of the root element
-          of the XML file separated by a space. If the root element is not
-          specified, the default `data` is used.
-        required: true
-        schema:
-          type: string
-          example: BookReview books
-      - name: xpath
-        in: path
-        description: |
-          XPath axis or function. Axes always start with a slash, functions do
-          not. This is only for the initial distinction from the expression for
-          the interpreter. Functions can then also use axes and axes can then
-          also use functions.
-          ### Example
-          ```
-          count(/books/*)
-          /books/book[position()>count(//book)-5]
-          ```
-        required: true
-        schema:
-          type: string
-          example: /books
-      responses:
-        200:
-          description: |
-            Request was successfully executed
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "TODO:"
-        204:
-          description: |
-            Request was successfully executed but without content
-        400:
-          description: |
-            Bad request
-            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
-            - XPath is missing or malformed
-            - XPath is used from PATH_INFO, not the request URI
-        404:
-          description: |
-            Storage file does not exist
-        500:
-          description: |
-            Internal server error
-            - An unexpected error has occurred
-            - Response header Error contains an unique error number as a
-              reference to the log file with more details
-    post:
-      tags:
-      - JSON Transformation
-      summary: |
-        Queries data about XPath axes and functions via transformation as JSON
-        output
-      description: |
-        POST queries data about XPath axes and functions via transformation. For
-        this, an XSLT stylesheet is sent with the request-body, which is then
-        applied by the XSLT processor to the data in storage. Thus the content
-        type `application/xslt+xml` is always required. The client defines the
-        content type for the output with the output-tag and the
-        method-attribute.
-        
-        The XPath is optional for this method and is used to limit and preselect
-        the data. If the XPath addresses one or more attributes as preselection,
-        then tags of the same name of these attributes are used, which contain
-        the value of the attribute as content.
-        
-        With the directive `!json` at the end of the URL, XML data and simple
-        data types for the response are converted to the content type
-        `application/json`.
-        
-        The processing is strict and does not accept unnecessary spaces.
-
-        ## Request
-        ```
-        POST /<xpath> HTTP/1.0
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
-        Content-Length: (bytes)
-        Content-Type: application/xslt+xml
-        
-        XSLT stylesheet
-        ```
-
-        ### Example
-        ```
-        POST /xmex!/ HTTP/1.0
-        Storage: BookReview books
-        Content-Type: application/xslt+xml
-        Content-Length: 212
-        
-        <?xml version="1.0"?>
-        <xsl:stylesheet version="1.0"
-            xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-          <xsl:output method="xml"/>
-          <xsl:template match="/">
-            ...
-          </xsl:template>
-        </xsl:stylesheet>
-        ```
-
-        ## Response
-        ```
-        HTTP/1.0 200 Success
-        Storage: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ (identifier)
-        Storage-Revision: Revision/Changes (number/number)
-        Storage-Space: Total/Used (bytes)
-        Storage-Last-Modified: Timestamp (RFC822)
-        Storage-Expiration: Timestamp (RFC822)
-        Storage-Expiration-Time: Timeout (milliseconds)
-        Content-Length: (bytes)
-        ```
-
-        ### Example
-        ```
-        HTTP/1.0 200 Success
-        Date: Wed, 11 Nov 2020 12:00:00 GMT
-        Access-Control-Allow-Origin: *
-        Storage: BookReview
-        Storage-Revision: 123
-        Storage-Space: 262144/1363 bytes
-        Storage-Last-Modified: Wed, 11 Nov 20 12:00:00 +0000
-        Storage-Expiration: Wed, 11 Nov 20 12:15:00 +0000
-        Storage-Expiration-Time: 900000 ms
-        Content-Length: 26
-        Content-Type: application/xml
-        Execution-Time: 4 ms
-        
-        <?xml version="1.0"?>
-        ...
-        ```
-      parameters:
-      - name: Storage
-        in: header
-        description: |
-          Each storage has an identifier. The Storage Identifier is used as
-          filename of the corresponding XML file and must be specified with each
-          request so that the datasource uses the correct storage. Optionally,
-          the storage identifier can be followed by the name of the root element
-          of the XML file separated by a space. If the root element is not
-          specified, the default `data` is used.
-        required: true
-        schema:
-          type: string
-          example: BookReview books
-      - name: xpath
-        in: path
-        description: |
-          XPath axis or function. Axes always start with a slash, functions do
-          not. This is only for the initial distinction from the expression for
-          the interpreter. Functions can then also use axes and axes can then
-          also use functions.
-          ### Example
-          ```
-          count(/books/*)
-          /books/book[position()>count(//book)-5]
-          ```
-        required: true
-        schema:
-          type: string
-          example: /books
-      requestBody:
-        content:
-          application/xslt+xml:
-            schema:
-              type: object
-              xml:
-                name: comment
-              example: |
-                <!-- XML fragments are expected, see examples in description -->
-      responses:
-        200:
-          description: |
-            Request was successfully executed
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "TODO:"
-            text/html:
-              schema:
-                type: string
-                example: "TODO:"
-        204:
-          description: |
-            Request was successfully executed but without content
-        400:
-          description: |
-            Bad request
-            - Storage header is invalid, expects 1 - 64 characters (0-9A-Z_-)
-            - XPath is missing or malformed
-            - XPath is used from PATH_INFO, not the request URI
-        404:
-          description: |
-            Storage file does not exist
-        415:
-          description: |
-            Attribute request without Content-Type text/plain
-        422:
-          description: |
-            Unprocessable content
-            - Data in the request body cannot be processed
-            - XSLT Stylesheet is erroneous
         500:
           description: |
             Internal server error
