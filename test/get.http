@@ -1047,7 +1047,7 @@ client.test("unittest", function() {
 
 ###
 # The mix of element and attributes are returned as a collection.
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # Expectations:
 # - Status code 200 Success
 # - Storage-Revision: 2/0
@@ -1072,7 +1072,7 @@ client.test("unittest", function() {
 
 ###
 # The mix of element and attributes are returned as a collection.
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # Expectations:
 # - Status code 200 Success
 # - Storage-Revision: 2/0
@@ -1098,7 +1098,7 @@ client.test("unittest", function() {
 
 ###
 # XPath expression for direct processing
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # Expectations:
 # - Status code 200 Success
 # - Storage-Revision: 2/0
@@ -1124,7 +1124,7 @@ client.test("unittest", function() {
 
 ###
 # XPath axis for a attribute should work
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # Expectations:
 # - Status code 200 Success
 # - Storage-Revision: 2/0
