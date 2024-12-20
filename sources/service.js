@@ -963,11 +963,11 @@ class Storage {
             .trim()
 
         // Adaptations and manipulations of the XML
-        // - XML: Ermittle den Namen vom Root-Element
-        // - XML: Entferne ggf. die Prolog-Anweisung <?xml...>
-        // - XML: Füge <?xml-stylesheet type="text/xml" href="#___<unique>"?> ein
-        // - XML: Füge <!DOCTYPE <root-element> [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]> ein
-        // - XML: Füge XSLT als erstes Kind-Element nach dem Root-Element ein
+        // - Determine the name of the root element
+        // - Remove the Prolog statement <?xml...> if necessary
+        // - Insert <?xml-stylesheet type=“text/xml” href=“#___<unique>”?>
+        // - Insert <!DOCTYPE <root-element> [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>.
+        // - Insert XSLT as the first child element after the root element
 
         const xmlRootElementName = xml.documentElement.nodeName;
         let embedding = xml.toString()
@@ -975,7 +975,10 @@ class Storage {
             .replace(/\x00+/ig, " ")
         embedding = `<!DOCTYPE ${xmlRootElementName} [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>${EOL}${embedding}`
         embedding = `<?xml-stylesheet type="text/xml" href="#___${this.unique}"?>${EOL}${embedding}`
-        embedding = embedding.replace(new RegExp(`(<\\s*${xmlRootElementName}(?:\\s.*?)?>)`, 'i'), `$1${EOL}\x00${EOL}`)
+        const DOCUMENT_WITH_SELF_CLOSING_ELEMENT_AT_THE_END = /<(\w+)([^>]*)\/>\s*$/
+        if (DOCUMENT_WITH_SELF_CLOSING_ELEMENT_AT_THE_END.test(embedding))
+            embedding = embedding.replace(/<(\w+)([^>]*)\/>\s*$/, `<$1$2>${EOL}\x00${EOL}</$1>`)
+        else embedding = embedding.replace(new RegExp(`(<\\s*${xmlRootElementName}(?:\\s.*?)?>)`, 'i'), `$1${EOL}\x00${EOL}`)
         embedding = embedding.replace("\x00", stylesheetText)
 
         let output = Process.spawnSync(XMEX_LIBXML_XSLTPROC, ['-'], {
@@ -990,24 +993,27 @@ class Storage {
             this.quit(422, "Unprocessable Entity", {Message: message})
         } else output = output.stdout
 
-        let header = {}
-        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", stylesheet)
-        let encoding = XPath.select("normalize-space(//*[local-name()='output']/@encoding-)", stylesheet)
-        if (Object.exists(output)
-                && output.trim() !== "") {
-            method = method.toLowerCase()
-            if (method === "text") {
-                output = Codec.decode(output, {isAttributeValue: false})
-                header["Content-Type"] = CONTENT_TYPE_TEXT
-            } else {
-                output = new DOMParser().parseFromString(output)
-                if (method === "html")
-                    header["Content-Type"] = Storage.CONTENT_TYPE_HTML
-                else header["Content-Type"] = Storage.CONTENT_TYPE_XML
-            }
+        let method = (XPath.select("normalize-space(//*[local-name()='output']/@method)", stylesheet) ?? "").toLowerCase().trim()
+        if (!["", "xml", "html", "text"].includes(method))
+            this.quit(415, "Unsupported Media Type");
+        if (!Object.exists(output)
+                || output.trim() === "") {
+            if (!["", "xml"].includes(method))
+                this.quit(204, "No Content")
+            output = XML.createDocument()
         }
 
-        this.quit(200, "Success", header, output)
+        let header = {"Content-Type": CONTENT_TYPE_XML}
+        if (method === "text")
+            header = {"Content-Type": CONTENT_TYPE_TEXT}
+        else if (method === "html")
+            header = {"Content-Type": CONTENT_TYPE_HTML}
+        else if (this.request.acceptMediaType(CONTENT_TYPE_JSON, true))
+            output = new DOMParser().parseFromString(output, "application/xml")
+
+        let encoding = (XPath.select("normalize-space(//*[local-name()='output']/@encoding-)", stylesheet) ?? "").trim()
+
+        this.quit(200, "Success", header, output, encoding)
     }
 
     /**
@@ -1783,8 +1789,10 @@ class Storage {
      * @param string message
      * @param array  headers
      * @param string data
+     * @param string encoding
+     *
      */
-    quit(status, message, headers = undefined, data = undefined) {
+    quit(status, message, headers = undefined, data = undefined, encoding = undefined) {
 
         if (this.response.headersSent) {
             // The response are already complete.
@@ -1849,6 +1857,8 @@ class Storage {
                         data = String(data)
                 }
                 headers["Content-Length"] = data.byteLength()
+                if ((encoding ?? "").trim() !== "")
+                    headers["Content-Type"] += `; charset=${encoding}`;
             }
         } else data = null
 
