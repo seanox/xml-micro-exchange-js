@@ -988,10 +988,10 @@ class Storage {
             encoding: XML.ENCODING
         })
         if (output.stderr) {
-            let message = output.stderr.split(/[\r\n]+/).slice(0, 2).join(', ')
+            let message = output.stderr.split(/\s*[\r\n]+\s*/).slice(0, 2).join(' / ')
             message = message.replace(/(?<=:)\s+file[\s-]+line\s+\d+/ig, "").trim()
             message = message.replace(/\s+(:)\s+/ig, "$1 ").trim()
-            message = "xsltproc failed (" + message.trim() + ")"
+            message = `xsltproc failed (${message.trim()})`
             this.quit(422, "Unprocessable Entity", {Message: message})
         } else output = output.stdout
 
