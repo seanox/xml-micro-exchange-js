@@ -41,7 +41,6 @@ import Process from "child_process"
 import Codec from "he"
 import {EOL} from "os"
 import {DOMParser} from "xmldom"
-import {DOMImplementation} from "xmldom"
 import Mime from "mime/lite"
 import {XMLSerializer} from "xmldom"
 import XPath from "xpath"
@@ -223,10 +222,6 @@ const XMEX_CONNECTION_PORT = Runtime.getEnv("XMEX_CONNECTION_PORT", 80)
 const XMEX_CONNECTION_CONTEXT = Runtime.getEnv("XMEX_CONNECTION_CONTEXT", "/xmex!")
 const XMEX_CONNECTION_CERTIFICATE = Runtime.getEnv("XMEX_CONNECTION_CERTIFICATE")
 const XMEX_CONNECTION_SECRET = Runtime.getEnv("XMEX_CONNECTION_SECRET")
-
-const XMEX_ACME_CHALLENGE = Runtime.getEnv("XMEX_ACME_CHALLENGE")
-const XMEX_ACME_TOKEN = Runtime.getEnv("XMEX_ACME_TOKEN")
-const XMEX_ACME_REDIRECT = Runtime.getEnv("XMEX_ACME_REDIRECT", "https://...")
 
 const XMEX_REQUEST_XPATH_DELIMITER = Runtime.getEnv("XMEX_REQUEST_XPATH_DELIMITER", "!")
 
@@ -2000,16 +1995,6 @@ class ServerFactory {
         return XMEX_CONNECTION_SECRET
     }
 
-    static get ACME_CHALLENGE() {
-        return XMEX_ACME_CHALLENGE
-    }
-    static get ACME_TOKEN() {
-        return XMEX_ACME_TOKEN
-    }
-    static get ACME_REDIRECT() {
-        return XMEX_ACME_REDIRECT
-    }
-
     static get STORAGE_SPACE() {
         return XMEX_STORAGE_SPACE
     }
@@ -2024,7 +2009,6 @@ class ServerFactory {
         return XMEX_CONTENT_REDIRECT
     }
 
-    static serverInstancesAcme = undefined
     static serverInstancesXmex = undefined
 
     static onContentRequest(request, response) {
@@ -2241,15 +2225,10 @@ class ServerFactory {
                     request.data = Object.exists(request.data) ? request.data : ""
 
                     const REQUEST_TYPE_SERVICE = 0
-                    const REQUEST_TYPE_ACME = 1
-                    const REQUEST_TYPE_CONTENT = 2
+                    const REQUEST_TYPE_CONTENT = 1
 
                     const requestUrl = decodeURI(request.url)
                     const requestType = ((requestUrl) => {
-                        if (ServerFactory.ACME_CHALLENGE
-                                && ServerFactory.ACME_TOKEN
-                                && requestUrl === ServerFactory.ACME_CHALLENGE)
-                            return REQUEST_TYPE_ACME
                         if (!requestUrl.startsWith(ServerFactory.CONNECTION_CONTEXT))
                             return REQUEST_TYPE_CONTENT
                         return REQUEST_TYPE_SERVICE
@@ -2260,9 +2239,6 @@ class ServerFactory {
                             (new Storage(request, response)).quit(...request.error)
                         else response.quit(...request.error)
                     }
-
-                    if (requestType === REQUEST_TYPE_ACME)
-                        response.quit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
 
                     // The API should always use a context path so that the
                     // separation between URI and XPath is also visually
@@ -2322,10 +2298,6 @@ class ServerFactory {
             if (ServerFactory.CONNECTION_CERTIFICATE
                     && ServerFactory.CONNECTION_SECRET)
                 options.push("secure")
-            if (ServerFactory.CONNECTION_PORT === "80"
-                    && ServerFactory.ACME_CHALLENGE
-                    && ServerFactory.ACME_TOKEN)
-                options.push("ACME")
             console.log("Service", `Listening at ${this.address().address}:${this.address().port}${options.length > 0 ? " (" + options.join(" + ") + ")" : ""}`)
         })
 
@@ -2333,42 +2305,7 @@ class ServerFactory {
     }
 
     static bind() {
-
         ServerFactory.serverInstancesXmex = ServerFactory.newInstance()
-
-        if (ServerFactory.CONNECTION_PORT !== "80"
-                && ServerFactory.ACME_CHALLENGE
-                && ServerFactory.ACME_TOKEN) {
-            ServerFactory.serverInstancesAcme = http.createServer((request, response) => {
-                try {
-                    const requestUrl = decodeURI(request.url)
-                    if (requestUrl.toLowerCase() === ServerFactory.ACME_CHALLENGE.toLowerCase())
-                        response.quit(200, "Success", {"Content-Length": ServerFactory.ACME_TOKEN.length}, ServerFactory.ACME_TOKEN)
-                    if (ServerFactory.ACME_REDIRECT <= 0)
-                        response.quit(404, "Resource Not Found")
-                    let location = ServerFactory.ACME_REDIRECT
-                    if (location.match(/\.{3,}$/))
-                        location = location.replace(/\.{3,}$/, request.url)
-                    response.quit(301, "Moved Permanently", {Location: location})
-                } catch (error) {
-                    if (error === http.ServerResponse.prototype.quit)
-                        return
-                    const unique = Date.now().toString(36).toUpperCase()
-                    console.error("Service", `#${unique}`, error)
-                    if (!response.headersSent)
-                        response.quit(500, "Internal Server Error", {"Error": `#${unique}`})
-                }
-            })
-
-            ServerFactory.serverInstancesAcme.on("error", (error) => {
-                console.error(error.stack || error)
-                process.exit(1)
-            })
-
-            ServerFactory.serverInstancesAcme.listen(80, ServerFactory.CONNECTION_ADDRESS, function() {
-                console.log("Service", `Listening at ${this.address().address}:${this.address().port} (ACME)`)
-            })
-        }
     }
 }
 

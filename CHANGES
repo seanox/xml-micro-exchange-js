@@ -30,7 +30,8 @@ CR: Service: Optimization of the xsltproc integration
 CR: Storage: Review and optimization
   - The name now allows word characters and minus, if the minus is not at the
     beginning and not at the end.
-CR: ACME: URI/Path are now case-sensitive
+CR: ACME: Omitted as integrated component
+    Because the challenge was not fully implemented, the ACME was removed.
 
 1.4.1 20220717
 BF: Statistic: Correction of the calculation of inbound / outbound
