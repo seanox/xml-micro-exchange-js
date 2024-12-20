@@ -24,6 +24,9 @@ CR: Service: Review and optimization of OPTIONS
       If TOUCH is not allowed use PUT without XPath.
 CR: Service: JSON transformation uses the Accept header
     Option !json in the URI is omitted!
+CR: Service: Optimization of the xsltproc integration
+    Omission of temporary files through the use of StdIn combined with XML with
+    embedded stylesheet
 CR: Storage: Review and optimization
   - The name now allows word characters and minus, if the minus is not at the
     beginning and not at the end.
