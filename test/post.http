@@ -1,14 +1,12 @@
 # Test sequence for POST requests.
 
-# POST queries data about XPath axes and functions via transformation.
-# For this, an XSLT stylesheet is sent with the request-body, which is
-# then applied by the XSLT processor to the data in storage.
-# Thus the content type application/xslt+xml is always required.
-# The client defines the content type for the output with the output-tag
-# and the method-attribute.
-# The XPath is optional for this method and is used to limit and preselect
-# the data. The processing is strict and does not accept unnecessary
-# spaces.
+# POST queries data about XPath axes and functions via transformation. For this,
+# an XSLT stylesheet is sent with the request-body, which is then applied by the
+# XSLT processor to the data in storage. Thus the content type
+# application/xslt+xml is always required. The client defines the content type
+# for the output with the output-tag and the method-attribute. The XPath is
+# optional for this method and is used to limit and preselect the data. The
+# processing is strict and does not accept unnecessary spaces.
 
 ###
 # Storage is not establish 
@@ -27,7 +25,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "291c59a807c0cd3d4e70429f0ff3401a");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a9fce63d3f69c67b9a0aed7bc70bff44");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c38f44002f52604b327a3d281cde8128");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1a3b8937cde8aa40ce5ffe8d389146ec");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
 });
 %}
 
@@ -35,12 +39,20 @@ client.test("unittest", function() {
 # Initial request to establish the storage
 # Expectations:
 # - Status code 201 Resource Created
-OPTIONS {{service}} HTTP/1.0
+# - Storage-Revision: 1/1
+# - Storage-Space: 262144/76 bytes
+PUT {{service}} HTTP/1.0
 Storage: {{storage_post}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "2c91953fd8610819606695509dc7cebe");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "b064518214ba578ef590d162ae445172");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "cddbc145bb3b58990bfa329d1a5abe40");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "eece7445b364079bf7390ad5912594ed");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "088457fe0667ea1e394bc4d61d6d7d2a");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "34a4a9d925fed6ff5359a00c4ecc02d5");
 });
 %}
 
@@ -48,7 +60,8 @@ client.test("unittest", function() {
 # Initial request to establish the storage
 # Expectations:
 # - Status code 204 No Content
-# - Storage-Effects: with a lot of UIDs 
+# - Storage-Revision: 2/123
+# - Storage-Space: 262144/13324 bytes
 PUT {{service}}/statistic HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xml
@@ -206,18 +219,25 @@ Content-Type: application/xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d2f4cb36cc35b904901d451717c50f36");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "251c1c0fa751edeb1172882a65aefc07");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "64673e8d88fd5214ea7e5751680148f6");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "b7f0172e7739fee6e4836733fba383c2");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "967cf627ae468e5a346cf2a1113d618b");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Valid XSLT without XPath and with output
-# District of Berlin, sorted by sum of quarters
 # Expectations:
 # - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 # - Content-Length: 642
-# - Content-Type: application/xslt+xml
-# - Content: UTF-8/HEX encodes
+# - Content-Type: application/xml
+# - Content: UTF-8 + HTML entity encoded
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -244,20 +264,27 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7487b409d73900c400e7e5a56f1de776");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "7a79e185e2d34c585019badb080e4435");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "0334ed63e454a335b6e8cc9332740869");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "33890da9197e966ab4e898facc83607f");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "677068f3047be9d3948275b2352f9643");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Valid XSLT without XPath and with output
-# District of Berlin - Lichtenberg, list of quarters, sorted by name
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 399
-# - Content-Type: application/xslt+xml
+# Storage-Revision: 2/0
+# Storage-Space: 262144/13324 bytes
+# - Content-Length: 397
+# - Content-Type: application/xml
 # - Only an extract of the data selected by XPath.
 # - URI: //district[@name='Lichtenberg']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -280,41 +307,54 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "efb69ac0aa6982a129bc62297a9177b0");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "87509d6d74f122316a8d84a0056326f1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "e19737a299af2e910ba764ba2e127c93");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "167f2df9be2403ae51b466fde746928b");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "f582046018f9b565ccda432cc2e799db");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Valid XSLT without XPath and with output
-# District of Berlin - Lichtenberg, list of quarters, sorted by area (as plain text)
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 290
-# - Content-Type: text/plain
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 302
+# - Content-Type: text/plain; charset=iso-8859-1
 # - Only an extract of the data selected by XPath.
 # - URI: //district[@name='Lichtenberg']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="text"/>
+  <xsl:output method="text" encoding="iso-8859-1"/>
   <xsl:template match="/">
 Quarters of district: <xsl:value-of select="/district/@name"/>  
 ----
 <xsl:for-each select="//quarter">
 <xsl:value-of select="concat(format-number(@area, '0.00'), ' km²')"/>
 <xsl:text> </xsl:text>
-<xsl:value-of select="@name"/><xsl:text>&#10;</xsl:text>
+<xsl:value-of select="@name"/><xsl:text>&#13;&#10;</xsl:text>
 </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "bc15f0c3237ba9ace530a272b6730712");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "bb4cb3b30f1466b454aa40f272d4b928");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "af79f140a759c3f8314f5cf404728368");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f53e22aea625e8c37cfb953f3d88ca5c");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "caba5cb9a43eb4698be34e8fc57304d0");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -348,7 +388,13 @@ Content-Type: application/xslt+xml-x
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "cde85942574199bab51e2a9a69932cd6");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "877dabbae47ec6e0d3fe7c8f72d1e47d");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "0334ed63e454a335b6e8cc9332740869");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "8add73aba839b154b44c7121cd173803");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -356,7 +402,7 @@ client.test("unittest", function() {
 # Wrong XSLT markup, xsl:templatex is used instead of xsl:template
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (compilation error: line 5 element templatex)
+# - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -383,7 +429,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1679ce5c7816f5fab69951f6438c1545");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "556c0c3faabeaa0cbd9c63d997649fea");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "58e8e4e2b0346c1120063f0c02250d81");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f97e6bd2c93602c7e7d9b7f1fd124707");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -391,7 +443,7 @@ client.test("unittest", function() {
 # Wrong XSLT markup, xsl:templatex is used and is closed by xsl:template
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (parser error: Opening and ending tag mismatch: templatex line 5 and template)
+# - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -418,7 +470,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7ef66eeefe4a0340a1da1b43514aa653");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "1362d2e9255ba0b91691076d002e9f3f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "535154d39d7ad9f026b1f97fba9c20db");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f97e6bd2c93602c7e7d9b7f1fd124707");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -426,7 +484,7 @@ client.test("unittest", function() {
 # Wrong XSLT markup, city tag is not closed
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (parser error: expected '>')
+# - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -453,7 +511,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "4f2442f11424e3a765406e81f18337d9");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a58cc690f4e20406cab8254385088793");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "bde9f885b3a84f0e4fd86b6123b35dfa");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f97e6bd2c93602c7e7d9b7f1fd124707");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -461,7 +525,7 @@ client.test("unittest", function() {
 # Wrong XSLT markup, city tag is not closed
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (parser error: Opening and ending tag mismatch: city line 8 and xsl:template)
+# - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -487,7 +551,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "dc35b4572067f93d720c20b5a4703466");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4d5d41ad479e0ddac21a915e4e69691e");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "8436cf8a82f89122333cbde00ad73bb9");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f97e6bd2c93602c7e7d9b7f1fd124707");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -495,7 +565,7 @@ client.test("unittest", function() {
 # Wrong XSLT EL function sumx (does not exists)
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (xmlXPathCompOpEval: function sumx not found)
+# - Message: xsltproc failed (xmlXPathCompOpEval: function sumx not found / XPath error: Unregistered function)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -522,7 +592,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "510f28e103535174964fc876e5946f05");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "556c0c3faabeaa0cbd9c63d997649fea");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "ad78d0bec8ba2c6a21c9748d0edb97c2");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "fef15c90d3f254b4fc286af22024f0f4");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -530,7 +606,7 @@ client.test("unittest", function() {
 # Wrong XSLT EL in variable: city attribute: select ] is missing
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (XPath error: Invalid predicate)
+# - Message: xsltproc failed (XPath error: Invalid predicate / compilation error: element variable)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -557,7 +633,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1c47341bc2ef5809832d692928faa9df");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a58cc690f4e20406cab8254385088793");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "e40190bec91f8fd68f84928e9552a8f8");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f7a3dc28ce59949c714e1fcc0df1ec9e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -565,8 +647,11 @@ client.test("unittest", function() {
 # Valid XSLT but without output
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 0
-# - Without Content-Type
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Type: application/xml
+# - Content-Length: 39
+# - Content: <?xml version="1.0" encoding="UTF-8"?> (empty XML files, because output method xml)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -580,7 +665,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "02ca51f54e49932d32c9f2e000ea32f6");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a9fce63d3f69c67b9a0aed7bc70bff44");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c38f44002f52604b327a3d281cde8128");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "6b4ab43b3f3f2375360961e979984371");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "93286b7fccf6f6092628ada8b85c0727");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -588,8 +679,11 @@ client.test("unittest", function() {
 # Valid XSLT but without output
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 0
-# - Without Content-Type
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Type: application/xml
+# - Content-Length: 39
+# - Content: <?xml version="1.0" encoding="UTF-8"?> (empty XML files, because output method xml)
 POST {{service}}/statistic/cities/city HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -603,14 +697,22 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "43525bb3e92d2f1905e77b442c7518c9");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "f15df96c0b69c00f8e654deaec7a06a1");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a9fce63d3f69c67b9a0aed7bc70bff44");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c38f44002f52604b327a3d281cde8128");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "6b4ab43b3f3f2375360961e979984371");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "93286b7fccf6f6092628ada8b85c0727");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # XPath without target
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 204 No Content
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 POST {{service}}/statistic/cities/unknow HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -624,7 +726,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "3cd070aa5fb7136eaa4c652974e2ab77");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "8614c1967108b3e432ecc75203aa7236");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a9fce63d3f69c67b9a0aed7bc70bff44");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c38f44002f52604b327a3d281cde8128");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "55daebd42ba712f170478667a8281f05");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -646,7 +754,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "b5fbb82bc53de7cf432503a8c7d26268");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "192965b656cc0a3bc2be7af242251ca9");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a9fce63d3f69c67b9a0aed7bc70bff44");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c38f44002f52604b327a3d281cde8128");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b0dc0b357fdc347f6f9e804978870bf6");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -668,7 +782,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "42455b736118aa39fbb4eac5e2248eba");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "752f1c44087b297cbc30fcc97170e31f");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a9fce63d3f69c67b9a0aed7bc70bff44");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c38f44002f52604b327a3d281cde8128");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6196dba52703776af2e6593f772ed7ce");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "41b33ccdada8b2d9d98be8430a83eb0d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -681,7 +801,13 @@ Storage: {{storage_post}}
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "f70d803a0722363119e1cf11d82ec115");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "cddbc145bb3b58990bfa329d1a5abe40");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "8add73aba839b154b44c7121cd173803");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -689,23 +815,34 @@ client.test("unittest", function() {
 # POST without response body should be responded with status 422
 # Expectations:
 # - Status code 422 Unprocessable Entity
+# - Message: Unprocessable Entity
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ffb6e212f9280866ac495dc2349d19c5");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4e0e7d8d6f770c7ac1f3149034aab067");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "a0c3a055db7b856a7bf76899678107b9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # XPath with serveral elements as target should work
 # Expectations:
-# - Content-Length: 57
-# - Content: Count: 2x
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 44
+# - Content-Type: application/xml
+# - Content: <?xml version="1.0"?> Count: 2x
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -720,17 +857,27 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a452d36a4979e1a6cb91db362ac9e6eb");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4b27d0315a0e0cc806cc2a57edd9fc01");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "4ff04d32632df660f3e1bbbca945b4de");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "97d75422fe6f2559c169cd509a60ff6d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "0ec23ab3781b2b5b1c55fadd9b740dc0");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # XPath with serveral attributes as target should work
 # Expectations:
-# - Content-Length: 74
-# - Content: Names: 12x Areas: 96x
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 61
+# - Content-Type: application/xml
+# - Content: <?xml version="1.0"?> Names: 12x Areas: 96x
 # - URI: //district/@name|//quarter/@area
-POST {{service}}0x2f2f64697374726963742f406e616d657c2f2f717561727465722f4061726561 HTTP/1.0
+POST {{service}}?2f2f64697374726963742f406e616d657c2f2f717561727465722f4061726561 HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -746,22 +893,29 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "d5d765fef39754f82a5e03618e414f7c");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "e88d4e8f40bc0aa0151ecd491450570d");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "0ba251dab4a93e47bd9144c41df86c74");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "e0e68b0a34e9f7536ea75d57271a3c92");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "322498195947fe1939e94e2180667ad2");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "4bdf0d750deb7ef96610da23acbb2a0e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Valid XSLT without XPath and with output
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 476
+# - Content-Length: 506
 # - Content-Type: application/json
 # - Only an extract of the data selected by XPath.
-# - URI: //district[@name='Lichtenberg']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d216a736f6e HTTP/1.0
+# - URI: //district[@name='Lichtenberg']
+POST {{service}}?2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -782,22 +936,31 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "0ba668cd476622c52307bc3ecde90f13");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "87509d6d74f122316a8d84a0056326f1");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "185fb70eebc4966ef9cc3015f78c5d9f");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f45f804d472eddd984f67ba1d3d85ec0");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "6c4e34fc0dd1879273ca4afeccfeefd4");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Valid XSLT without XPath and with output
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # Expectations:
 # - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 # - Content-Length: 316
 # - Content-Type: application/json
 # - Only an extract of the data selected by XPath.
-# - URI: //district[@name='Lichtenberg']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d216a736f6e HTTP/1.0
+# - URI: //district[@name='Lichtenberg']
+POST {{service}}?2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -809,14 +972,20 @@ Quarters of district: <xsl:value-of select="/district/@name"/>
 <xsl:for-each select="//quarter">
 <xsl:value-of select="concat(format-number(@area, '0.00'), ' km²')"/>
 <xsl:text> </xsl:text>
-<xsl:value-of select="@name"/><xsl:text>&#10;</xsl:text>
+<xsl:value-of select="@name"/><xsl:text>&#13;&#10;</xsl:text>
 </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e24e1ce7870663ecd3c497900ce97952");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "fe443519adfb9c872002b03c91c8c3f0");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "4823e7df7fe6380db209c644dce24726");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "22a79734e1fb2feb8c4047eb4af0b67a");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "e79465a19d7c2ebba9ef2de3d650fec3");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -826,18 +995,20 @@ client.test("unittest", function() {
 # Tags and attributes are not included in the output
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 398
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 361
 # - Content-Type: text/plain
 # - Only an extract of the data selected by XPath.
 # - URI: //district[@name='Lichtenberg']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274c69636874656e62657267275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="text"/>
+  <xsl:output method="text" encoding="iso-8859-1"/>
   <xsl:template match="/">
 Quarters of district: <xsl:value-of select="/district/@name"/>
 ----
@@ -854,7 +1025,13 @@ Quarters of district: <xsl:value-of select="/district/@name"/>
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ef399f1a52a1437ba60a2c5f4985d036");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9a04ba3691b004a72c3d52222fe7c125");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "67dba003942f4273f6b355b3c08b1068");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "d819e6939cd68f00b0db0525309a957c");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "1b5a1975109980e73847be6b349f535c");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -862,9 +1039,11 @@ client.test("unittest", function() {
 # Output of a node
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 125
-# - Content-Type: application/xslt+xml
-# - Only xml declaration and few empty lines
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Type: application/xml
+# - Content-Length: 39
+# - Content: <?xml version="1.0" encoding="UTF-8"?> (empty XML files, because output method xml)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -880,17 +1059,23 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "02313eb0ac792f67f651937fc37734cb");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4b27d0315a0e0cc806cc2a57edd9fc01");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "aaaeea722a0257a3143308e16090d2e9");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "6b4ab43b3f3f2375360961e979984371");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "93286b7fccf6f6092628ada8b85c0727");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Output of a node
 # Expectations:
-# - Status code 200 Success
-# - Content-Length: 100
-# - Content-Type: text/plain
-# - Only few empty lines
+# - Status code 204 No Content
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Result of the template: empty
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -906,7 +1091,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "96fa4814d7d21be9d914fd80d25f0077");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "4573d2fb7e54799c6827599bb9a0434b");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f4388007e938f8dda622af60b0d6075b");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "92f42dc66b0938a8348dbdacc88be084");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "64f43500716633427b914befe29c8f49");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "55daebd42ba712f170478667a8281f05");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -914,10 +1105,14 @@ client.test("unittest", function() {
 # Template without output method used the default xml
 # The result is not a valid XML-file
 # Expectations:
-# - Content-Length: 44
-# - Content: Count: 2x
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Type: application/xml
+# - Content-Length: 40
+# - Content: <?xml version="1.0"?> Count: 2x
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -931,7 +1126,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "ecf932f7ff8aab936d90b3f300d0baee");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "72b1f71ef22476ca51cf615c9ef9d296");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "2780e33a3f97328e03bd91e97c3df1df");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "97d75422fe6f2559c169cd509a60ff6d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "0ec23ab3781b2b5b1c55fadd9b740dc0");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -939,10 +1140,14 @@ client.test("unittest", function() {
 # Template with xml output method
 # The result is not a valid XML-file
 # Expectations:
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Type: application/xml
 # - Content-Length: 44
-# - Content: Count: 2x
+# - Content: <?xml version="1.0"?> Count: 2x
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -957,18 +1162,27 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "a452d36a4979e1a6cb91db362ac9e6eb");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4b27d0315a0e0cc806cc2a57edd9fc01");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "4ff04d32632df660f3e1bbbca945b4de");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "97d75422fe6f2559c169cd509a60ff6d");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "0ec23ab3781b2b5b1c55fadd9b740dc0");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with text output method
 # Expectations:
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 # - Content-Length: 6
 # - Content-type: text/plain
 # - Content: 2x
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -983,18 +1197,27 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "81a929a1129910f94d51a67bdf1103c3");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "fed7548b65f471fc13027e0b90a82ed6");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "4efbee31a42ceca306e264b49ce7163a");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "591185ec10c3dcab2985402a972e335b");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "372e77c7499ba3c93fb36f136b8be9dc");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with html output method
 # Expectations:
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 # - Content-Length: 20
-# - Content-type: text/html;
+# - Content-type: text/html
 # - Content: <img src="">2x
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -1010,7 +1233,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "044ca67b54240da1f431185908433d29");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "2e55777ae86d8614e600d69f4863fafb");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "47daec4f92aa598147db4fae170fbe83");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "8fc30d68de3741533c2eab32336bc016");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "6ba8093f79981a185164cd069143ac3a");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -1018,9 +1247,9 @@ client.test("unittest", function() {
 # Template with invalid output method
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (compilation error: line 4 element output)
+# - Message: xsltproc failed (compilation error: element output / invalid value for method: xhtml)
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -1035,7 +1264,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "099f07553e509fa77574f44793ae356f");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a23984b5d7e74064b7915c4d8107475f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "75f663b8ed83119f89d2fe590af6e05a");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b6231f684a409e7ecd639a4ca6d0f036");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -1043,9 +1278,9 @@ client.test("unittest", function() {
 # Template with invalid output method
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (compilation error: line 4 element output)
+# - Message: xsltproc failed (compilation error: element output / invalid value for method: unknown)
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
@@ -1060,25 +1295,34 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "1092efaadcdd1f4d1d62b254eae511f9");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "8a82d224f2bbee9071f89e95505c4c5c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "ccfc092fbecc3553200528f7f8c98893");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "765219941739c587d713c3fb1a622601");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template without output method used the default xml
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # The result is not a valid XML-file
 # The intermediate transformation to XML, as a precursor to the transformation
 # to JSON, will create an empty document, and JSON will also create null
-# Different from PHP, there it is false
 # Expectations:
-# - Content-Length: 4
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 5
 # - Content-Type: application/json
 # - Content: null
-# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -1090,25 +1334,34 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "8f53cd6b2816b15ddd7bac19ab214ad0");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "72b1f71ef22476ca51cf615c9ef9d296");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "2780e33a3f97328e03bd91e97c3df1df");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c2321632c2eda0106d0b183745a35c0e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "37a6259cc0c1dae299a7866489dff0bd");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with xml output method
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # The result is not a valid XML-file
 # The intermediate transformation to XML, as a precursor to the transformation
 # to JSON, will create an empty document, and JSON will also create null
-# Different from PHP, there it is false
 # Expectations:
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 # - Content-Length: 4
 # - Content-Type: application/json
 # - Content: null
-# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -1121,22 +1374,32 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "c37f8163a14fe6c56586198ac75a924d");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4b27d0315a0e0cc806cc2a57edd9fc01");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "4ff04d32632df660f3e1bbbca945b4de");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "c2321632c2eda0106d0b183745a35c0e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "37a6259cc0c1dae299a7866489dff0bd");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with text output method
-# Text/JSON output, the JSON directive in the URI has an effect.
+# Text/JSON output, the JSON directive in the request has an effect.
 # The output of the transformation is a text enclosed in a JSON structure
 # Expectations:
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
 # - Content-Length: 10
 # - Content-Type: application/json
 # - Content: "2x\r\n  "
-# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -1149,22 +1412,32 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "7a189ce7c239d0b192d02589146ee053");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "fed7548b65f471fc13027e0b90a82ed6");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "4efbee31a42ceca306e264b49ce7163a");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "eb1732d1399b7eab742308e2573e9903");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "8735da8bdab73b9c57bf63aad6e38bc7");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with html output method
-# Text/HTML output, the JSON directive in the URI has no effect.
+# Text/HTML output, the JSON directive in the request has no effect.
 # The explicit output of HTML cannot be transformed into JSON.
 # Expectations:
-# - Content-Length: 20
-# - Content-type: text/html;
-# - Content: <img src="">2x
-# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+# - Status code 200 Success
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 24
+# - Content-type: application/json
+# - Content: "<img src=\"\">2x\r\n  \r\n"
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -1178,20 +1451,27 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "6392441aefaec3f03066c1db064e8391");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "2e55777ae86d8614e600d69f4863fafb");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "47daec4f92aa598147db4fae170fbe83");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "8e62b9f7f2c283f0d93223b4b69e42de");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "4f13c45a30faa392ba7098abfd491213");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with invalid output method
-# the JSON directive in the URI has no effect.
+# the JSON directive in the request has no effect.
 # Expectations:
-# - Status code 422 Unprocessable Entityt
-# - Message: Transformation failed (compilation error: line 4 element output)
-# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+# - Status code 422 Bad Request
+# - Message: xsltproc failed (compilation error: element output / invalid value for method: xhtml)
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -1204,20 +1484,27 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "10323caa4275c88f4e780eff5a2e26d7");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "a23984b5d7e74064b7915c4d8107475f");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "75f663b8ed83119f89d2fe590af6e05a");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "b6231f684a409e7ecd639a4ca6d0f036");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
 ###
 # Template with invalid output method
-# the JSON directive in the URI has no effect.
+# the JSON directive in the request has no effect.
 # Expectations:
 # - Status code 422 Unprocessable Entity
-# - Message: Transformation failed (compilation error: line 4 element output)
-# - URI: //district[@name='Mitte']|//district[@name='Spandau']!json
-POST {{service}}0x2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d216a736f6e HTTP/1.0
+# - Message: xsltproc failed (compilation error: element output / invalid value for method: unknown)
+# - URI: //district[@name='Mitte']|//district[@name='Spandau']
+POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
+Accept: application/json
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
@@ -1230,7 +1517,13 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "650dd2afbcf7611fb987c0b93ae2719d");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "eca8bfbf748f18e0a882ab8147d03638");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "8a82d224f2bbee9071f89e95505c4c5c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "ccfc092fbecc3553200528f7f8c98893");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "765219941739c587d713c3fb1a622601");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
 
@@ -1238,18 +1531,20 @@ client.test("unittest", function() {
 # Test of correct Content-Lengt for unicode
 # Expectations:
 # - Status code 200 Success
-# - Content-Length: 63
+# - Storage-Revision: 2/0
+# - Storage-Space: 262144/13324 bytes
+# - Content-Length: 66
 # - Content-Type: text/plain
 # - Only an extract of the data selected by XPath.
 # - URI: //quarter[@area=9.33]
-POST {{service}}0x2f2f717561727465725b40617265613d392e33335d HTTP/1.0
+POST {{service}}?2f2f717561727465725b40617265613d392e33335d HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
 
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"><xsl:output
-    method="text"/><xsl:template
+    method="text" encoding="iso-8859-1"/><xsl:template
     match="/"><xsl:value-of
     select="*/@name"/><xsl:value-of
     select="*/@name"/><xsl:value-of
@@ -1257,8 +1552,12 @@ Content-Type: application/xslt+xml
 
 > {%
 client.test("unittest", function() {
-    client.assert(response.headers.valueOf("Trace-Composite-Hash") === "e078ed2b3022e21fe42f0fb45046ed09");
+    client.assert(response.headers.valueOf("Trace-Request-Hash") === "787e26419c9ead635f620ae611a219b4");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "6403049c82607143afc2c082aa498506");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "533907f456f89b3ec6f8717b5647dc21");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e823935c9236220cc3395f298d07125e");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d519473866bcf44e5b5e4beac2d96820");
+    client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
-
-###
