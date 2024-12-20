@@ -36,6 +36,7 @@ import fs from "fs"
 import http from "http"
 import https from "https"
 import path from "path"
+import Process from "child_process"
 
 import Codec from "he"
 import {EOL} from "os"
@@ -243,6 +244,11 @@ const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
 const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
 const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
+const XMEX_LIBXML_DIRECTORY = Runtime.getEnv("XMEX_LIBXML_DIRECTORY", "./libxml")
+const XMEX_LIBXML_XSLTPROC = (XMEX_LIBXML_DIRECTORY.trim() || ".")
+        .replace(/\\/g, "/")
+        .replace(/\/+$/, "") + "/xsltproc"
+
 // The evaluate method of the Document differs from PHP in behavior.
 // The following things have been changed to simplify migration:
 // - Additional third parameter
@@ -379,7 +385,7 @@ class XML {
     }
 
     static createDeclaration() {
-        return `<?xml version=\"${XML.VERSION}\" encoding=\"${XML.ENCODING}\"?>`
+        return `<?xml version="${XML.VERSION}" encoding="${XML.ENCODING}"?>`
     }
 
     static createDocument() {
@@ -932,16 +938,81 @@ class Storage {
             }
         }
 
-        let style = new DOMParser().parseFromString(this.request.data)
-        if (!Object.exists(style)
-                || style instanceof Error) {
+        // xsltproc supports XML with embedded XSLT (stylesheet). With this
+        // approach, all data relevant for the transformation can be sent to
+        // xsltproc via the STD_IN and the annoying detour via temp files is
+        // avoided.
+
+        // Adaptations and manipulations of the XSLT
+        // - If necessary, remove the Prolog statement <?xml...>
+        // - Iif necessary, remove the ID attribute in the XSLT stylesheet element
+        // - Set attribute ID of the first XSLT stylesheet element to ___<unique>
+
+        const stylesheetData = (this.request.data ?? "")
+            .replace(/(<xsl:stylesheet[^>]*?)\s+id\s*=\s*(["']).*?\2/gi, "$1")
+        const stylesheet = new DOMParser().parseFromString(stylesheetData)
+        if (!Object.exists(stylesheet)
+                || stylesheet instanceof Error) {
             let message = "Invalid XSLT stylesheet"
-            if (xml instanceof Error)
-                message += ` (${xml.message})`
+            if (stylesheet instanceof Error)
+                message += ` (${stylesheet.message})`
             this.quit(422, "Unprocessable Entity", {Message: message})
         }
+        const stylesheetElement = XPath.select1("//*[local-name()='stylesheet']", stylesheet);
+        if (!stylesheetElement
+                || stylesheetElement instanceof Error)
+            this.quit(422, "Unprocessable Entity", {Message: "XSLT stylesheet element was not found"})
+        stylesheetElement.setAttribute("id", `___${this.unique}`)
+        const stylesheetText = stylesheet.toString()
+            .replace(/<\?xml\b.*?\?>/ig, "")
+            .trim()
 
-        // TODO
+        // Adaptations and manipulations of the XML
+        // - XML: Ermittle den Namen vom Root-Element
+        // - XML: Entferne ggf. die Prolog-Anweisung <?xml...>
+        // - XML: Füge <?xml-stylesheet type="text/xml" href="#___<unique>"?> ein
+        // - XML: Füge <!DOCTYPE <root-element> [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]> ein
+        // - XML: Füge XSLT als erstes Kind-Element nach dem Root-Element ein
+
+        const xmlRootElementName = xml.documentElement.nodeName;
+        let embedding = xml.toString()
+            .replace(/<\?xml\b.*?\?>/ig, "")
+            .replace(/\x00+/ig, " ")
+        embedding = `<!DOCTYPE ${xmlRootElementName} [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>${EOL}${embedding}`
+        embedding = `<?xml-stylesheet type="text/xml" href="#___${this.unique}"?>${EOL}${embedding}`
+        embedding = embedding.replace(new RegExp(`(<\\s*${xmlRootElementName}(?:\\s.*?)?>)`, 'i'), `$1${EOL}\x00${EOL}`)
+        embedding = embedding.replace("\x00", stylesheetText)
+
+        let output = Process.spawnSync(XMEX_LIBXML_XSLTPROC, ['-'], {
+            input: embedding,
+            encoding: XML.ENCODING
+        })
+        if (output.stderr) {
+            let message = output.stderr.split(/[\r\n]+/).slice(0, 2).join(', ')
+            message = message.replace(/(?<=:)\s+file[\s-]+line\s+\d+/ig, "").trim()
+            message = message.replace(/\s+(:)\s+/ig, "$1 ").trim()
+            message = "xsltproc failed (" + message.trim() + ")"
+            this.quit(422, "Unprocessable Entity", {Message: message})
+        } else output = output.stdout
+
+        let header = {}
+        let method = XPath.select("normalize-space(//*[local-name()='output']/@method)", stylesheet)
+        let encoding = XPath.select("normalize-space(//*[local-name()='output']/@encoding-)", stylesheet)
+        if (Object.exists(output)
+                && output.trim() !== "") {
+            method = method.toLowerCase()
+            if (method === "text") {
+                output = Codec.decode(output, {isAttributeValue: false})
+                header["Content-Type"] = CONTENT_TYPE_TEXT
+            } else {
+                output = new DOMParser().parseFromString(output)
+                if (method === "html")
+                    header["Content-Type"] = Storage.CONTENT_TYPE_HTML
+                else header["Content-Type"] = Storage.CONTENT_TYPE_XML
+            }
+        }
+
+        this.quit(200, "Success", header, output)
     }
 
     /**
