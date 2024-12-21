@@ -36,13 +36,13 @@ import fs from "fs"
 import http from "http"
 import https from "https"
 import path from "path"
-import Process from "child_process"
 
-import Codec from "he"
 import {EOL} from "os"
 import {DOMParser} from "xmldom"
-import Mime from "mime/lite"
 import {XMLSerializer} from "xmldom"
+
+import Mime from "mime/lite"
+import Process from "child_process"
 import XPath from "xpath"
 
 // For the environment variables, constants are created so that they can be
@@ -2084,7 +2084,7 @@ class ServerFactory {
                 response.setHeader("Content-Length", state.size || 0)
             response.writeHead(200, "Success"/*, headers*/)
             const buffer = Buffer.alloc(65535)
-            for (let size = 0; size = fs.readSync(file, buffer) > 0;)
+            for (let size = 0; (size = fs.readSync(file, buffer)) > 0;)
                 response.write(buffer.toString("binary"), "binary")
             response.end()
         } finally {
