@@ -37,7 +37,6 @@ import http from "http"
 import https from "https"
 import path from "path"
 
-import {EOL} from "os"
 import {DOMParser} from "xmldom"
 import {XMLSerializer} from "xmldom"
 
@@ -173,6 +172,18 @@ Date.parseDuration = function(text) {
     else if (match[2] === "s")
         factor = 1
     return number *factor
+}
+
+Date.prototype.toTimestampString = function() {
+    return this.toISOString()
+        .replace(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}).*$/,
+            "$1-$2-$3 $4:$5:$6");
+}
+
+Date.prototype.toDatestampString = function() {
+    return this.toISOString()
+        .replace(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}).*$/,
+            "$1-$2-$3");
 }
 
 Number.parseBytes = function(text) {
@@ -975,9 +986,9 @@ class Storage {
         if (SELF_CLOSING_ELEMENT_AT_THE_END.test(embedding))
             embedding = embedding.replace(SELF_CLOSING_ELEMENT_AT_THE_END, `<$1$2></$1>`)
         const CLOSING_ELEMENT_AT_THE_END = /(<\/\w+[^>]*>)\s*$/
-        embedding = embedding.replace(CLOSING_ELEMENT_AT_THE_END, `${EOL}\x00${EOL}$1`)
-        embedding = `<!DOCTYPE ANY [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>${EOL}${embedding}`
-        embedding = `<?xml-stylesheet type="text/xml" href="#___${this.unique}"?>${EOL}${embedding}`
+        embedding = embedding.replace(CLOSING_ELEMENT_AT_THE_END, `\n\x00\n$1`)
+        embedding = `<!DOCTYPE ANY [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>\n${embedding}`
+        embedding = `<?xml-stylesheet type="text/xml" href="#___${this.unique}"?>\n${embedding}`
         embedding = embedding.replace("\x00", stylesheetText)
 
         let output = Process.spawnSync(XMEX_LIBXML_XSLTPROC, ['-'], {
@@ -2321,5 +2332,26 @@ class ServerFactory {
 // CHANGES is the basis for builds, releases and README.md
 console.log("Seanox XML-Micro-Exchange [Version 0.0.0 00000000]")
 console.log("Copyright (C) 0000 Seanox Software Solutions")
+console.log()
+
+// Logging with xmldom filter and timestamp
+
+console.log$ = console.log
+console.log = function(...variable) {
+    if (!String(variable?.[0] ?? "").match(/^\s*\[\s*xmldom\s/i))
+        console.log$(new Date().toTimestampString(), ...variable)
+}
+
+console.error$ = console.error
+console.error = function(...variable) {
+    if (!String(variable?.[0] ?? "").match(/^\s*\[\s*xmldom\s/i))
+        console.error$(new Date().toTimestampString(), ...variable)
+}
+
+console.warn$ = console.error
+console.warn = function(...variable) {
+    if (!String(variable?.[0] ?? "").match(/^\s*\[\s*xmldom\s/i))
+        console.warn$(new Date().toTimestampString(), ...variable)
+}
 
 ServerFactory.bind()
