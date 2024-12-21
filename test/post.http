@@ -296,7 +296,7 @@ Content-Type: application/xslt+xml
     <xsl:variable name="district" select="/district/@name"/>  
     <district name="{$district}">
 	  <quarters>
-	  <xsl:for-each select="//quarter">
+	  <xsl:for-each select="/district/quarters/quarter">
 	  <xsl:variable name="quarter" select="@name"/>
 	    <quarter name="{$quarter}"/>
 	  </xsl:for-each>
@@ -308,11 +308,11 @@ Content-Type: application/xslt+xml
 > {%
 client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
-    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "87509d6d74f122316a8d84a0056326f1");
-    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "e19737a299af2e910ba764ba2e127c93");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4a6d08fec1e14d2065f4e3bd929d883c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c5be2a40fa10a2432959b0a44cfc33c6");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
-    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "167f2df9be2403ae51b466fde746928b");
-    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "f582046018f9b565ccda432cc2e799db");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "6af62578c7f34a0c0aab0fac73c2cfe9");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "19e8ca3901e82207e02125d856f75361");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
@@ -925,7 +925,7 @@ Accept: application/json
     <xsl:variable name="district" select="/district/@name"/>
     <district name="{$district}">
 	  <quarters>
-	  <xsl:for-each select="//quarter">
+	  <xsl:for-each select="/district/quarters/quarter">
 	    <xsl:variable name="quarter" select="@name"/>
 	    <quarter name="{$quarter}"/>
 	  </xsl:for-each>
@@ -937,11 +937,11 @@ Accept: application/json
 > {%
 client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
-    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "87509d6d74f122316a8d84a0056326f1");
-    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "185fb70eebc4966ef9cc3015f78c5d9f");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "4a6d08fec1e14d2065f4e3bd929d883c");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "c02b6d0f725d01c654fa3ef9e54b5b62");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
-    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f45f804d472eddd984f67ba1d3d85ec0");
-    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "6c4e34fc0dd1879273ca4afeccfeefd4");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "96480d8f53b36560809f17f3189a4cfe");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "bbb2ff152a21320358cd22fd6537c05b");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
@@ -1012,7 +1012,7 @@ Content-Type: application/xslt+xml
   <xsl:template match="/">
 Quarters of district: <xsl:value-of select="/district/@name"/>
 ----
-<xsl:for-each select="//quarter">
+<xsl:for-each select="/district/quarters/quarter">
 <xsl:variable name="area" select="concat(format-number(@area, '0.00'), ' km²')"/>
 <xsl:variable name="name" select="@name"/>
 <quarter area="1-{$area}-1" name="2-{$name}-2">
@@ -1026,11 +1026,11 @@ Quarters of district: <xsl:value-of select="/district/@name"/>
 > {%
 client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "d61909221ab45262defd02fadf03455b");
-    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "9a04ba3691b004a72c3d52222fe7c125");
-    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "67dba003942f4273f6b355b3c08b1068");
+    client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "f0d32619c6b11c54592edcad975f9e1b");
+    client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "8e9f9e0b663a251081ca0e6684468664");
     client.assert(response.headers.valueOf("Trace-Response-Hash") === "6ea793edc825cd6b0da28cb2d1217a47");
-    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "d819e6939cd68f00b0db0525309a957c");
-    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "1b5a1975109980e73847be6b349f535c");
+    client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "f10b0ce1c61c6307f43c56954b8f1886");
+    client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "76a69ee9b02277d565ab92fa4a034379");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "18dfe4bbecd955284cbd629fe6b7d9d6");
 });
 %}
