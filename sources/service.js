@@ -186,6 +186,15 @@ Date.prototype.toDatestampString = function() {
             "$1-$2-$3");
 }
 
+Math.round$ = Math.round
+Math.round = function(value, decimals = 0) {
+    if (!decimals
+            || decimals <= 0)
+        return Math.round$(value)
+    decimals = Math.pow(10, decimals)
+    return Math.round$(value *decimals) /decimals
+}
+
 Number.parseBytes = function(text) {
     if (String.isEmpty(text))
         throw "Number parser error: Invalid value"
@@ -1970,6 +1979,51 @@ class Storage {
     }
 }
 
+const Statistic = (() => {
+
+    // Synchronization is not required here, because the interval is only
+    // triggered after the end of the method.
+    global.setInterval(() => {
+
+        const summarize = (statistic, hour = undefined) => {
+            let data = {requests:0, time:0, inbound:0, outbound:0, errors:0}
+            if (!hour) {
+                statistic.data.forEach((record) => {
+                    data.requests += record.requests
+                    data.inbound += record.inbound
+                    data.outbound += record.outbound
+                    data.time += record.time
+                    data.errors += record.errors
+                })
+            } else data = statistic.data[hour] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
+            console.log("Statistic", `Requests ${data.requests}`
+                + `, Inbound ${Math.round(data.inbound, 2)} MB`
+                + `, Outbound ${Math.round(data.outbound, 2)} MB`
+                + `, Execution ${Math.round(data.time, 2)} sec`
+                + `, Errors ${data.errors}`)
+        }
+
+        const date = new Date()
+        const text = date.toDatestampString()
+        if (Statistic.date !== text) {
+            summarize(Statistic)
+            Statistic.date = text
+            Statistic.time = date.getHours()
+            Statistic.data = []
+        } else if (Statistic.time !== date.getHours()) {
+            summarize(Statistic, Statistic.time)
+            Statistic.time = date.getHours()
+        }
+    }, 30000)
+
+    const date = new Date()
+    return {
+        date: date.toDatestampString(),
+        time: date.getHours(),
+        data: []
+    }
+})()
+
 http.ServerResponse.prototype.quit = function(status, message, headers = undefined, data = undefined) {
 
     if (this.headersSent)
@@ -2279,8 +2333,24 @@ class ServerFactory {
                     console.error("Service", `#${unique}`, error)
                     if (!response.headersSent)
                         response.quit(500, "Internal Server Error", {"Error": `#${unique}`})
+
                 } finally {
-                    // TODO
+
+                    // Synchronization is not required here, because the
+                    // interval is only triggered after the end of the method.
+                    // The API can be highly-frequented, so the statistical data
+                    // is minimized as floating point numbers.
+                    (async () => {
+                        const date = new Date()
+                        const slot = date.getHours()
+                        Statistic.data[slot] = Statistic.data[slot] || {requests:0, time:0, inbound:0, outbound:0, errors:0}
+                        Statistic.data[slot].requests += 1
+                        Statistic.data[slot].inbound += Math.round(request.data.length /1024 /1024, 4)
+                        Statistic.data[slot].outbound += Math.round((response.getHeader("Content-Length") ?? 0) /1024 /1024, 4)
+                        Statistic.data[slot].time += Math.round((date.getTime() -request.timing) /1000, 4)
+                        if (String(response.statusCode).startsWith("5"))
+                            Statistic.data[slot].errors += 1
+                    })()
                 }
             })
         })
