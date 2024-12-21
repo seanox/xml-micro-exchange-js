@@ -2240,12 +2240,14 @@ class ServerFactory {
                 if (ServerFactory.CONNECTION_CERTIFICATE.match(/\.pfx$/)) {
                     return {
                         pfx: fs.readFileSync(ServerFactory.CONNECTION_CERTIFICATE),
-                        passphrase: ServerFactory.CONNECTION_SECRET
+                        passphrase: ServerFactory.CONNECTION_SECRET,
+                        timestamp: fs.statSync(ServerFactory.CONNECTION_CERTIFICATE).mtime
                     }
                 } else {
                     return {
                         cert: fs.readFileSync(ServerFactory.CONNECTION_CERTIFICATE),
-                        key: fs.readFileSync(ServerFactory.CONNECTION_SECRET)
+                        key: fs.readFileSync(ServerFactory.CONNECTION_SECRET),
+                        timestamp: fs.statSync(ServerFactory.CONNECTION_CERTIFICATE).mtime
                     }
                 }
             }
@@ -2382,7 +2384,7 @@ class ServerFactory {
         })
 
         server.listen(ServerFactory.CONNECTION_PORT, ServerFactory.CONNECTION_ADDRESS, function() {
-            let options = []
+            const options = []
             if (ServerFactory.CONNECTION_CERTIFICATE
                     && ServerFactory.CONNECTION_SECRET)
                 options.push("secure")
@@ -2425,3 +2427,19 @@ console.warn = function(...variable) {
 }
 
 ServerFactory.bind()
+
+global.setInterval(() => {
+    const serverInstance = ServerFactory.serverInstancesXmex
+    if (!Object.exists(serverInstance.options)
+            || !Object.exists(serverInstance.options.timestamp)
+            || serverInstance.options.timestamp === fs.statSync(ServerFactory.CONNECTION_CERTIFICATE).mtime)
+        return
+    console.log("Service", "Certificate update found")
+    const options = []
+    if (ServerFactory.CONNECTION_CERTIFICATE
+            && ServerFactory.CONNECTION_SECRET)
+        options.push("secure")
+    console.log("Service", `Closing at ${serverInstance.address().address}:${serverInstance.address().port}${options.length > 0 ? " (" + options.join(" + ") + ")" : ""}`)
+    serverInstance.close()
+    ServerFactory.bind()
+}, 15 *60 *1000)
