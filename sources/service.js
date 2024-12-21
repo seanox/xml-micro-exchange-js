@@ -963,22 +963,21 @@ class Storage {
             .trim()
 
         // Adaptations and manipulations of the XML
-        // - Determine the name of the root element
         // - Remove the Prolog statement <?xml...> if necessary
         // - Insert <?xml-stylesheet type=“text/xml” href=“#___<unique>”?>
-        // - Insert <!DOCTYPE <root-element> [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>.
-        // - Insert XSLT as the first child element after the root element
+        // - Insert <!DOCTYPE ANY [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>.
+        // - Insert XSLT before the last closing tag, which should be the root element
 
-        const xmlRootElementName = xml.documentElement.nodeName;
         let embedding = xml.toString()
             .replace(/<\?xml\b.*?\?>/ig, "")
             .replace(/\x00+/ig, " ")
-        embedding = `<!DOCTYPE ${xmlRootElementName} [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>${EOL}${embedding}`
+        const SELF_CLOSING_ELEMENT_AT_THE_END = /<(\w+)([^>]*)\/>\s*$/
+        if (SELF_CLOSING_ELEMENT_AT_THE_END.test(embedding))
+            embedding = embedding.replace(SELF_CLOSING_ELEMENT_AT_THE_END, `<$1$2></$1>`)
+        const CLOSING_ELEMENT_AT_THE_END = /(<\/\w+[^>]*>)\s*$/
+        embedding = embedding.replace(CLOSING_ELEMENT_AT_THE_END, `${EOL}\x00${EOL}$1`)
+        embedding = `<!DOCTYPE ANY [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>${EOL}${embedding}`
         embedding = `<?xml-stylesheet type="text/xml" href="#___${this.unique}"?>${EOL}${embedding}`
-        const DOCUMENT_WITH_SELF_CLOSING_ELEMENT_AT_THE_END = /<(\w+)([^>]*)\/>\s*$/
-        if (DOCUMENT_WITH_SELF_CLOSING_ELEMENT_AT_THE_END.test(embedding))
-            embedding = embedding.replace(/<(\w+)([^>]*)\/>\s*$/, `<$1$2>${EOL}\x00${EOL}</$1>`)
-        else embedding = embedding.replace(new RegExp(`(<\\s*${xmlRootElementName}(?:\\s.*?)?>)`, 'i'), `$1${EOL}\x00${EOL}`)
         embedding = embedding.replace("\x00", stylesheetText)
 
         let output = Process.spawnSync(XMEX_LIBXML_XSLTPROC, ['-'], {
