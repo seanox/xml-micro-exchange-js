@@ -579,7 +579,7 @@ test
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -587,7 +587,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: c5c94cd6cff60f84444c438cba5451cc
 Trace-Request-Header-Hash: 1913452d06cdd009374767f108cdd58c
 Trace-Request-Data-Hash: 098f6bcd4621d373cade4e832627b4f6
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -597,7 +597,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -1354,7 +1354,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -1362,7 +1362,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 96f049d1629b322acdf2d6a94fb520fc
 Trace-Request-Header-Hash: 5f4ab9f70afc3fa81dec01252f657ac2
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -1372,7 +1372,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -1981,7 +1981,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -1989,7 +1989,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: bab5b43bdc4003975eb37da80e7e8dad
 Trace-Request-Header-Hash: f5f6eaf8c3a91c077d3dc9684aa30c7f
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -1999,7 +1999,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -2931,7 +2931,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -2939,7 +2939,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: bee9dd34525bc35cae05c083a5bc3da2
 Trace-Request-Header-Hash: 6b076e3bc35ccf56dc94e523bc08e07b
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -2949,7 +2949,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -7061,7 +7061,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -7069,7 +7069,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 7d70c4690b9a3d996eef6b35833269ab
 Trace-Request-Header-Hash: c5f94c13b9e4ebd872aac03fea123aa0
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -7079,7 +7079,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' OPTIONS http://127.0.0.1/xmex!
 = request =>
@@ -7122,7 +7122,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -7130,7 +7130,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 8aae0e8426a0e3116e2de0a223c243ed
 Trace-Request-Header-Hash: c5f94c13b9e4ebd872aac03fea123aa0
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -7140,7 +7140,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#4' PUT http://127.0.0.1/xmex!
 = request =>
@@ -7728,7 +7728,7 @@ test
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -7736,7 +7736,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: adab6f8c459109067352f9303dd74858
 Trace-Request-Header-Hash: 1cddf083c4efaecb0b6fda39895c955e
 Trace-Request-Data-Hash: 098f6bcd4621d373cade4e832627b4f6
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -7746,7 +7746,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -7990,7 +7990,7 @@ name(/+)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -7999,7 +7999,7 @@ Message: Invalid XPath function (XPath parse error)
 Trace-Request-Hash: adab6f8c459109067352f9303dd74858
 Trace-Request-Header-Hash: 765135bf530dfe743f99550dddee3f21
 Trace-Request-Data-Hash: 1bc14c022d435505a531c29b225265c3
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: cfbf344b7a9ad579705c30c6a90f91e0
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 32dbe7add06aab85ed026d081b72b4fd
@@ -8009,7 +8009,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#9' PATCH http://127.0.0.1/xmex!/books/attribute::attrA
 = request =>
@@ -8403,7 +8403,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -8412,7 +8412,7 @@ Message: Invalid XPath (Axes are not supported)
 Trace-Request-Hash: 599942796ed18401c00fc85ff6affdd5
 Trace-Request-Header-Hash: 568f6045c4fe7aaae01b260ab2f44ddd
 Trace-Request-Data-Hash: 96ce033aedb11790a7b97aa65b9013c9
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 86d8fd87c9219e91407a387312139796
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: f781697418b98f772275aeb5521508af
@@ -8422,7 +8422,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#20' PATCH http://127.0.0.1/xmex!/books/@attrB
 = request =>
@@ -8439,7 +8439,7 @@ wrong(.)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -8448,7 +8448,7 @@ Message: Invalid XPath function (Unknown function wrong)
 Trace-Request-Hash: 599942796ed18401c00fc85ff6affdd5
 Trace-Request-Header-Hash: 765135bf530dfe743f99550dddee3f21
 Trace-Request-Data-Hash: 1c9aa69a02e388d260e0dc1583a63a08
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 43bfaf862c907e060503b3ac0ba23515
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: f781697418b98f772275aeb5521508af
@@ -8458,7 +8458,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#21' PATCH http://127.0.0.1/xmex!?2f2f626f6f6b732f2e2e2f405f5f5f787878
 = request =>
@@ -8627,7 +8627,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -8635,7 +8635,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 9c8eda4cf8f05f434daf1a7f1f76a979
 Trace-Request-Header-Hash: 2c023947d3617d06931697f38f447881
 Trace-Request-Data-Hash: 8080adb3d0e36ad280a5800174507060
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -8645,7 +8645,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -9584,7 +9584,7 @@ Hello Internet!
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -9592,7 +9592,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 9c8eda4cf8f05f434daf1a7f1f76a979
 Trace-Request-Header-Hash: f67742ce39846c4aa110106a12b7cf24
 Trace-Request-Data-Hash: 97c698b4ef93088caf0a721a792d3ab6
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -9602,7 +9602,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -9895,7 +9895,7 @@ name(/+)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -9904,7 +9904,7 @@ Message: Invalid XPath function (XPath parse error)
 Trace-Request-Hash: 9c8eda4cf8f05f434daf1a7f1f76a979
 Trace-Request-Header-Hash: f626d9200ba80502658b1ceb04d1b251
 Trace-Request-Data-Hash: 1bc14c022d435505a531c29b225265c3
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: cfbf344b7a9ad579705c30c6a90f91e0
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -9914,7 +9914,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#10' PATCH http://127.0.0.1/xmex!/books
 = request =>
@@ -9931,7 +9931,7 @@ wrong(.)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -9940,7 +9940,7 @@ Message: Invalid XPath function (Unknown function wrong)
 Trace-Request-Hash: 9c8eda4cf8f05f434daf1a7f1f76a979
 Trace-Request-Header-Hash: f626d9200ba80502658b1ceb04d1b251
 Trace-Request-Data-Hash: 1c9aa69a02e388d260e0dc1583a63a08
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 43bfaf862c907e060503b3ac0ba23515
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -9950,7 +9950,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#11' PATCH http://127.0.0.1/xmex!/books
 = request =>
@@ -9967,7 +9967,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -9976,7 +9976,7 @@ Message: Invalid XPath (Axes are not supported)
 Trace-Request-Hash: 9c8eda4cf8f05f434daf1a7f1f76a979
 Trace-Request-Header-Hash: ce93cb50a34f8532dd7ab3027d050afc
 Trace-Request-Data-Hash: 96ce033aedb11790a7b97aa65b9013c9
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 86d8fd87c9219e91407a387312139796
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -9986,7 +9986,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#12' PATCH http://127.0.0.1/xmex!/books
 = request =>
@@ -10003,7 +10003,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -10012,7 +10012,7 @@ Message: Invalid XPath (Axes are not supported)
 Trace-Request-Hash: 9c8eda4cf8f05f434daf1a7f1f76a979
 Trace-Request-Header-Hash: 4743516791b8c984379bf709b7fd6499
 Trace-Request-Data-Hash: 5058f1af8388633f609cadb75a75dc9d
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 86d8fd87c9219e91407a387312139796
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -10022,7 +10022,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#13' PATCH http://127.0.0.1/xmex!?2f2a2f2e2e
 = request =>
@@ -10286,7 +10286,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -10294,7 +10294,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: a9fce63d3f69c67b9a0aed7bc70bff44
 Trace-Request-Data-Hash: c38f44002f52604b327a3d281cde8128
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -10304,7 +10304,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -10796,7 +10796,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -10805,7 +10805,7 @@ Message: xsltproc failed (compilation error: element templatex / xsltStylePreCom
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: 556c0c3faabeaa0cbd9c63d997649fea
 Trace-Request-Data-Hash: 58e8e4e2b0346c1120063f0c02250d81
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: f97e6bd2c93602c7e7d9b7f1fd124707
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -10815,7 +10815,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#9' POST http://127.0.0.1/xmex!
 = request =>
@@ -10850,7 +10850,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -10859,7 +10859,7 @@ Message: xsltproc failed (compilation error: element templatex / xsltStylePreCom
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: 1362d2e9255ba0b91691076d002e9f3f
 Trace-Request-Data-Hash: 535154d39d7ad9f026b1f97fba9c20db
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: f97e6bd2c93602c7e7d9b7f1fd124707
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -10869,7 +10869,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#10' POST http://127.0.0.1/xmex!
 = request =>
@@ -10904,7 +10904,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -10913,7 +10913,7 @@ Message: xsltproc failed (compilation error: element templatex / xsltStylePreCom
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: a58cc690f4e20406cab8254385088793
 Trace-Request-Data-Hash: bde9f885b3a84f0e4fd86b6123b35dfa
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: f97e6bd2c93602c7e7d9b7f1fd124707
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -10923,7 +10923,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#11' POST http://127.0.0.1/xmex!
 = request =>
@@ -10957,7 +10957,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -10966,7 +10966,7 @@ Message: xsltproc failed (compilation error: element templatex / xsltStylePreCom
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: 4d5d41ad479e0ddac21a915e4e69691e
 Trace-Request-Data-Hash: 8436cf8a82f89122333cbde00ad73bb9
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: f97e6bd2c93602c7e7d9b7f1fd124707
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -10976,7 +10976,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#12' POST http://127.0.0.1/xmex!
 = request =>
@@ -11011,7 +11011,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -11020,7 +11020,7 @@ Message: xsltproc failed (xmlXPathCompOpEval: function sumx not found / XPath er
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: 556c0c3faabeaa0cbd9c63d997649fea
 Trace-Request-Data-Hash: ad78d0bec8ba2c6a21c9748d0edb97c2
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: fef15c90d3f254b4fc286af22024f0f4
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -11030,7 +11030,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#13' POST http://127.0.0.1/xmex!
 = request =>
@@ -11065,7 +11065,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -11074,7 +11074,7 @@ Message: xsltproc failed (XPath error: Invalid predicate / compilation error: el
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: a58cc690f4e20406cab8254385088793
 Trace-Request-Data-Hash: e40190bec91f8fd68f84928e9552a8f8
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: f7a3dc28ce59949c714e1fcc0df1ec9e
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -11084,7 +11084,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#14' POST http://127.0.0.1/xmex!
 = request =>
@@ -11346,17 +11346,17 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
 Access-Control-Expose-Headers: *
-Message: Unprocessable Entity
+Message: Unprocessable Content
 Trace-Request-Hash: 4573d2fb7e54799c6827599bb9a0434b
 Trace-Request-Header-Hash: 4e0e7d8d6f770c7ac1f3149034aab067
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
-Trace-Response-Header-Hash: a0c3a055db7b856a7bf76899678107b9
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
+Trace-Response-Header-Hash: 89e276eed700eba5ea421cb2bab2cf7e
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
 Connection: keep-alive
@@ -11365,7 +11365,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#21' POST http://127.0.0.1/xmex!?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d
 = request =>
@@ -11970,7 +11970,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -11979,7 +11979,7 @@ Message: xsltproc failed (compilation error: element output / invalid value for 
 Trace-Request-Hash: eca8bfbf748f18e0a882ab8147d03638
 Trace-Request-Header-Hash: a23984b5d7e74064b7915c4d8107475f
 Trace-Request-Data-Hash: 75f663b8ed83119f89d2fe590af6e05a
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: b6231f684a409e7ecd639a4ca6d0f036
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -11989,7 +11989,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#33' POST http://127.0.0.1/xmex!?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d
 = request =>
@@ -12013,7 +12013,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12022,7 +12022,7 @@ Message: xsltproc failed (compilation error: element output / invalid value for 
 Trace-Request-Hash: eca8bfbf748f18e0a882ab8147d03638
 Trace-Request-Header-Hash: 8a82d224f2bbee9071f89e95505c4c5c
 Trace-Request-Data-Hash: ccfc092fbecc3553200528f7f8c98893
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 765219941739c587d713c3fb1a622601
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -12032,7 +12032,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#34' POST http://127.0.0.1/xmex!?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d
 = request =>
@@ -12249,7 +12249,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12258,7 +12258,7 @@ Message: xsltproc failed (compilation error: element output / invalid value for 
 Trace-Request-Hash: eca8bfbf748f18e0a882ab8147d03638
 Trace-Request-Header-Hash: a23984b5d7e74064b7915c4d8107475f
 Trace-Request-Data-Hash: 75f663b8ed83119f89d2fe590af6e05a
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: b6231f684a409e7ecd639a4ca6d0f036
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -12268,7 +12268,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#39' POST http://127.0.0.1/xmex!?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d
 = request =>
@@ -12293,7 +12293,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12302,7 +12302,7 @@ Message: xsltproc failed (compilation error: element output / invalid value for 
 Trace-Request-Hash: eca8bfbf748f18e0a882ab8147d03638
 Trace-Request-Header-Hash: 8a82d224f2bbee9071f89e95505c4c5c
 Trace-Request-Data-Hash: ccfc092fbecc3553200528f7f8c98893
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 765219941739c587d713c3fb1a622601
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 18dfe4bbecd955284cbd629fe6b7d9d6
@@ -12312,7 +12312,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#40' POST http://127.0.0.1/xmex!?2f2f717561727465725b40617265613d392e33335d
 = request =>
@@ -12376,7 +12376,7 @@ test
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12384,7 +12384,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 08cea1cc47a20ce28b1025bfd579921a
 Trace-Request-Header-Hash: aa5d077b074868af088cb5684c5ed015
 Trace-Request-Data-Hash: 098f6bcd4621d373cade4e832627b4f6
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -12394,7 +12394,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -12562,7 +12562,7 @@ name(/+)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12571,7 +12571,7 @@ Message: Invalid XPath function (XPath parse error)
 Trace-Request-Hash: 08cea1cc47a20ce28b1025bfd579921a
 Trace-Request-Header-Hash: b77f096953a1b7205d5687ed4b77ac04
 Trace-Request-Data-Hash: 1bc14c022d435505a531c29b225265c3
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: cfbf344b7a9ad579705c30c6a90f91e0
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: 1e538670837ae98b58912023ac4edf28
@@ -12581,7 +12581,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#7' PUT http://127.0.0.1/xmex!/books/attribute::attrA
 = request =>
@@ -12934,7 +12934,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12943,7 +12943,7 @@ Message: Invalid XPath (Axes are not supported)
 Trace-Request-Hash: 204459063f0cebe5aa7067ffd42ba07b
 Trace-Request-Header-Hash: eb5cc7470d5a96e72d4533280a546e8a
 Trace-Request-Data-Hash: 96ce033aedb11790a7b97aa65b9013c9
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 86d8fd87c9219e91407a387312139796
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: e7de2cd6fc440271860aef838ae62150
@@ -12953,7 +12953,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#17' PUT http://127.0.0.1/xmex!/books/@attrE
 = request =>
@@ -12970,7 +12970,7 @@ wrong(.)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -12979,7 +12979,7 @@ Message: Invalid XPath function (Unknown function wrong)
 Trace-Request-Hash: 204459063f0cebe5aa7067ffd42ba07b
 Trace-Request-Header-Hash: b77f096953a1b7205d5687ed4b77ac04
 Trace-Request-Data-Hash: 1c9aa69a02e388d260e0dc1583a63a08
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 43bfaf862c907e060503b3ac0ba23515
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: e7de2cd6fc440271860aef838ae62150
@@ -12989,7 +12989,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#18' PUT http://127.0.0.1/xmex!?2f2f626f6f6b732f2e2e2f405f5f5f787878
 = request =>
@@ -13830,7 +13830,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -13838,7 +13838,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: 100ba64d18a9cd9b888e2ee4f189133a
 Trace-Request-Data-Hash: 8080adb3d0e36ad280a5800174507060
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -13848,7 +13848,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -14527,7 +14527,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -14535,7 +14535,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 8c8f9d0e130989b71bf88ae64312e872
 Trace-Request-Header-Hash: 29baec3161a76d4e2a05aea062a6a2c0
 Trace-Request-Data-Hash: 4dd9b7dc28e56456ba5cd5ab32ecc25d
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -14545,7 +14545,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -15360,7 +15360,7 @@ Hello Internet!
 ###
 
 <= response =
-HTTP/1.1 404 Resource Not Found
+HTTP/1.1 404 Not Found
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -15368,7 +15368,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: 70356ec9035b2fb02399536a9abf0469
 Trace-Request-Data-Hash: 97c698b4ef93088caf0a721a792d3ab6
-Trace-Response-Hash: 1a3b8937cde8aa40ce5ffe8d389146ec
+Trace-Response-Hash: 1e6cd917ed71a1241e4bedc29264bd98
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -15378,7 +15378,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 404 (Resource Not Found); Content length: 0 bytes (0 B)
+Response code: 404 (Not Found); Content length: 0 bytes (0 B)
  
 Request '#2' PUT http://127.0.0.1/xmex!
 = request =>
@@ -15671,7 +15671,7 @@ name(/+)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -15680,7 +15680,7 @@ Message: Invalid XPath function (XPath parse error)
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: 65116dcd572fd84584edaf6b5ffd53e4
 Trace-Request-Data-Hash: 1bc14c022d435505a531c29b225265c3
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: cfbf344b7a9ad579705c30c6a90f91e0
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -15690,7 +15690,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#10' PUT http://127.0.0.1/xmex!/books
 = request =>
@@ -15707,7 +15707,7 @@ wrong(.)
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -15716,7 +15716,7 @@ Message: Invalid XPath function (Unknown function wrong)
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: 65116dcd572fd84584edaf6b5ffd53e4
 Trace-Request-Data-Hash: 1c9aa69a02e388d260e0dc1583a63a08
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 43bfaf862c907e060503b3ac0ba23515
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -15726,7 +15726,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#11' PUT http://127.0.0.1/xmex!/books
 = request =>
@@ -15743,7 +15743,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -15752,7 +15752,7 @@ Message: Invalid XPath (Axes are not supported)
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: f5030969bd50f3f39622105c2a6d67c9
 Trace-Request-Data-Hash: 96ce033aedb11790a7b97aa65b9013c9
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 86d8fd87c9219e91407a387312139796
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -15762,7 +15762,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#12' PUT http://127.0.0.1/xmex!/books
 = request =>
@@ -15779,7 +15779,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 422 Unprocessable Entity
+HTTP/1.1 422 Unprocessable Content
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -15788,7 +15788,7 @@ Message: Invalid XPath (Axes are not supported)
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: f39b03f672542e61fa75e4b9f4031fd1
 Trace-Request-Data-Hash: 5058f1af8388633f609cadb75a75dc9d
-Trace-Response-Hash: 917ef711b7514d05e99aed61242ab05c
+Trace-Response-Hash: e1cd192beb4500b8386aed2b26d4be84
 Trace-Response-Header-Hash: 86d8fd87c9219e91407a387312139796
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: dc014bca2c15e2766100a53bc0eece4f
@@ -15798,7 +15798,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 422 (Unprocessable Entity); Content length: 0 bytes (0 B)
+Response code: 422 (Unprocessable Content); Content length: 0 bytes (0 B)
  
 Request '#13' PUT http://127.0.0.1/xmex!?2f2a2f2e2e
 = request =>
@@ -16245,7 +16245,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 413 Payload Too Large
+HTTP/1.1 413 Content Too Large
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -16253,7 +16253,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 4bd05ace5a00af112d25bd18b9b5e0d0
 Trace-Request-Header-Hash: d60a2fb7930156c568e7db6b66227267
 Trace-Request-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
-Trace-Response-Hash: 0db75182e6a6f8c9dfe994b94d9c7468
+Trace-Response-Hash: fe7579866cb36226e23727bb3ba901bd
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: d41d8cd98f00b204e9800998ecf8427e
@@ -16263,7 +16263,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 413 (Payload Too Large); Content length: 0 bytes (0 B)
+Response code: 413 (Content Too Large); Content length: 0 bytes (0 B)
  
 Request '#6' PUT http://127.0.0.1/xmex!/books::last
 = request =>
@@ -16398,7 +16398,7 @@ Accept-Encoding: br,deflate,gzip,x-gzip
 ###
 
 <= response =
-HTTP/1.1 413 Payload Too Large
+HTTP/1.1 413 Content Too Large
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
 Access-Control-Max-Age: 86400
@@ -16406,7 +16406,7 @@ Access-Control-Expose-Headers: *
 Trace-Request-Hash: 494a7f08df707698646e05161f8f1c50
 Trace-Request-Header-Hash: 974db537101a1426d29cf1ce62a4ddee
 Trace-Request-Data-Hash: 5248832ae11e0562bf1dbcc3898e39b7
-Trace-Response-Hash: 0db75182e6a6f8c9dfe994b94d9c7468
+Trace-Response-Hash: fe7579866cb36226e23727bb3ba901bd
 Trace-Response-Header-Hash: e24e92218b87cffc8c8aa00c5ef5b3e2
 Trace-Response-Data-Hash: d41d8cd98f00b204e9800998ecf8427e
 Trace-Storage-Hash: a7d35050f412ff559d43f45cc94ff81a
@@ -16416,7 +16416,7 @@ Transfer-Encoding: chunked
  
 <Response body is empty>
  
-Response code: 413 (Payload Too Large); Content length: 0 bytes (0 B)
+Response code: 413 (Content Too Large); Content length: 0 bytes (0 B)
  
 Request '#9' PUT http://127.0.0.1/xmex!/books
 = request =>

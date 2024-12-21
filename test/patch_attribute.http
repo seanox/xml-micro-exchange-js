@@ -20,7 +20,7 @@ client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "1cddf083c4efaecb0b6fda39895c955e");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "098f6bcd4621d373cade4e832627b4f6");
-    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1a3b8937cde8aa40ce5ffe8d389146ec");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1e6cd917ed71a1241e4bedc29264bd98");
     client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
     client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
@@ -203,7 +203,7 @@ client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "adab6f8c459109067352f9303dd74858");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "765135bf530dfe743f99550dddee3f21");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "1bc14c022d435505a531c29b225265c3");
-    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "e1cd192beb4500b8386aed2b26d4be84");
     client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "cfbf344b7a9ad579705c30c6a90f91e0");
     client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "32dbe7add06aab85ed026d081b72b4fd");
@@ -487,7 +487,7 @@ client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "599942796ed18401c00fc85ff6affdd5");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "568f6045c4fe7aaae01b260ab2f44ddd");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "96ce033aedb11790a7b97aa65b9013c9");
-    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "e1cd192beb4500b8386aed2b26d4be84");
     client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "86d8fd87c9219e91407a387312139796");
     client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");
@@ -510,7 +510,7 @@ client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "599942796ed18401c00fc85ff6affdd5");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "765135bf530dfe743f99550dddee3f21");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "1c9aa69a02e388d260e0dc1583a63a08");
-    client.assert(response.headers.valueOf("Trace-Response-Hash") === "917ef711b7514d05e99aed61242ab05c");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "e1cd192beb4500b8386aed2b26d4be84");
     client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "43bfaf862c907e060503b3ac0ba23515");
     client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "f781697418b98f772275aeb5521508af");

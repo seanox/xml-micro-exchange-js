@@ -20,7 +20,7 @@ client.test("unittest", function() {
     client.assert(response.headers.valueOf("Trace-Request-Hash") === "9c8eda4cf8f05f434daf1a7f1f76a979");
     client.assert(response.headers.valueOf("Trace-Request-Header-Hash") === "2c023947d3617d06931697f38f447881");
     client.assert(response.headers.valueOf("Trace-Request-Data-Hash") === "8080adb3d0e36ad280a5800174507060");
-    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1a3b8937cde8aa40ce5ffe8d389146ec");
+    client.assert(response.headers.valueOf("Trace-Response-Hash") === "1e6cd917ed71a1241e4bedc29264bd98");
     client.assert(response.headers.valueOf("Trace-Response-Header-Hash") === "e24e92218b87cffc8c8aa00c5ef5b3e2");
     client.assert(response.headers.valueOf("Trace-Response-Data-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
     client.assert(response.headers.valueOf("Trace-Storage-Hash") === "d41d8cd98f00b204e9800998ecf8427e");
