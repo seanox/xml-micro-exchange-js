@@ -522,7 +522,7 @@ class Storage {
 
         let initial = (options & Storage.STORAGE_SHARE_INITIAL) === Storage.STORAGE_SHARE_INITIAL
         if (!initial && !storage.exists())
-            storage.quit(404, "Resource Not Found")
+            storage.quit(404, "Not Found")
         initial = initial && (!fs.existsSync(storage.store) || fs.statSync(storage.store).size <= 0)
 
         let now = new Date()
@@ -904,7 +904,7 @@ class Storage {
 
         // POST always expects a valid XSLT template for transformation.
         if (this.request.data.trim().length <= 0)
-            this.quit(422, "Unprocessable Entity", {Message: "Unprocessable Entity"})
+            this.quit(422, "Unprocessable Content", {Message: "Unprocessable Content"})
 
         let xml = this.xml
         if (this.xpath !== "") {
@@ -951,12 +951,12 @@ class Storage {
             let message = "Invalid XSLT stylesheet"
             if (stylesheet instanceof Error)
                 message += ` (${stylesheet.message})`
-            this.quit(422, "Unprocessable Entity", {Message: message})
+            this.quit(422, "Unprocessable Content", {Message: message})
         }
         const stylesheetElement = XPath.select1("//*[local-name()='stylesheet']", stylesheet);
         if (!stylesheetElement
                 || stylesheetElement instanceof Error)
-            this.quit(422, "Unprocessable Entity", {Message: "XSLT stylesheet element was not found"})
+            this.quit(422, "Unprocessable Content", {Message: "XSLT stylesheet element was not found"})
         stylesheetElement.setAttribute("id", `___${this.unique}`)
         const stylesheetText = stylesheet.toString()
             .replace(/<\?xml\b.*?\?>/ig, "")
@@ -989,7 +989,7 @@ class Storage {
             message = message.replace(/(?<=:)\s+file[\s-]+line\s+\d+/ig, "").trim()
             message = message.replace(/\s+(:)\s+/ig, "$1 ").trim()
             message = `xsltproc failed (${message.trim()})`
-            this.quit(422, "Unprocessable Entity", {Message: message})
+            this.quit(422, "Unprocessable Content", {Message: message})
         } else output = output.stdout
 
         let method = (XPath.select("normalize-space(//*[local-name()='output']/@method)", stylesheet) ?? "").toLowerCase().trim()
@@ -1126,7 +1126,7 @@ class Storage {
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
         if (this.request.data.length > Storage.SPACE)
-            this.quit(413, "Payload Too Large")
+            this.quit(413, "Content Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
         // in XML structures and text is distinguished.
@@ -1175,7 +1175,7 @@ class Storage {
             if (media === CONTENT_TYPE_XPATH) {
                 if (!input.match(PATTERN_XPATH_FUNCTION)) {
                     const message = "Invalid XPath (Axes are not supported)"
-                    this.quit(422, "Unprocessable Entity", {Message: message})
+                    this.quit(422, "Unprocessable Content", {Message: message})
                 }
                 input = XPath.select(input, this.xml)
                 if (!Object.exists(input)
@@ -1183,7 +1183,7 @@ class Storage {
                     let message = "Invalid XPath function"
                     if (input instanceof Error)
                         message += ` (${input.message})`
-                    this.quit(422, "Unprocessable Entity", {Message: message})
+                    this.quit(422, "Unprocessable Content", {Message: message})
                 }
             }
 
@@ -1263,7 +1263,7 @@ class Storage {
             if (media === CONTENT_TYPE_XPATH) {
                 if (!input.match(PATTERN_XPATH_FUNCTION)) {
                     const message = "Invalid XPath (Axes are not supported)"
-                    this.quit(422, "Unprocessable Entity", {Message: message})
+                    this.quit(422, "Unprocessable Content", {Message: message})
                 }
                 input = XPath.select(input, this.xml)
                 if (!Object.exists(input)
@@ -1271,7 +1271,7 @@ class Storage {
                     let message = "Invalid XPath function"
                     if (input instanceof Error)
                         message += ` (${input.message})`
-                    this.quit(422, "Unprocessable Entity", {Message: message})
+                    this.quit(422, "Unprocessable Content", {Message: message})
                 }
             }
 
@@ -1337,7 +1337,7 @@ class Storage {
             let message = "Invalid XML document"
             if (input instanceof Error)
                 message += ` (${input.message})`
-            this.quit(422, "Unprocessable Entity", {Message: message})
+            this.quit(422, "Unprocessable Content", {Message: message})
         }
 
         // The attributes ___rev and ___uid are essential for the internal
@@ -1547,7 +1547,7 @@ class Storage {
         // Storage::SPACE also limits the maximum size of writing request(-body).
         // If the limit is exceeded, the request is quit with status 413.
         if (this.request.data.length > Storage.SPACE)
-            this.quit(413, "Payload Too Large")
+            this.quit(413, "Content Too Large")
 
         // For all PUT requests the Content-Type is needed, because for putting
         // in XML structures and text is distinguished.
@@ -1765,7 +1765,7 @@ class Storage {
 
         let output = new XMLSerializer().serializeToString(this.xml)
         if (output.byteLength() > Storage.SPACE)
-            this.quit(413, "Payload Too Large")
+            this.quit(413, "Content Too Large")
         fs.ftruncateSync(this.share, 0)
         fs.writeSync(this.share, output, 0, output.length, 0)
 
@@ -1818,8 +1818,7 @@ class Storage {
                     this.request.headers["access-control-request-headers"])
         }
 
-        if (!Object.exists(headers))
-            headers = []
+        headers = headers ?? []
 
         // For status class 2xx + 304 the storage headers are added.
         // The revision is read from the current storage because it can change.
@@ -2038,16 +2037,16 @@ class ServerFactory {
         }
 
         if (!ServerFactory.CONTENT_DIRECTORY)
-            response.quit(404, "Resource Not Found")
+            response.quit(404, "Not Found")
 
         let target = path.normalize(decodeURI(request.url.replace(/\?.*$/, "")).trim()).replace(/\\+/g, "/")
         target = `${ServerFactory.CONTENT_DIRECTORY}/${target}`
         target = target.replace(/\/{2,}/g, "/")
         if (!fs.existsSync(target))
-            response.quit(404, "Resource Not Found")
+            response.quit(404, "Not Found")
         if (!fs.lstatSync(target).isFile()
                 && !fs.lstatSync(target).isDirectory())
-            response.quit(404, "Resource Not Found")
+            response.quit(404, "Not Found")
 
         if (fs.lstatSync(target).isDirectory()) {
             if (ServerFactory.CONTENT_DEFAULT) {
@@ -2215,13 +2214,12 @@ class ServerFactory {
                 if (!decodeURI(request.url).startsWith(context))
                     return
 
-                if (!Object.exists(request.data))
-                    request.data = ""
+                request.data = request.data ?? ""
                 if (Object.exists(request.error))
                     return
                 if (request.data.length +data.length > ServerFactory.STORAGE_SPACE) {
                     request.data = ""
-                    request.error = [413, "Payload Too Large"]
+                    request.error = [413, "Content Too Large"]
                 } else request.data = (request.data ?? "") + data
             })
 
@@ -2231,7 +2229,7 @@ class ServerFactory {
 
                     // Marking the start time for request processing
                     request.timing = Date.now()
-                    request.data = Object.exists(request.data) ? request.data : ""
+                    request.data = request.data ?? ""
 
                     const REQUEST_TYPE_SERVICE = 0
                     const REQUEST_TYPE_CONTENT = 1
