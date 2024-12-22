@@ -6,7 +6,6 @@ CR: Service: A missing certificate file only causes a warning
 CR: Service: Optimization of the configuration via environment variables
     Simplifies the provision as a container.
     - XMEX_DEBUG_MODE: Activates debug mode for unit tests (off)
-    - XMEX_CONTAINER_MODE: Activates debug mode for unit tests (off)
     - XMEX_CONNECTION_ADDRESS: Host name or IP where the server is listening (0.0.0.0)
     - XMEX_CONNECTION_PORT: Port where the server is listening (80)
     - XMEX_CONNECTION_CONTEXT: Context path of the URI from service (/xmex!)
