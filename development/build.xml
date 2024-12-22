@@ -1,51 +1,28 @@
 <?xml version="1.0"?>
-<project name="xmex" default="usage" basedir="..">
+<project name="xml-micro-exchange" default="usage" basedir="${ant.file}/../..">
   <target name="usage">
     <echo>Following targets are available:                               </echo>
     <echo>                                                               </echo>
-    <echo>  install                     Prepares the development on      </echo> 
-    <echo>                              Windows and with libxml2         </echo>
+    <echo>  changes      Synchronizes README.md with CHANGES.            </echo>
     <echo>                                                               </echo>
-    <echo>  changes                     Synchronizes README.md with      </echo>
-    <echo>                              CHANGES                          </echo>  
-    <echo>                                                               </echo>                   
-    <echo>  release                     Builds the final release and     </echo>      
-    <echo>                              Docker images for distribution   </echo> 
+    <echo>  test         Combines the unit tests and starts the CLI      </echo>
     <echo>                                                               </echo>
-    <echo>  clean                       Cleanup of temporary data of     </echo> 
-    <echo>                              release and tests                </echo>
+    <echo>  test-report  Combines the unit tests and starts the CLI      </echo>
+    <echo>               and output a report file                        </echo>
     <echo>                                                               </echo>
-    <echo>  docker-clean                Cleanup of temporary data of     </echo>
-    <echo>                              release and tests                </echo>
-    <echo>                                                               </echo>
-    <echo>  docker-test                 Creates a test version as Docker </echo>
-    <echo>                              image and launches them          </echo>
-    <echo>                                                               </echo>
-    <echo>  docker-integration          Creates an integration version as</echo>
-    <echo>                              image and launches them          </echo>
-    <echo>                                                               </echo>
-    <echo>  docker-integration-trace    Updating trace-docker.log with   </echo> 
-    <echo>                              trace.log in the container       </echo>
-    <echo>                                                               </echo>
-    <echo>  docker-release              Creates a final release as Docker</echo> 
-    <echo>                              image and launches them          </echo>
-    <echo>                                                               </echo>
-    <echo>  docker-push-release         Creates a final release as Docker</echo> 
-    <echo>                              image and pushes them to Docker  </echo> 
-    <echo>                              Hub                              </echo>
+    <echo>  release      Builds the final the release for the            </echo>
+    <echo>               distribution                                    </echo>
   </target>
   
   <property name="workspace" value="${basedir}"/>
-  <property name="manual" value="${workspace}/manual"/>
-  <property name="release" value="${workspace}/release"/>
-  <property name="build" value="${release}/${ant.project.name}"/>
-  <property name="trace" value="${release}/trace"/>
-  <property name="sources" value="${workspace}/sources"/>
-  <property name="test" value="${workspace}/test"/>
-  <property name="development" value="${workspace}/development"/>
-
-  <property name="filter" value="**/*.js,**/*.html,**/*.xml,**/*.md,**/*.yaml,**/*.ini,**/*.json,**/*.cmd"/>
-
+  <property name="workspace.build" value="${workspace}/build"/>
+  <property name="workspace.sources" value="${workspace}/sources"/>
+  <property name="workspace.sources.content" value="${workspace.sources}/content"/>
+  <property name="workspace.test" value="${workspace}/test"/>
+  <property name="workspace.release" value="${workspace}/release"/>
+  <property name="workspace.manual" value="${workspace}/manual"/>
+  <property name="workspace.development" value="${workspace}/development"/>
+  
   <macrodef name="release-locate">
     <sequential>
       <copy file="CHANGES" tofile="CHANGES.tmp" overwrite="true"/>
@@ -69,112 +46,16 @@
     </sequential>
   </macrodef>
 
-  <macrodef name="release-insert">
-    <attribute name="target"/>
-    <attribute name="version" default="${release.version} ${release.date}"/>
-    <sequential>
-      <echo file="release-info.tmp" message="@{version}"/>
-      <replaceregexp file="release-info.tmp" match="[^\d\.\s]" replace="0" flags="g"/>
-      <replaceregexp file="release-info.tmp" match="^([^\s]+)\s+(\d{4})(\d{4})"
-          replace="release.info.version=\1&#x000D;release.info.year=\2&#x000D;release.info.date=\2\3&#x000D;"/>
-      <local name="release.info.version"/>
-      <local name="release.info.year"/>
-      <local name="release.info.date"/>
-      <loadproperties srcfile="release-info.tmp"/>
-      <delete file="release-info.tmp"/>
-
-      <!-- [Version 0.0.0 00000000] -->
-      <replaceregexp
-          match="(\[Version)\s+\d+\.[\d\.]+\s+\d{8}(\])" flags="g" byline="false"
-          replace="\1 ${release.info.version} ${release.info.date}\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <!-- "name": "...", "version": "0.0.0", -->
-      <replaceregexp
-          match="(\x22name\x22:\s+\x22xmex\x22,\s+\x22version\x22:\s+\x22)\d+(?:\.\d)+(\x22)" flags="g" byline="false"
-          replace="\1${release.info.version}\2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <!-- "Copyright (C) 0000 Seanox Software Solutions" -->
-      <replaceregexp
-          match="(\x22Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions\x22)" flags="g" byline="false"
-          replace="\1 ${release.info.year} \2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-      <!-- echo Copyright (C) 0000 Seanox Software Solutions -->
-      <replaceregexp
-          match="(echo\s+Copyright\s+\(C\))\s+\d{4}\s+(Seanox\s+Software\s+Solutions)" flags="g" byline="false"
-          replace="\1 ${release.info.year} \2">
-        <fileset dir="@{target}" includes="${filter}"/>
-      </replaceregexp>
-    </sequential>
-  </macrodef>
-
-  <macrodef name="release-reset">
-    <attribute name="target"/>
-    <sequential>
-      <release-insert target="@{target}" version="0.0.0 00000000"/>
-    </sequential>
-  </macrodef>
-
   <macrodef name="compress-js">
     <attribute name="file"/>
-    <attribute name="trace"/>
     <sequential>
       <echo>Compressing: @{file}</echo>
-      <!--
-        Remove all block comments if they start at the beginning of the line,
-        ignore spaces before and that twice, because block comments expose other
-        block comments :-|
-      -->
-      <basename property="script" file="@{file}"/>
-      <copy file="@{file}" tofile="@{trace}/${script}_0" overwrite="true"/>
-      <copy file="@{trace}/${script}_0" tofile="@{trace}/${script}_1" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_1" encoding="UTF-8" flags="g" byline="false"
-          match="(?s)(^|\R)\s*/\*.*?\*/"
-          replace="\1"/>
-      <replaceregexp file="@{trace}/${script}_1" encoding="UTF-8" flags="g" byline="false"
-          match="(?s)(^|\R)\s*/\*.*?\*/"
-          replace="\1"/>
-      <!-- remove all line comments if they start at the beginning of the line, ignore spaces before -->
-      <copy file="@{trace}/${script}_1" tofile="@{trace}/${script}_2" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_2" encoding="UTF-8" flags="g" byline="true"
-          match="^\s*//.*$"
-          replace=""/>
-      <copy file="@{trace}/${script}_2" tofile="@{trace}/${script}_3" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_3" encoding="UTF-8" flags="g" byline="true"
-          match="^\s+//.*$"
-          replace=""/>
-      <!-- remove all line comments outside literals -->
-      <copy file="@{trace}/${script}_3" tofile="@{trace}/${script}_4" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_4" encoding="UTF-8" flags="g" byline="true"
-          match="^((?:(?:&#34;.*?&#34;)|(?:'.*?')|(?:´.*?´)){0,}[^&#34;'´\r\n]*?)(?&lt;=[\&amp;\|\+\-\*/=,;(){}])//.*$"
-          replace="\1"/>
-      <!-- combining of the line breaks -->
-      <copy file="@{trace}/${script}_4" tofile="@{trace}/${script}_5" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_5" encoding="UTF-8" flags="g" byline="false"
-          match="(?s)(\s*\R)+"
-          replace="&#13;"/>
-      <copy file="@{trace}/${script}_5" tofile="@{trace}/${script}_6" overwrite="true"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <replaceregexp file="@{trace}/${script}_6" encoding="UTF-8" flags="g" byline="true"
-          match="^(\t*)(\x20{4})"
-          replace="\1&#09;"/>
-      <copy file="@{trace}/${script}_6" tofile="@{file}" overwrite="true"/>
+      <replaceregexp file="@{file}" match="(?s)\R\x20*/\*\*.*?\*/" replace="" flags="g" byline="false"/>
+      <replaceregexp file="@{file}" match="(?s)\R\x20*//[^\r\n]*" replace="" flags="g" byline="false"/>
+      <replaceregexp file="@{file}" match="(\x20*\R){3,}" replace="${line.separator}${line.separator}" flags="g" byline="false"/>
+      <replaceregexp file="@{file}" match="\s+$" replace="" flags="g" byline="true"/>
+      <replaceregexp file="@{file}" match="\s*\R\s*(\R)" replace="\1" flags="g" byline="false"/>
+      <replaceregexp file="@{file}" match="(?s)/\*\*.*?\*/" replace="" flags="g" byline="false"/>
     </sequential>
   </macrodef>
 
@@ -187,7 +68,7 @@
     <replaceregexp file="${workspace}/CHANGES" match="&#x00D6;" replace="Oe" flags="g"/>
     <replaceregexp file="${workspace}/CHANGES" match="&#x00FC;" replace="ue" flags="g"/>
     <replaceregexp file="${workspace}/CHANGES" match="&#x00DC;" replace="Ue" flags="g"/>
-
+      
     <copy file="${workspace}/CHANGES" tofile="${workspace}/CHANGES.tmp" overwrite="true"/>
     <replaceregexp file="${workspace}/CHANGES.tmp" match="^\s+" replace="" byline="false"/>
     <replaceregexp file="${workspace}/CHANGES.tmp" match="(?s)^(.*?)[\r\n]+\d[\d\. x]+.*$" replace="\1" byline="false"/>
@@ -206,191 +87,201 @@
         replace="\1${changes}${line.separator}${line.separator}\2"/>
     <tstamp>
       <format property="now.year" pattern="yyyy"/>
-    </tstamp>
+    </tstamp>    
     <replaceregexp file="${workspace}/README.md"
         match="(?si)(?&lt;=\(C\)\s)\d{4}\b" flags="g" byline="true"
         replace="${now.year}"/>
-  </target>
-
-  <target name="install" depends="changes">
-    <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${sources}" overwrite="true"/>
+    <replaceregexp file="${workspace.sources}/openAPI.yaml"
+        match="(?si)\b(version: )\d+(\.\d+)*" flags="g" byline="true"
+        replace="\1${release.version}"/>
+    <replaceregexp file="${workspace}/Dockerfile"
+        match="(?si)\b(ARG\s+GIT_REPO_TAG\s*=\s*)\d+(\.\d+)*" flags="g" byline="true"
+        replace="\1${release.version}"/>
   </target>
 
   <target name="release" depends="changes">
     <release-locate/>
-    <release-insert target="${workspace}"/>
 
-    <delete dir="${trace}"/>
-    <mkdir dir="${trace}"/>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true"
-        output="${trace}/npm-stdout.log" error="${trace}/npm-stderr.log">
-      <arg value="/c npm run build"/>
-    </exec>
-    <echo file="${trace}/npm-stdout.log" append="true" message="&#09;"/>
-    <replaceregexp file="${trace}/npm-stdout.log" flags="g" byline="false"
-        match="\x1B\[\d+m" replace=""/>
-    <loadfile srcfile="${trace}/npm-stdout.log" property="npm.stdout"/>
-    <echo message="${npm.stdout}"/>
-    <echo file="${trace}/npm-stderr.log" append="true" message="&#09;"/>
-    <replaceregexp file="${trace}/npm-stderr.log" flags="g" byline="false"
-        match="\x1B\[\d+m" replace=""/>
-    <loadfile srcfile="${trace}/npm-stderr.log" property="npm.stderr"/>
-    <echo message="${npm.stderr}"/>
-    <fail message="&lt;npm run build&gt; failed">
-      <condition>
-        <not>
-          <available file="${sources}/service-build.js"/>
-        </not>
-      </condition>
-    </fail>
-
-    <compress-js file="${sources}/service-build.js" trace="${trace}"/>
-    <copy file="${sources}/service-build.js" tofile="${sources}/service-build-test.js" overwrite="true"/>
-    <replaceregexp file="${sources}/service-build.js" encoding="UTF-8" flags="g" byline="false"
-        match="(?s)[\r\n]+\s*\{{3,}.*?\}{3,}"
-        replace=""/>
-    <delete dir="${build}"/>
-    <mkdir dir="${build}"/>
-    <copy file="${sources}/service-build.js" tofile="${build}/service.js" overwrite="true"/>
-    <copy file="${sources}/service-build.js" todir="${build}" overwrite="true"/>
-    <copy file="${sources}/service-build-test.js" todir="${build}" overwrite="true"/>
-    <copy file="${sources}/service.ini" tofile="${build}/service.ini" overwrite="true"/>
-    <copy file="${workspace}/package.json" tofile="${build}/package.json" overwrite="true"/>
-    <copy file="${workspace}/LICENSE" todir="${build}" overwrite="true"/>
-    <copy file="${workspace}/CHANGES" todir="${build}" overwrite="true"/>
-    <release-insert target="${build}"/>
-    <move file="${build}/service-build.js" todir="${sources}" overwrite="true"/>
-    <move file="${build}/service-build-test.js" todir="${sources}" overwrite="true"/>
-    <touch datetime="${release.date}" pattern="yyyyMMdd">
-      <fileset dir="${build}" includes="**/*"/>
-    </touch>
-
-    <delete file="${release}/seanox-${ant.project.name}-${release.version}.zip"/>
-    <delete file="${release}/seanox-${ant.project.name}-latest.zip"/>
-    <zip basedir="${build}" destfile="${release}/seanox-${ant.project.name}-${release.version}.zip"/>
-    <copy file="${release}/seanox-${ant.project.name}-${release.version}.zip" tofile="${release}/seanox-${ant.project.name}-latest.zip" overwrite="true"/>
-    <touch datetime="${release.date}" pattern="yyyyMMdd">
-      <fileset dir="${release}" includes="seanox-${ant.project.name}*.zip"/>
-    </touch>
-
-    <docker-build target="integration"/>
-    <docker-build target="release"/>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c"/>
-      <arg value="docker"/>
-      <arg value="build"/>
-      <arg value="-t"/>
-      <arg value="${ant.project.name}:${release.version}"/>
-      <arg value="-t"/>
-      <arg value="seanox/${ant.project.name}:${release.version}"/>
-      <arg value="-t"/>
-      <arg value="${ant.project.name}:latest"/>
-      <arg value="-t"/>
-      <arg value="seanox/${ant.project.name}:latest"/>
-      <arg value="--target"/>
-      <arg value="release"/>
-      <arg value="."/>
-    </exec>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker images --filter=reference=seanox/${ant.project.name} --filter=reference=${ant.project.name}"/>
-    </exec>
-
-    <delete dir="${build}-win"/>
-    <mkdir dir="${build}-win"/>
-    <mkdir dir="${build}-win/data"/>
-    <mkdir dir="${build}-win/logs"/>
-    <mkdir dir="${build}-win/node"/>
-    <copy todir="${build}-win">
-      <fileset dir="${build}" includes="**/*"/>
+    <delete dir="${workspace.build}"/>
+    <mkdir dir="${workspace.build}"/>
+    <copy file="${workspace}/LICENSE" todir="${workspace.build}"/>
+    <copy file="${workspace}/CHANGES" todir="${workspace.build}"/>
+    <copy todir="${workspace.build}">
+      <fileset dir="${workspace.sources}">
+        <include name="service.js"/>
+      </fileset>
     </copy>
-    <copy file="${sources}/service.cmd" todir="${build}-win"/>
-    <unzip src="${development}/libxml2-2.9.3_win_x64.zip" dest="${build}-win"/>
-    <copy file="${development}/libxml2-2.9.3_win_x64.license" tofile="${build}-win/libxml2/license"/>
-    <unzip src="${development}/nssm-2.24.zip" dest="${build}-win/nssm"/>
-    <copy file="${build}-win/nssm/nssm-2.24/win64/nssm.exe" todir="${build}-win/nssm"/>
-    <copy file="${build}-win/nssm/nssm-2.24/ChangeLog.txt" todir="${build}-win/nssm"/>
-    <copy file="${build}-win/nssm/nssm-2.24/README.txt" todir="${build}-win/nssm"/>
-    <copy file="${development}/nssm-2.24.license" tofile="${build}-win/nssm/LICENSE"/>
-    <delete dir="${build}-win/nssm/nssm-2.24"/>
-    <release-insert target="${build}-win"/>
+    <compress-js file="${workspace.build}/service.js"/>
+    <copy todir="${workspace.build}/manual">
+      <fileset dir="${workspace.manual}" includes="**"/>
+    </copy>
+    <copy todir="${workspace.build}/content">
+      <fileset dir="${workspace.sources.content}">
+        <include name="openAPI.html"/>
+        <include name="openAPI.yaml"/>
+        <include name="snake.html"/>
+      </fileset>
+    </copy>
+    <mkdir dir="${workspace.build}/data"/>
+    <replaceregexp file="${workspace.build}/content/openAPI.yaml"
+        match="(?i)(version: )\d[\.\d]+" flags="g" byline="true"
+        replace="\1${release.version}"/>
+    <replaceregexp file="${workspace.build}/service.js"
+        match="(?i)(Version )\d[\.\d]+\s+(\d{8})" flags="g" byline="true"
+        replace="\1${release.version} ${release.date}"/>
+    <replaceregexp file="${workspace.build}/service.js"
+        match="(?i)(Copyright \(C\))\s+\d{4}" flags="g" byline="true"
+        replace="\1 ${release.year}"/>
+    <exec executable="npm" failonerror="true">
+      <arg value="run"/>
+      <arg value="build"/>
+    </exec>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
-      <fileset dir="${build}-win" includes="**/*"/>
+      <fileset dir="${workspace.build}"/>
     </touch>
 
-    <delete file="${release}/seanox-${ant.project.name}-${release.version}-win.zip"/>
-    <delete file="${release}/seanox-${ant.project.name}-win-latest.zip"/>
-    <zip basedir="${build}-win" destfile="${release}/seanox-${ant.project.name}-${release.version}-win.zip"/>
-    <copy file="${release}/seanox-${ant.project.name}-${release.version}-win.zip" tofile="${release}/seanox-${ant.project.name}-win-latest.zip" overwrite="true"/>
+    <delete dir="${workspace.release}"/>
+    <mkdir dir="${workspace.release}"/>
+    <zip destfile="${workspace.release}/seanox-xmex-${release.version}.zip"
+        compress="true" filesonly="true" defaultexcludes="false"
+        basedir="${workspace.build}"/>
+    <copy file="${workspace.release}/seanox-xmex-${release.version}.zip"
+        tofile="${workspace.release}/seanox-xmex-latest.zip"/>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
-      <fileset dir="${release}" includes="seanox-${ant.project.name}*.zip"/>
+      <fileset dir="${workspace.release}" includes="*.zip"/>
     </touch>
 
-    <release-reset target="${workspace}"/>
+    <copy file="${workspace.sources}/service.cmd" todir="${workspace.build}"/>
+    <replaceregexp file="${workspace.build}/service.cmd"
+        match="(?i)(Version )\d[\.\d]+\s+(\d{8})" flags="g" byline="true"
+        replace="\1${release.version} ${release.date}"/>
+    <replaceregexp file="${workspace.build}/service.cmd"
+        match="(?i)(Copyright \(C\))\s+\d{4}" flags="g" byline="true"
+        replace="\1 ${release.year}"/>
+    <unzip src="${workspace.development}/libxml2-2.9.3_win_x64.zip" dest="${workspace.build}"/>
+    <move file="${workspace.build}/libxml2" tofile="${workspace.build}/libxml"/>
+    <copy file="${workspace.development}/libxml2-2.9.3_win_x64.license" tofile="${workspace.build}/libxml.license"/>
+    <unzip src="${workspace.development}/nssm-2.24.zip" dest="${workspace.build}"/>
+    <move file="${workspace.build}/nssm-2.24/win64/nssm.exe" todir="${workspace.build}"/>
+    <delete dir="${workspace.build}/nssm-2.24"/>
+    <copy file="${workspace.development}/nssm-2.24.license" tofile="${workspace.build}/nssm.license"/>
+
+    <zip destfile="${workspace.release}/seanox-xmex-${release.version}-win.zip"
+        compress="true" filesonly="true" defaultexcludes="false"
+        basedir="${workspace.build}"/>
+    <copy file="${workspace.release}/seanox-xmex-${release.version}-win.zip"
+        tofile="${workspace.release}/seanox-xmex-win-latest.zip"/>
+    <touch datetime="${release.date}" pattern="yyyyMMdd">
+      <fileset dir="${workspace.release}" includes="*.zip"/>
+    </touch>
+
+    <delete dir="${workspace.build}"/>
 
     <replaceregexp file="${workspace}/README.md"
         match="(Seanox\s+XML-Micro-Exchange\s+)\d+[\.\d]+" flags="g" byline="false"
         replace="\1${release.version}"/>
     <replaceregexp file="${workspace}/README.md"
-        match="(seanox-${ant.project.name}-)\d+[\.\d]+((?:-win)*\.zip)" flags="g" byline="false"
-        replace="\1${release.version}\2"/>
+        match="(seanox/${ant.project.name}-js/releases/download/)\d[\d\.]+"
+        replace="\1${release.version}" flags="g" byline="false"/>
     <replaceregexp file="${workspace}/README.md"
-        match="(releases/download/)\d+[\.\d]+(/seanox-${ant.project.name})" flags="g" byline="false"
-        replace="\1${release.version}\2"/>
-    <replaceregexp file="${workspace}/manual/installation.md"
-        match="(seanox-${ant.project.name}-)\d+[\.\d]+((?:-win)*\.zip)" flags="g" byline="false"
-        replace="\1${release.version}\2"/>
-    <replaceregexp file="${workspace}/manual/installation.md"
-        match="(releases/download/)\d+[\.\d]+(/seanox-${ant.project.name})" flags="g" byline="false"
+        match="(seanox-xmex-)\d+[\.\d]+(\.zip)" flags="g" byline="false"
         replace="\1${release.version}\2"/>
   </target>
 
-  <macrodef name="docker-build">
-    <attribute name="target"/>
+  <!--
+      https://www.jetbrains.com/ijhttp/download/#section=zip-archive
+      https://www.jetbrains.com/help/idea/http-client-cli.html
+  -->
+  <path id="classpath.httpclient">
+    <fileset dir="${workspace.test}/cli/lib">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+  <macrodef name="load-test-cases">
     <sequential>
-      <exec executable="cmd" failonerror="false" failifexecutionfails="false">
-        <arg value="/c docker kill ${ant.project.name}-@{target}"/>
-      </exec>
-      <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-        <arg value="/c docker build -t ${ant.project.name}:@{target} --target @{target} ."/>
-      </exec>
+      <echo file="___temp" force="true">
+        ${workspace.test}/connect.http
+        ${workspace.test}/content.http
+        ${workspace.test}/delete_attribute.http
+        ${workspace.test}/delete_element.http
+        ${workspace.test}/delete_element_pseudo.http
+        ${workspace.test}/get.http
+        ${workspace.test}/getting_started.http
+        ${workspace.test}/options.http
+        ${workspace.test}/patch_attribute.http
+        ${workspace.test}/patch_element.http
+        ${workspace.test}/patch_text.http
+        ${workspace.test}/post.http
+        ${workspace.test}/put_attribute.http
+        ${workspace.test}/put_connect.http
+        ${workspace.test}/put_element.http
+        ${workspace.test}/put_element_pseudo.http
+        ${workspace.test}/put_text.http
+        ${workspace.test}/request.http
+        ${workspace.test}/snake.http
+      </echo>
+      <replaceregexp file="___temp" match="(?s)\s+" flags="g" byline="false" replace=" "/>
+      <replaceregexp file="___temp" match="(^\s+)|(\s$)" flags="g" byline="false" replace=""/>
+      <loadfile property="test.cases" srcFile="___temp"/>
+      <delete file="___temp"/>
     </sequential>
   </macrodef>
 
-  <macrodef name="docker-run">
-    <attribute name="target"/>
+  <macrodef name="load-test-cli">
     <sequential>
-      <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-        <arg value="/c docker run -d -p 8000:8000/tcp --rm --name ${ant.project.name}-@{target} ${ant.project.name}:@{target}"/>
-      </exec>
-      <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-        <arg value="/c docker ps"/>
-      </exec>
+      <get src="https://download.jetbrains.com/resources/intellij/http-client/233.11799.241/intellij-http-client.zip"
+          dest="${workspace.test}/cli.zip" skipexisting="true"/>
+      <delete dir="${workspace.test}/cli"/>
+      <unzip src="${workspace.test}/cli.zip" dest="${workspace.test}"/>
+      <move file="${workspace.test}/ijhttp" tofile="${workspace.test}/cli"/>
     </sequential>
   </macrodef>
 
-  <target name="docker-test">
-    <docker-build target="test"/>
-    <docker-run target="test"/>
-  </target>
-  <target name="docker-integration" depends="release">
-    <docker-run target="integration"/>
-  </target>
-  <target name="docker-integration-trace">
-    <exec executable="cmd" failonerror="false" failifexecutionfails="false">
-      <arg value="/c docker cp ${ant.project.name}-integration:/${ant.project.name}/trace.log ./sources/trace-docker.log"/>
-    </exec>
-    <exec executable="cmd" failonerror="false" failifexecutionfails="false">
-      <arg value="/c docker cp ${ant.project.name}-integration:/${ant.project.name}/trace-cumulate.http ./sources/trace-cumulate.http"/>
-    </exec>
-    <replaceregexp file="./sources/trace-cumulate.http" flags="g" byline="false"
-        match="172\.[.\d]+" replace="127.0.0.1"/>
+  <target name="test">
+    <load-test-cases/>
+    <load-test-cli/>
+    <delete dir="${workspace.sources}/data"/>
+    <java classname="com.intellij.httpClient.cli.HttpClientMain">
+      <classpath refid="classpath.httpclient"/>
+      <arg line="--env-file ${workspace.test}/http-client.env.json"/>
+      <arg line="--env local"/>
+      <arg line="${test.cases}"/>
+    </java>
   </target>
 
-  <target name="docker-release" depends="release">
-    <docker-run target="release"/>
+  <target name="test-report">
+    <load-test-cases/>
+    <load-test-cli/>
+    <delete dir="${workspace.sources}/data"/>
+    <tstamp>
+      <format property="timestamp" pattern="yyyyMMddHHmmss"/>
+    </tstamp>
+    <property name="output" value="${workspace.test}/${timestamp}.txt"/>
+    <java classname="com.intellij.httpClient.cli.HttpClientMain" fork="true" output="${output}">
+      <classpath refid="classpath.httpclient"/>
+      <arg line="--log-level VERBOSE"/>
+      <arg line="--env-file ${workspace.test}/http-client.env.json"/>
+      <arg line="--env local"/>
+      <arg line="${test.cases}"/>
+    </java>
+    <replaceregexp file="${output}" flags="g" byline="false"
+        match="\u001B.*?m" replace=""/>
+    <replaceregexp file="${output}" byline="false"
+        match="(?s)^.*?\R(?=Request)" replace=""/>
+    <replaceregexp file="${output}" flags="g" byline="false"
+        match="(?s)\R(Date|Storage-Last-Modified|Storage-Expiration|Execution-Time):\s.*?(?=\R)" replace=""/>
+    <replaceregexp file="${output}" flags="g" byline="false"
+        match="(?&lt;=;)\s+Time:.*?;" replace=""/>
   </target>
 
-  <target name="docker-push-release" depends="release">
+  <target name="publish" depends="release">
+    <input message="Publish version ${release.version}? (y)es/(n)o:" validargs="y,n" addproperty="release.release.input"/>
+    <fail message="Canceled">
+      <condition>
+        <equals arg1="${release.release.input}" arg2="n"/>
+      </condition>
+    </fail>
     <property environment="env"/>
     <property name="docker.registry" value="${env.docker-registry}"/>
     <property name="docker.id" value="${env.docker-id}"/>
@@ -423,39 +314,38 @@
         </or>
       </condition>
     </fail>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker login -u=${docker.id} -p=${docker.password} ${docker.registry}"/>
-    </exec>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker push seanox/${ant.project.name}:latest"/>
-    </exec>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker push seanox/${ant.project.name}:${release.version}"/>
-    </exec>
-    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker logout"/>
-    </exec>
-  </target>
 
-  <target name="docker-clean">
-    <delete file="${workspace}/sources/trace-docker.log"/>
-    <touch file="${workspace}/sources/trace-docker.log"/>
     <exec executable="cmd" failonerror="true" failifexecutionfails="true">
-      <arg value="/c docker system prune --all --volumes --force"/>
+      <arg line="/c docker build"/>
+      <arg line="-t xmex:${release.version}-js"/>
+      <arg line="-t seanox/xmex:${release.version}-js"/>
+      <arg line="-t xmex:js"/>
+      <arg line="-t xmex:latest"/>
+      <arg line="-t seanox/xmex:js"/>
+      <arg line="-t seanox/xmex:latest"/>
+      <arg value="."/>
     </exec>
-  </target>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker images --filter=reference=seanox/xmex --filter=reference=xmex"/>
+    </exec>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker system prune -f"/>
+    </exec>
 
-  <target name="clean">
-    <delete dir="${workspace}/release/trace"/>
-    <delete dir="${workspace}/release/${ant.project.name}"/>
-    <delete dir="${workspace}/sources/data"/>
-    <delete dir="${workspace}/sources/logs"/>
-    <delete file="${workspace}/sources/service-build.js"/>
-    <delete file="${workspace}/sources/service-build-test.js"/>
-
-    <delete dir="${workspace}/sources/data"/>
-    <delete dir="${workspace}/sources/temp"/>
-    <delete file="${workspace}/sources/trace.log"/>
-    <touch file="${workspace}/sources/trace.log"/>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker login -u=${docker.id} -p=${docker.password} ${docker.registry}"/>
+    </exec>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker push seanox/xmex:${release.version}-js"/>
+    </exec>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker push seanox/xmex:js"/>
+    </exec>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker push seanox/xmex:latest"/>
+    </exec>
+    <exec executable="cmd" failonerror="true" failifexecutionfails="true">
+      <arg line="/c docker logout"/>
+    </exec>
   </target>
 </project>
