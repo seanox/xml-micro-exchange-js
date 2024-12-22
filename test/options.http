@@ -13,7 +13,7 @@
 ###
 # Storage is not establish 
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 OPTIONS {{service}}/books HTTP/1.0
 Storage: {{storage_options}}
 
@@ -54,7 +54,7 @@ client.test("unittest", function() {
 ###
 # Storage is not establish
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 OPTIONS {{service}} HTTP/1.0
 Storage: {{storage_options}}
 
@@ -73,7 +73,7 @@ client.test("unittest", function() {
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0

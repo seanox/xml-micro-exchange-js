@@ -8,7 +8,7 @@
 ###
 # Storage is not establish 
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}
 Content-Type: text/plain
@@ -30,7 +30,7 @@ client.test("unittest", function() {
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0
@@ -227,7 +227,7 @@ client.test("unittest", function() {
 ###
 # Using invalid XPath function should not cause problems.
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath function (XPath parse error)
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}
@@ -250,7 +250,7 @@ client.test("unittest", function() {
 ###
 # Using invalid XPath function should not cause problems.
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath function (Unknown function wrong)
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}
@@ -273,7 +273,7 @@ client.test("unittest", function() {
 ###
 # Using invalid XPath function should not cause problems.
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath (Axes are not supported)
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}
@@ -296,7 +296,7 @@ client.test("unittest", function() {
 ###
 # Using invalid XPath function should not cause problems.
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath (Axes are not supported)
 PATCH {{service}}/books HTTP/1.0
 Storage: {{storage_patch_text}}

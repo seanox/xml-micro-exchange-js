@@ -7,7 +7,7 @@
 ###
 # Storage is not establish 
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 PUT {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_put_attribute}}
 Content-Type: text/plain
@@ -29,7 +29,7 @@ client.test("unittest", function() {
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0
@@ -138,7 +138,7 @@ client.test("unittest", function() {
 ###
 # Using invalid XPath function should not cause problems.
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath function (XPath parse error)
 PUT {{service}}/books/attribute::attrA HTTP/1.0
 Storage: {{storage_put_attribute}}
@@ -395,7 +395,7 @@ client.test("unittest", function() {
 ###
 # XPath as value is not supported
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath (Axes are not supported)
 PUT {{service}}/books/@attrE HTTP/1.0
 Storage: {{storage_put_attribute}}
@@ -418,7 +418,7 @@ client.test("unittest", function() {
 ###
 # XPath with wrong function
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: Invalid XPath function (Unregistered function)
 PUT {{service}}/books/@attrE HTTP/1.0
 Storage: {{storage_put_attribute}}

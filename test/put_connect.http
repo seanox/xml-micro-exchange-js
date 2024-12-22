@@ -68,7 +68,7 @@ client.test("unittest", function() {
 
 ###
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 PUT {{service}} HTTP/1.0
@@ -89,7 +89,7 @@ client.test("unittest", function() {
 ###
 # The storage identifier with the max. length
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 PUT {{service}} HTTP/1.0
@@ -131,7 +131,7 @@ client.test("unittest", function() {
 ###
 # The storage identifier is case-sensitive
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 PUT {{service}} HTTP/1.0
@@ -152,7 +152,7 @@ client.test("unittest", function() {
 ###
 # The storage identifier with the min. length
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 PUT {{service}} HTTP/1.0
@@ -297,7 +297,7 @@ client.test("unittest", function() {
 # Everything is correct, storage and name of the root element are transmitted
 # correctly, the storage can be created.
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0
@@ -340,7 +340,7 @@ client.test("unittest", function() {
 ###
 # Spelling of the root element is different and creates a new storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0
@@ -383,7 +383,7 @@ client.test("unittest", function() {
 # For this reason, the standard “data” is used, which creates a new storage, as
 # books was always used previously.
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 PUT {{service}} HTTP/1.0

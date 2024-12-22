@@ -11,7 +11,7 @@
 ###
 # Storage is not establish 
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -38,7 +38,7 @@ client.test("unittest", function() {
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/76 bytes
 PUT {{service}} HTTP/1.0
@@ -401,7 +401,7 @@ client.test("unittest", function() {
 ###
 # Wrong XSLT markup, xsl:templatex is used instead of xsl:template
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
@@ -442,7 +442,7 @@ client.test("unittest", function() {
 ###
 # Wrong XSLT markup, xsl:templatex is used and is closed by xsl:template
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
@@ -483,7 +483,7 @@ client.test("unittest", function() {
 ###
 # Wrong XSLT markup, city tag is not closed
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
@@ -524,7 +524,7 @@ client.test("unittest", function() {
 ###
 # Wrong XSLT markup, city tag is not closed
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element templatex / xsltStylePreCompute: unknown xsl:templatex)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
@@ -564,7 +564,7 @@ client.test("unittest", function() {
 ###
 # Wrong XSLT EL function sumx (does not exists)
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (xmlXPathCompOpEval: function sumx not found / XPath error: Unregistered function)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
@@ -605,7 +605,7 @@ client.test("unittest", function() {
 ###
 # Wrong XSLT EL in variable: city attribute: select ] is missing
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (XPath error: Invalid predicate / compilation error: element variable)
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
@@ -814,8 +814,8 @@ client.test("unittest", function() {
 ###
 # POST without response body should be responded with status 422
 # Expectations:
-# - Status code 422 Unprocessable Entity
-# - Message: Unprocessable Entity
+# - Status code 422 Unprocessable Content
+# - Message: Unprocessable Content
 POST {{service}} HTTP/1.0
 Storage: {{storage_post}}
 Content-Type: application/xslt+xml
@@ -1246,7 +1246,7 @@ client.test("unittest", function() {
 ###
 # Template with invalid output method
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element output / invalid value for method: xhtml)
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
 POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
@@ -1277,7 +1277,7 @@ client.test("unittest", function() {
 ###
 # Template with invalid output method
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element output / invalid value for method: unknown)
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
 POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
@@ -1498,7 +1498,7 @@ client.test("unittest", function() {
 # Template with invalid output method
 # the JSON directive in the request has no effect.
 # Expectations:
-# - Status code 422 Unprocessable Entity
+# - Status code 422 Unprocessable Content
 # - Message: xsltproc failed (compilation error: element output / invalid value for method: unknown)
 # - URI: //district[@name='Mitte']|//district[@name='Spandau']
 POST {{service}}?2f2f64697374726963745b406e616d653d274d69747465275d7c2f2f64697374726963745b406e616d653d275370616e646175275d HTTP/1.0
