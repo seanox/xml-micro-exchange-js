@@ -1,4 +1,6 @@
-[Configuration](configuration.md) | [TOC](README.md) | [Getting Started](getting-started.md)
+&#9665; [Configuration](configuration.md)
+&nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
+&nbsp;&nbsp;&nbsp;&nbsp; [Getting Started](getting-started.md) &#9655;
 - - -
 
 # Terms
@@ -21,37 +23,43 @@
 
 
 ## Datasource
-XML-Micro-Exchange is a data service that manages different data areas.  
-The entirety, so the service itself, is the datasource.
-Physically this is the data directory.
+XML-Micro-Exchange is a data service that manages various data storages. The 
+entirety of all data is the data source. Physically, this is the data directory.
 
 ## Storage
-The data areas managed by the XML-Micro-Exchange as a data service are called
-storage areas. A storage area corresponds to an XML file in the data directory.
+In the data directory, the data are managed as XML storage files. The file name
+is based case-sensitive on the identifier of the storage and the name of the
+root element.
 
 ## Storage Identifier
-Each storage has an identifier, the Storage Identifier.  
-The Storage Identifier is used as the filename of the corresponding XML file and
-must be specified with each request so that the datasource uses the correct
-storage.
+Each storage has an identifier. The Storage Identifier is used as filename of
+the corresponding XML file and must be specified with each request so that the
+datasource uses the correct storage. Optionally, the storage identifier can be
+followed by the name of the root element of the XML file separated by a space.
+If the root element is not specified, the default `data` is used.
+
+__Important:__ To use a storage, the storage identifier and name of the root
+element must match. The name of the storage and the name of the root element
+compose the storage name in the file system and are case-sensitive. Different
+spellings and names then use different storages.
 
 ## Element(s)
-The content of the XML file of a storage provide the data as object or tree
-structure. The data entries are called elements.
-Elements can enclose other elements.
+The content of the XML storage file provide the data as object or tree
+structure. The data entries are called elements. Elements can enclose other
+elements.
 
 ## Attribute(s)
 Elements can also contain direct values in the form of attributes.
 
 ## XPath
-XPath is a notation for accessing and navigating the XML data structure.  
-An XPath can be an axis or a function.
+XPath is a notation for accessing and navigating the XML data structure. An
+XPath can be an axis or a function.
 
 ## XPath Axis
-XPath axes address or select elements or attributes.  
-The axes can have a multidimensional effect.
+XPath axes address or select elements or attributes. The axes can have a
+multidimensional effect.
 
-## XPath Axis Pseudo Elements
+## XPath Axis Pseudo 
 For PUT requests it is helpful to specify a relative navigation to an XPath
 axis. For example first, last, before, after. This extension of the notation is
 supported for PUT requests and is added to an XPath axis separated by two colons
@@ -63,62 +71,34 @@ axes and standalone for dynamic data requests. In combination with XPath axes,
 the addressing and selection of elements and attributes can be made dynamic.
 
 ## Revision
-Every change in a storage is expressed as a revision.  
-This should make it easier for the client to determine whether data has changed,
-even for partial requests.  
-The revision is a counter of changes per request, without any claim of version
-management of past revisions.  
-It starts with initial revision 0 when a storage is created on the first call.
-The first change already uses revision 1. 
-
-Each element uses a revision in the read-only attribute `___rev`, which, as
-with all parent revision attributes, is automatically incremented when it
-changes.  
-A change can affect the element itself or the change to its children.  
-Because the revision is passed up, the root element automatically always uses
-the current revision.
-
-Changes are: PUT, PATCH, DELETE
-
-Write accesses to attribute `___rev` are accepted with status 204, will have no
-effect from then on and are therefore not listed in the response header
-`Storage-Effects`. 
+Every change in a storage is expressed as a revision. This should make it easier
+for the client to determine whether data has changed, even for partial requests.
+Depending on `XMEX_STORAGE_REVISION_TYPE`, the revision is an auto-incremental
+integer starting with 1 or an alphanumeric timestamp.
+   
+Each element uses a revision in the read-only attribute `___rev`, which, as with
+all parent revision attributes, is automatically update when it changes. A
+change can affect the element itself or the change to its children. Because the
+revision is passed up, the root element automatically always uses the current
+revision. Write accesses to attribute `___rev` are accepted but has no effect.
+If only the attribute is changed, the request is responded with status 304.
 
 ## UID
 Each element uses a unique identifier in the form of the read-only attribute
 `___uid`. The unique identifier is automatically created when an element is put
-into storage and never changes.  
-If elements are created, modified or deleted by a request, the created or
-affected unique identifiers are sent to the client in the response header
-`Storage-Effects`.
-
-The UID is based on the milliseconds and the local port at the time of the
-request (`millisecond x1000 +port`), which is converted to a string
-using radix 36, assuming that a port cannot be used for another request at the
-same time. Thus, the UID is also sortable and provides information about the
-order in which elements are created.
-
-In the `Storage-Effects` header the UID are extended by an additional suffix,
-which tells what happened to the element. Supported are `:A` for added, `:M`
-for modified and `:D` for deleted. Because the content in the `Storage-Effects`
-header can be very large, the scope can be controlled with the `Accept-Effects`
-header. A space-separated list of desired contents is expected as values.  
-Supported are: `ALL`, `NONE`, `ADDED`, `MODIFIED`, `DELETED` (case-insensitive).  
-For all requests except DELETE, no deleted items are output in the
-`Storage-Effects` header, this must be deliberately enabled with
-`Accept-Effects` header.
-
-Write accesses to attribute `___uid` are accepted with status 204, will have no
-effect from then on and are therefore not listed in the response header
-`Storage-Effects`. 
+into storage and never changes. The UID based on the current revision and a
+request-related auto-incremental integer. The UID is thus also sortable and
+provides information about the order in which elements are created. Write
+accesses to attribute `___uid` are accepted but has no effect. If only the
+attribute is changed, the request is responded with status 304.
  
-## Transaction / Simultaneous Access
-XML-Micro-Exchange supports simultaneous access.  
-Read accesses are executed simultaneously.  
-Write accesses creates a lock and avoids dirty reading.
+## Transaction and Simultaneous Access
+XML-Micro-Exchange supports simultaneous access. Read accesses are executed
+simultaneously. Write accesses creates a lock and avoids dirty reading.
 
 
 
 - - -
-
-[Configuration](configuration.md) | [TOC](README.md) | [Getting Started](getting-started.md)
+&#9665; [Configuration](configuration.md)
+&nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
+&nbsp;&nbsp;&nbsp;&nbsp; [Getting Started](getting-started.md) &#9655;
