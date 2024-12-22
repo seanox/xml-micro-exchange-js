@@ -1,88 +1,88 @@
-# The Dockerfile uses multi-stages and targets for different environments
-#     Usage:
-# docker build -t xmex:test --target test .
-# docker build -t xmex:integration --target integration .
-# docker build -t xmex:release --target release .
+FROM openjdk:17-jdk-alpine AS build-environment
 
-FROM node:lts-alpine AS release
-RUN apk update
-RUN apk add libxml2
-RUN apk add libxslt
+ARG ANT_VERSION=1.10.14
+ARG ANT_RELEASE=apache-ant-$ANT_VERSION
+ARG ANT_BINARY=$ANT_RELEASE-bin.tar.gz
+ARG ANT_BINARY_URL=https://dlcdn.apache.org/ant/binaries/$ANT_BINARY
 
-ARG WORKDIR=/xmex
+RUN apk update \
+    && apk upgrade \
+    && apk add wget git tar \
+    && apk add --no-cache nodejs-current npm
+
+RUN mkdir -p /opt
+RUN wget $ANT_BINARY_URL -P /opt
+
+RUN tar -zxvf /opt/$ANT_BINARY -C /opt
+RUN mv /opt/$ANT_RELEASE /opt/ant
+RUN rm -f /opt/$ANT_BINARY
+
+ENV ANT_HOME=/opt/ant
+ENV PATH="${PATH}:${ANT_HOME}/bin"
+
+
+
+FROM build-environment AS build
+
+ARG GIT_REPO_TAG=1.4.0
+ARG GIT_REPO_NAME=xml-micro-exchange-js
+ARG GIT_REPO_URL=https://github.com/seanox
+ARG WORKSPACE=/workspace
+ARG RELEASE_NAME=seanox-xmex
+ARG BUILD_TIMESTAMP=00000000-00000000
+
+# Should prevent the caching of this layer/stage
+RUN echo $BUILD_TIMESTAMP > /tmp/cachebust
+
+WORKDIR $WORKSPACE
+RUN git clone --branch $GIT_REPO_TAG $GIT_REPO_URL/$GIT_REPO_NAME.git
+
+# Optionally, the local sources from the host are used if necessary
+# COPY . $WORKSPACE/$GIT_REPO_NAME
+
+WORKDIR $WORKSPACE/$GIT_REPO_NAME
+RUN ant -f development/build.xml release \
+    && mkdir release/$RELEASE_NAME \
+    && unzip release/$RELEASE_NAME-latest.zip -d release/$RELEASE_NAME
+
+
+
+FROM node:lts-alpine AS runtime
+
+ARG GIT_REPO_NAME=xml-micro-exchange-js
+ARG WORKSPACE=/workspace
+ARG RELEASE_NAME=seanox-xmex
+ARG RELEASE_DIR=$WORKSPACE/$GIT_REPO_NAME/release/$RELEASE_NAME
+ARG APPLICATION_DIR=/usr/local/xmex
 ARG USER=nobody
 
-WORKDIR $WORKDIR
-COPY ./sources/service-build.js ./service.js
-COPY ./sources/service.ini      ./conf/service.ini
-RUN mkdir ./data
-RUN mkdir ./docs
-RUN mkdir ./temp
-RUN chown -R $USER $WORKDIR
+ENV XMEX_DEBUG_MODE=""
+ENV XMEX_CONNECTION_ADDRESS=""
+ENV XMEX_CONNECTION_PORT=""
+ENV XMEX_CONNECTION_CONTEXT=""
+ENV XMEX_CONNECTION_CERTIFICATE=""
+ENV XMEX_CONNECTION_SECRET=""
+ENV XMEX_CONTENT_DIRECTORY=""
+ENV XMEX_CONTENT_DEFAULT=""
+ENV XMEX_CONTENT_REDIRECT=""
+ENV XMEX_STORAGE_DIRECTORY=""
+ENV XMEX_STORAGE_SPACE=""
+ENV XMEX_STORAGE_EXPIRATION=""
+ENV XMEX_STORAGE_QUANTITY=""
+ENV XMEX_STORAGE_REVISION_TYPE=""
+ENV XMEX_LIBXML_DIRECTORY="/usr/bin"
 
-USER $USER
-EXPOSE 8000
-CMD node service.js ./conf/service.ini
+RUN apk update \
+    && apk upgrade \
+    && apk add libxml2 libxslt
 
+RUN mkdir -p $APPLICATION_DIR/data
+COPY --from=build $RELEASE_DIR $APPLICATION_DIR
+RUN chown -R $USER $APPLICATION_DIR
 
-
-# Integration is the release version with test mode enabled.
-# This is used for the integration test before a release.
-# Integration uses the release build with trace outputs.
-# In addition, it creates trace-cumulate.http for the final smoke test.
-
-# docker kill xmex-integration
-# docker build -t xmex:integration --target integration .
-# docker run -d -p 8000:8000/tcp --rm --name xmex-integration xmex:integration
-#     after that manual start of ./test/cumulated.http in IntelliJ / WebStorm
-# docker exec -it xmex-integration sh
-# docker logs xmex-integration
-# docker cp xmex-integration:/xmex/trace.log ./sources/trace-docker.log
-# docker cp xmex-integration:/xmex/trace-cumulate.http ./sources/trace-cumulate.http
-# docker kill xmex-integration
-FROM node:lts-alpine AS integration
-RUN apk update
-RUN apk add libxml2
-RUN apk add libxslt
-
-ARG WORKDIR=/xmex
-ARG USER=nobody
-
-WORKDIR $WORKDIR
-COPY ./sources/service-build-test.js ./service.js
-COPY ./sources/trace-cumulate.js     ./trace-cumulate.js
-COPY ./sources/service.ini           ./conf/
-RUN chown -R $USER $WORKDIR
-
-USER $USER
-EXPOSE 8000
-CMD node service.js ./conf/service.ini
-
-
-
-# docker kill xmex-test
-# docker build -t xmex:test --target test .
-# docker run -d -p 8000:8000/tcp --rm --name xmex-test xmex:test
-#     after that manual start of ./test/cumulated.http in IntelliJ / WebStorm
-# docker exec -it xmex-test sh
-# docker logs xmex-test
-# docker cp xmex-test:/xmex/trace.log ./sources/trace-docker.log
-# docker kill xmex-test
-FROM node:lts-alpine AS test
-RUN apk update
-RUN apk add libxml2
-RUN apk add libxslt
-
-ARG WORKDIR=/xmex
-ARG USER=nobody
-
-WORKDIR $WORKDIR
-RUN chown -R $USER $WORKDIR
-COPY ./package.json .
-RUN npm install
-COPY ./sources/service.js  .
-COPY ./sources/service.ini .
-
-USER $USER
-EXPOSE 8000
+EXPOSE 80
+WORKDIR /usr/local/xmex
 CMD node service.js
+
+# For Docker image development only
+# CMD [ "sh", "-c", "tail -f /dev/null" ]
