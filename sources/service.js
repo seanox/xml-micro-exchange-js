@@ -649,7 +649,7 @@ class Storage {
      * Storage-Expiration-Time: Expiration (milliseconds)
      *
      *     Response codes / behavior:
-     *         HTTP/1.0 201 Resource Created
+     *         HTTP/1.0 201 Created
      * - Storage was newly created
      *         HTTP/1.0 304 Not Modified
      * - Storage already exists
@@ -716,7 +716,7 @@ class Storage {
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
      * - XPath is missing or malformed
-     *         HTTP/1.0 404 Resource Not Found
+     *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
      *         HTTP/1.0 500 Internal Server Error
      * - An unexpected error has occurred
@@ -792,7 +792,7 @@ class Storage {
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
      * - XPath is missing or malformed
-     *         HTTP/1.0 404 Resource Not Found
+     *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
      *         HTTP/1.0 500 Internal Server Error
      * - An unexpected error has occurred
@@ -886,11 +886,11 @@ class Storage {
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
      * - XPath is missing or malformed
      * - XSLT Stylesheet is erroneous
-     *         HTTP/1.0 404 Resource Not Found
+     *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
      *         HTTP/1.0 415 Unsupported Media Type
      * - Attribute request without Content-Type text/plain
-     *         HTTP/1.0 422 Unprocessable Entity
+     *         HTTP/1.0 422 Unprocessable Content
      * - Data in the request body cannot be processed
      *         HTTP/1.0 500 Internal Server Error
      * - An unexpected error has occurred
@@ -1111,13 +1111,13 @@ class Storage {
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
      * - XPath is missing or malformed
-     *         HTTP/1.0 404 Resource Not Found
+     *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
      *         HTTP/1.0 413 Payload Too Large
      * - Allowed size of the request(-body) and/or storage is exceeded
      *         HTTP/1.0 415 Unsupported Media Type
      * - Attribute request without Content-Type text/plain
-     *         HTTP/1.0 422 Unprocessable Entity
+     *         HTTP/1.0 422 Unprocessable Content
      * - Data in the request body cannot be processed
      *         HTTP/1.0 500 Internal Server Error
      * - An unexpected error has occurred
@@ -1526,13 +1526,13 @@ class Storage {
      *         HTTP/1.0 400 Bad Request
      * - Storage header is invalid, 1 - 64 characters (0-9A-Z_-) are expected
      * - XPath is missing or malformed
-     *         HTTP/1.0 404 Resource Not Found
+     *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
      *         HTTP/1.0 413 Payload Too Large
      * - Allowed size of the request(-body) and/or storage is exceeded
      *         HTTP/1.0 415 Unsupported Media Type
      * - Attribute request without Content-Type text/plain
-     *         HTTP/1.0 422 Unprocessable Entity
+     *         HTTP/1.0 422 Unprocessable Content
      * - Data in the request body cannot be processed
      *         HTTP/1.0 500 Internal Server Error
      * - An unexpected error has occurred
@@ -1632,7 +1632,7 @@ class Storage {
      * - XPath is missing or malformed
      *         HTTP/1.0 304 Not Modified
      * - XPath without addressing a target has no effect on the storage
-     *         HTTP/1.0 404 Resource Not Found
+     *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
      *         HTTP/1.0 500 Internal Server Error
      * - An unexpected error has occurred
