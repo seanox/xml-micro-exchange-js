@@ -243,8 +243,6 @@ const XMEX_CONNECTION_CONTEXT = Runtime.getEnv("XMEX_CONNECTION_CONTEXT", "/xmex
 const XMEX_CONNECTION_CERTIFICATE = Runtime.getEnv("XMEX_CONNECTION_CERTIFICATE")
 const XMEX_CONNECTION_SECRET = Runtime.getEnv("XMEX_CONNECTION_SECRET")
 
-const XMEX_REQUEST_XPATH_DELIMITER = Runtime.getEnv("XMEX_REQUEST_XPATH_DELIMITER", "!")
-
 const XMEX_CONTENT_DIRECTORY = Runtime.getEnv("XMEX_CONTENT_DIRECTORY", "./content")
 const XMEX_CONTENT_DEFAULT = Runtime.getEnv("XMEX_CONTENT_DEFAULT", "index.html openAPI.html")
 const XMEX_CONTENT_REDIRECT = Runtime.getEnv("XMEX_CONTENT_REDIRECT")
@@ -254,10 +252,6 @@ const XMEX_STORAGE_SPACE = Number.parseBytes(Runtime.getEnv("XMEX_STORAGE_SPACE"
 const XMEX_STORAGE_EXPIRATION = Date.parseDuration(Runtime.getEnv("XMEX_STORAGE_EXPIRATION", "900s"))
 const XMEX_STORAGE_QUANTITY = Runtime.getEnv("XMEX_STORAGE_QUANTITY", "65535")
 const XMEX_STORAGE_REVISION_TYPE = (XMEX_DEBUG_MODE || Runtime.getEnv("XMEX_STORAGE_REVISION_TYPE", "").toLowerCase() === "serial") ? "serial" : "timestamp";
-
-const XMEX_LOGGING_OUTPUT = Runtime.getEnv("XMEX_LOGGING_OUTPUT", "%X ...")
-const XMEX_LOGGING_ERROR = Runtime.getEnv("XMEX_LOGGING_ERROR", "%X ...")
-const XMEX_LOGGING_ACCESS = Runtime.getEnv("XMEX_LOGGING_ACCESS", "off")
 
 const XMEX_LIBXML_DIRECTORY = Runtime.getEnv("XMEX_LIBXML_DIRECTORY", "./libxml")
 const XMEX_LIBXML_XSLTPROC = (XMEX_LIBXML_DIRECTORY.trim() || ".")
@@ -431,11 +425,6 @@ class Storage {
     /** Maximum idle time of the files in seconds */
     static get EXPIRATION() {
         return XMEX_STORAGE_EXPIRATION
-    }
-
-    /** Character or character sequence of the XPath delimiter in the URI */
-    static get DELIMITER() {
-        return XMEX_REQUEST_XPATH_DELIMITER
     }
 
     /** Activates the debug and test mode (supports on, true, 1) */
