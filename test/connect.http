@@ -66,7 +66,7 @@ client.test("unittest", function() {
 
 ###
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 CONNECT {{service}} HTTP/1.0
@@ -87,7 +87,7 @@ client.test("unittest", function() {
 ###
 # The storage identifier with the max. length
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 CONNECT {{service}} HTTP/1.0
@@ -129,7 +129,7 @@ client.test("unittest", function() {
 ###
 # The storage identifier is case-sensitive
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 CONNECT {{service}} HTTP/1.0
@@ -150,7 +150,7 @@ client.test("unittest", function() {
 ###
 # The storage identifier with the min. length
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 CONNECT {{service}} HTTP/1.0
@@ -191,7 +191,7 @@ client.test("unittest", function() {
 ###
 # Header Storage with a minus is valid
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 CONNECT {{service}} HTTP/1.0
@@ -253,7 +253,7 @@ client.test("unittest", function() {
 # Everything is correct, storage and name of the root element are transmitted
 # correctly, the storage can be created.
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 CONNECT {{service}} HTTP/1.0
@@ -297,7 +297,7 @@ client.test("unittest", function() {
 # Name of the root element is part of the storage file name.
 # book vs. bookS opens a new/different storage.
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 CONNECT {{service}} HTTP/1.0
@@ -339,7 +339,7 @@ client.test("unittest", function() {
 # Name of the root element is not defined and is different with the default name
 # data. Therefore, a new storage is created for 'data'.
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/71 bytes
 CONNECT {{service}} HTTP/1.0

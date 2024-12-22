@@ -7,7 +7,7 @@
 ###
 # Storage is not establish
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 GET {{service}}/ HTTP/1.0
 Storage: {{storage_get}}
 
@@ -26,7 +26,7 @@ client.test("unittest", function() {
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 PUT {{service}} HTTP/1.0
 Storage: {{storage_get}}
 

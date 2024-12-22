@@ -8,7 +8,7 @@
 # Storage is not establish
 # Round brackets in XPath should not be a problem.
 # Expectations:
-# - Status code 404 Resource Not Found
+# - Status code 404 Not Found
 DELETE {{service}}(/books/book%5B1%5D)/chapter%5B1%5D::first HTTP/1.0
 Storage: {{storage_delete_element_pseudo}}
 
@@ -27,7 +27,7 @@ client.test("unittest", function() {
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0

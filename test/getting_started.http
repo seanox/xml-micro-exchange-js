@@ -2,7 +2,7 @@
 # getting-started.md.
 
 ###
-# - HTTP/1.0 201 Resource Created
+# - HTTP/1.0 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0
