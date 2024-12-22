@@ -1,11 +1,13 @@
 /.idea
 /.project
+
 /node_modules/
+
 /release/
+
 /sources/data/
 /sources/libxml*/
-/sources/logs/
-/sources/*-build*.js
-/sources/*.pem
-/test/cumulate.http
 /package-lock.json
+
+/test/cli/
+/test/cli.zip
