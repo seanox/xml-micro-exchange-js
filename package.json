@@ -2,7 +2,7 @@
   "name": "xmex",
   "version": "0.0.0",
   "description": "XML and XPath based volatile NoSQL stateless micro datasource for data exchange for web applications and IoT",
-  "main": "releases/xmex.js",
+  "main": "build/service.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/seanox/xml-micro-exchange-js.git"
@@ -32,6 +32,7 @@
     "url": "https://github.com/seanox/xml-micro-exchange-js/issues"
   },
   "homepage": "https://github.com/seanox/xml-micro-exchange-js#readme",
+  "type": "module",
   "scripts": {
     "build": "webpack",
     "start": "node service.js"
@@ -41,10 +42,10 @@
     "he": "^1.2.0",
     "mime": "^4.0.4",
     "xmldom": "^0.6.0",
-    "xpath": "0.0.34"
+    "xpath": "^0.0.34"
   },
   "devDependencies": {
-    "webpack": "^5.96.1",
+    "webpack": "^5.97.1",
     "webpack-cli": "^5.1.4"
   }
 }

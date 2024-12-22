@@ -1,16 +1,23 @@
-const path = require("path")
+import path from "path"
 
-const SOURCE_PATH = "./sources"
+const BUILD_PATH = "./build"
 
-module.exports = {
-    entry: SOURCE_PATH + "/service.js",
-    target: "node",
+export default {
+    entry: BUILD_PATH + "/service.js",
     mode: "production",
+    target: "node",
     output: {
-        filename: "service-build.js",
-        path: path.resolve(__dirname, SOURCE_PATH)
+        filename: "service.js",
+        path: path.resolve("build")
     },
     optimization: {
         minimize: false
+    },
+    module: {
+        rules: [
+            {
+                exclude: /node_modules/
+            }
+        ]
     }
 }
