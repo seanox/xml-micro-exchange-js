@@ -1,4 +1,4 @@
-&#9665; [API](api.md)
+&#9665; [Statistic](statistic.md)
 &nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
 &nbsp;&nbsp;&nbsp;&nbsp; [Development](development.md) &#9655;
 - - -
@@ -47,6 +47,6 @@ Execution-Time: 16 ms
 
 
 - - -
-&#9665; [API](api.md)
+&#9665; [Statistic](statistic.md)
 &nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
 &nbsp;&nbsp;&nbsp;&nbsp; [Development](development.md) &#9655;
