@@ -1,27 +1,34 @@
 1.6.0 2025xxxx
 BF: Build: Optimization / correction
-BF: Build: Optimization / correction of the release info process
 BF: Build: Update of dependencies
 CR: Service: A missing certificate file only causes a warning
     Useful if the certificate must first be initially requested via ACME challenge.
-CR: Documentation: Update of OpenAPI
 CR: Service: Optimization of the configuration via environment variables
     Simplifies the provision as a container.
-    - XMEX_URI_XPATH_DELIMITER: XPath delimiter in the URI (!)
-    - XMEX_STORAGE_DIRECTORY: Directory of the data storage (./data)
-    - XMEX_STORAGE_QUANTITY: Maximum number of files in data storage (65535)
-    - XMEX_STORAGE_SPACE: Maximum data size of files in data storage in bytes (256 *1024)
-    - XMEX_STORAGE_EXPIRATION: Maximum idle time of the files in seconds (15 *60)
-    - XMEX_STORAGE_REVISION_TYPE: Basis of the revision number (timestamp)
     - XMEX_DEBUG_MODE: Activates debug mode for unit tests (off)
     - XMEX_CONTAINER_MODE: Activates debug mode for unit tests (off)
-    TODO:
+    - XMEX_CONNECTION_ADDRESS: Host name or IP where the server is listening (0.0.0.0)
+    - XMEX_CONNECTION_PORT: Port where the server is listening (80)
+    - XMEX_CONNECTION_CONTEXT: Context path of the URI from service (/xmex!)
+    - XMEX_CONNECTION_CERTIFICATE: Path of the server certificate for HTTPS
+    - XMEX_CONNECTION_SECRET: Key or passphrase of the server certificate for HTTPS
+    - XMEX_CONTENT_DIRECTORY: Path of static content (./content)
+    - XMEX_CONTENT_DEFAULT: Default files when requesting directories in the static content (index.html openAPI.html)
+    - XMEX_CONTENT_REDIRECT: Optional permanent redirection for static content requests
+    - XMEX_STORAGE_DIRECTORY: Directory of the data storage (./data)
+    - XMEX_STORAGE_SPACE: Maximum data size of files in data storage in bytes (256k)
+    - XMEX_STORAGE_EXPIRATION: Maximum idle time of the files in seconds (900s)
+    - XMEX_STORAGE_QUANTITY: Maximum number of files in data storage (65535)
+    - XMEX_STORAGE_REVISION_TYPE: Basis of the revision number (timestamp)
+    - XMEX_LIBXML_DIRECTORY: Path of libxml (./libxml)
 CR: Service: Added HTTP method CONNECT (analog to the PHP version)
 CR: Service: Review and optimization of OPTIONS
     - Omission of the response header Storage-Effects.
     - Omission as an alternative to CONNECT.
-      If CONNECT is not allowed use TOUCH.
-      If TOUCH is not allowed use PUT without XPath.
+    - Please use PUT without XPath.
+CR: Service: Review and optimization of TOUCH
+    - Omission as an alternative to CONNECT.
+    - Please use PUT without XPath.
 CR: Service: JSON transformation uses the Accept header
     Option !json in the URI is omitted!
 CR: Service: Optimization of the xsltproc integration
@@ -32,6 +39,7 @@ CR: Storage: Review and optimization
     beginning and not at the end.
 CR: ACME: Omitted as integrated component
     Because the challenge was not fully implemented, the ACME was removed.
+CR: Documentation: Update of OpenAPI
 
 1.4.1 20220717
 BF: Statistic: Correction of the calculation of inbound / outbound
