@@ -7,7 +7,7 @@
 ###
 # Initial request to establish the storage
 # Expectations:
-# - Status code 201 Resource Created
+# - Status code 201 Created
 # - Storage-Revision: 1/1
 # - Storage-Space: 262144/72 bytes
 PUT {{service}} HTTP/1.0
