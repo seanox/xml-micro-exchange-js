@@ -155,6 +155,10 @@ http.IncomingMessage.prototype.acceptMediaType = function(media, strict = false)
     return accept.includes(media.toLowerCase())
 }
 
+Boolean.parse = function(text) {
+    return /^(true|1|on)$/i.test(String(text));
+}
+
 Date.parseDuration = function(text) {
     if (String.isEmpty(text))
         throw "Date parser error: Invalid value"
@@ -234,8 +238,8 @@ String.prototype.byteLength = function() {
     return Buffer.byteLength(this, "utf8")
 }
 
-const XMEX_DEBUG_MODE = Runtime.getEnv("XMEX_DEBUG_MODE", "off")
-const XMEX_CONTAINER_MODE = Runtime.getEnv("XMEX_CONTAINER_MODE", "off")
+const XMEX_DEBUG_MODE = Boolean.parse(Runtime.getEnv("XMEX_DEBUG_MODE", "off"))
+const XMEX_CONTAINER_MODE = Boolean.parse(Runtime.getEnv("XMEX_CONTAINER_MODE", "off"))
 
 const XMEX_CONNECTION_ADDRESS = Runtime.getEnv("XMEX_CONNECTION_ADDRESS", "0.0.0.0")
 const XMEX_CONNECTION_PORT = Runtime.getEnv("XMEX_CONNECTION_PORT", 80)
