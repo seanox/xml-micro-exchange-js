@@ -239,7 +239,6 @@ String.prototype.byteLength = function() {
 }
 
 const XMEX_DEBUG_MODE = Boolean.parse(Runtime.getEnv("XMEX_DEBUG_MODE", "off"))
-const XMEX_CONTAINER_MODE = Boolean.parse(Runtime.getEnv("XMEX_CONTAINER_MODE", "off"))
 
 const XMEX_CONNECTION_ADDRESS = Runtime.getEnv("XMEX_CONNECTION_ADDRESS", "0.0.0.0")
 const XMEX_CONNECTION_PORT = Runtime.getEnv("XMEX_CONNECTION_PORT", 80)
@@ -434,11 +433,6 @@ class Storage {
     /** Activates the debug and test mode (supports on, true, 1) */
     static get DEBUG_MODE() {
         return XMEX_DEBUG_MODE
-    }
-
-    /** Activates the container mode (supports on, true, 1) */
-    static get CONTAINER_MODE() {
-        return XMEX_CONTAINER_MODE
     }
 
     /** Defines the revision type (serial, timestamp) */
