@@ -1,6 +1,6 @@
 &#9665; [Getting Started](getting-started.md)
 &nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
-&nbsp;&nbsp;&nbsp;&nbsp; [Error Handling](error-handling.md) &#9655;
+&nbsp;&nbsp;&nbsp;&nbsp; [Statistic](statistic.md) &#9655;
 - - -
 
 # API
@@ -26,4 +26,4 @@ TODO:
 - - -
 &#9665; [Getting Started](getting-started.md)
 &nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
-&nbsp;&nbsp;&nbsp;&nbsp; [Error Handling](error-handling.md) &#9655;
+&nbsp;&nbsp;&nbsp;&nbsp; [Statistic](statistic.md) &#9655;
