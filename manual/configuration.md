@@ -135,10 +135,10 @@ __Application relevant directories:__
 - `/usr/local/xmex/content`
 - `/usr/local/xmex/data`
 
-__Node.js relevant directories:__
+__Node.js relevant locations:__
 - `/usr/local/bin/node`
 
-__libxml relevant directories:__
+__libxml relevant locations:__
 - `/usr/bin/xsltproc`
 
 
