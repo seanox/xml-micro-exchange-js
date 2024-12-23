@@ -99,6 +99,19 @@
         replace="\1${release.version}"/>
   </target>
 
+  <macrodef name="exec-npm">
+    <element name="args" implicit="yes"/>
+    <sequential>
+      <exec executable="cmd.exe" failonerror="true" osfamily="windows" logError="true">
+        <arg line="/c npm"/>
+        <args/>
+      </exec>
+      <exec executable="npm" failonerror="true" osfamily="unix" logError="true">
+        <args/>
+      </exec>
+    </sequential>
+  </macrodef>
+
   <target name="release" depends="changes">
     <release-locate/>
 
@@ -132,10 +145,10 @@
     <replaceregexp file="${workspace.build}/service.js"
         match="(?i)(Copyright \(C\))\s+\d{4}" flags="g" byline="true"
         replace="\1 ${release.year}"/>
-    <exec executable="npm" failonerror="true">
+    <exec-npm>
       <arg value="run"/>
       <arg value="build"/>
-    </exec>
+    </exec-npm>
     <touch datetime="${release.date}" pattern="yyyyMMdd">
       <fileset dir="${workspace.build}"/>
     </touch>
