@@ -1113,7 +1113,7 @@ class Storage {
      * - XPath is missing or malformed
      *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
-     *         HTTP/1.0 413 Payload Too Large
+     *         HTTP/1.0 413 Content Too Large
      * - Allowed size of the request(-body) and/or storage is exceeded
      *         HTTP/1.0 415 Unsupported Media Type
      * - Attribute request without Content-Type text/plain
@@ -1528,7 +1528,7 @@ class Storage {
      * - XPath is missing or malformed
      *         HTTP/1.0 404 Not Found
      * - Storage file does not exist
-     *         HTTP/1.0 413 Payload Too Large
+     *         HTTP/1.0 413 Content Too Large
      * - Allowed size of the request(-body) and/or storage is exceeded
      *         HTTP/1.0 415 Unsupported Media Type
      * - Attribute request without Content-Type text/plain
