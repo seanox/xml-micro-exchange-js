@@ -1,26 +1,28 @@
-[Motivation](motivation.md) | [TOC](README.md) | [Configuration](configuration.md)
+&#9665; [Motivation](motivation.md)
+&nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
+&nbsp;&nbsp;&nbsp;&nbsp; [Configuration](configuration.md) &#9655;
 - - -
 
 # Installation
 
-__This chapter is only relevant if you want to run the Datasource on your own
-server.  
-If you want to use an existing Datasource on the Internet, you can skip
-this chapter.__
+> [!NOTE]
+> __This chapter is only relevant if you want to run the Datasource on your own
+> server. If you want to use an existing Datasource on the Internet, you can
+> skip this chapter.__
 
 
 ## Contents Overview
 
-  * [libxml2](#libxml2)
-  * [Node.js](#nodejs)
-  * [Service](#service)   
-  * [Web Server](#web-server)
+* [libxml2](#libxml2)
+* [Node.js](#nodejs)
+* [Service](#service)
+* [Web Server](#web-server)
 * [Windows Distribution](#windows-distribution)
 * [Linux](#linux)
-  * [libxml2](#libxml2-1)
-  * [Node.js](#nodejs-1)
-  * [Daemon](#daemon)
-  * [Web Server](#web-server-1)
+    * [libxml2](#libxml2-1)
+    * [Node.js](#nodejs-1)
+    * [Daemon](#daemon)
+    * [Web Server](#web-server-1)
 * [Container](#container)
 
 
@@ -32,21 +34,19 @@ and so the following directory structure is only an example.
 
 ```
 + xmex
+  + content
   + data 
-  + docs
-  + libxml2
+  + libxml
     - libxml2-2.dll
     - libxslt-1.dll
     - xsltproc.exe
     - ...
-  + logs  
   + node
     - node.exe
     - ...
   + nssm
     - nssm.exe
     - ...
-  + temp  
   - service.js
   - service.cmd 
 ```
@@ -91,26 +91,21 @@ directory as follows.
 
 ## Service
 
-Using Seanox XMEX as a Windows service is completely optional. Here the use
-of [NSSM - the Non-Sucking Service Manager](https://nssm.cc) is described.
-
-For installation, follow the instructions on the manufacturer's page.
+Using Seanox XMEX as a Windows service is completely optional. Here the use of
+[NSSM - the Non-Sucking Service Manager](https://nssm.cc) is described. For installation,
+follow the instructions on the manufacturer's page.
 
 Easier is use of the [Windows Distribution](#windows-distribution).
 
 ## Web Server
 
 For responding to requests outside the XMEX API path, the integrated web server
-can be used. The directory `./docs` is the document root. The web server
-implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`.
-Default files can be specified when calling directories. A listing of directory
-contents (Directory Index) is not implemented. Requests from directories
-without default are responded with status 403.  
-Alternatively, static or dynamic forwarding can be configured.
-
-The web server function is disabled by default and is configured in
-`service.ini` in section `CONTENT`. Without the web server function, requests
-outside the XMEX API path are responded to with status 404.
+can be used. The directory `./content` is the document root. The web server
+implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`. Default
+files can be specified when calling directories. A listing of directory contents
+(Directory Index) is not implemented. Requests from directories without default
+are responded with status 403. Alternatively, static or dynamic forwarding can
+be configured.
 
 
 # Windows Distribution
@@ -122,20 +117,20 @@ service.
 Download the library here: https://github.com/seanox/xml-micro-exchange-js/releases
 
 Also with the Windows distribution, the archive can be unpacked anywhere file
-system. Because the service should run with a Windows service account and
-proper access rights, it is recommended to place and install it outside the
-user profiles.
+system. Because the service should run with a Windows service account and proper
+access rights, it is recommended to place and install it outside the user
+profiles.
 
 By default, the service is installed with the Windows service account
-`NetworkService`, but other service accounts can also be used. The access
-rights required for the program directory are set during installation.
+`NetworkService`, but other service accounts can also be used. The access rights
+required for the program directory are set during installation.
 
 The parameters to configure the service have been bundled in the batch file and
 are easily accessible.
 
-To install the service, the batch file `service.cmd` is used. 
-To do this, open the console (shell/prompt) as administrator and change to the
-application directory and call the batch file with the desired function.
+To install the service, the batch file `service.cmd` is used. To do this, open
+the console (shell/prompt) as administrator and change to the application
+directory and call the batch file with the desired function.
 
 ```
 usage: service.cmd [command]
@@ -184,12 +179,9 @@ After unpacking, the following directory structure should be available.
 
 ```
 + xmex
+  + content 
   + data
-  + docs 
-  + logs
-  + temp  
   - service.js
-  - service.cmd 
 ```
 
 Afterwards the installation of the further runtime components follows. Before
@@ -280,17 +272,11 @@ Overview of available commands for the daemon:
 
 For responding to requests outside the XMEX API path, the integrated web server
 can be used. The directory `./docs` is the document root. The web server
-implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`.
-Default files can be specified when calling directories. A listing of directory
-contents (Directory Index) is not implemented. Requests from directories
-without default are responded with status 403.  
-Alternatively, static or dynamic forwarding can be configured.  
-The web server function is disabled by default and is configured in
-`service.ini` in section `CONTENT`.
-
-The web server function is disabled by default and is configured in
-`service.ini` in section `CONTENT`. Without the web server function, requests
-outside the XMEX API path are responded to with status 404.
+implements only the elementary HTTP methods `OPTIONS`, `HEAD` and `GET`. Default
+files can be specified when calling directories. A listing of directory contents
+(Directory Index) is not implemented. Requests from directories without default
+are responded with status 403. Alternatively, static or dynamic forwarding can
+be configured.  
 
 
 # Container
@@ -302,53 +288,36 @@ The container is available in the Docker Hub: https://hub.docker.com/repository/
 The service runs with the user `nobody` and is therefore not a root.
 
 ```
-docker run -d -p 8000:8000/tcp --rm --name xmex seanox/xmex:latest
+docker run -d -p 80:80/tcp --rm --name xmex seanox/xmex:latest
 ```
 
-The REST API is then usable via all host and IP address allowed/supported for the container as follows.  
-A direct browser request is answered with status 400.  
+The REST API is then usable via all host and IP address allowed/supported for
+the container as follows. A direct browser request is answered with status 400.  
 Please read more about the usage of the [API](api.md).
 ```
-http://localhost:8000/xmex!
+http://localhost/xmex!
 ```
 
 ## Directory Structure
 
 ```
 + xmex
-  + conf
-    - service.ini
+  + content
+    - ...  
   + data
     - <storage>.xml
     - ...
-  + docs
-    - ...  
-  + logs
-    - <date>-<host>-access.log
-    - <date>-error.log
-    - <date>-output.log
-    - ...
-  + temp
-    - ...  
   - service.js
 ```
-The directories `/xmex/conf`, `/xmex/data`, `/xmex/docs`, `/xmex/logs` and
-`/xmex/temp` can be mapped, binded to other places or be changed and
-overwritten in their own images. For the configuration of the service
-`/xmex/conf/service.ini` is used.
+The directories `/xmex/data` and `/xmex/content` can be mapped, binded to other
+places or be changed and overwritten in their own images. For the configuration
+of the service the environment variables are used.
 
-The directories `./data` and `./temp` need read-write access in the fil
-system. The `./data` directory is used for storage files and the `./temp`
-directory is used by the XSLT processor as a temporary data store and is not
-configurable. Both directories must be mapped if the container is used with a
-read-only file system.
-
-The directory `/xmex/docs` is used as place of the files for the integrated web
-server. This is used for requests outside of the XMEX API path. This function
-must be enabled and configured in the `service.ini` section `CONTENT`.
-
+The directory `./data` need read-write access in the fil system. This must be
+taken into account if the container is used with a read-only file system.
 
 
 - - -
-
-[Motivation](motivation.md) | [TOC](README.md) | [Configuration](configuration.md)
+&#9665; [Motivation](motivation.md)
+&nbsp;&nbsp;&nbsp;&nbsp; &#8801; [Table of Contents](README.md)
+&nbsp;&nbsp;&nbsp;&nbsp; [Configuration](configuration.md) &#9655;
