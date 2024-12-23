@@ -113,7 +113,7 @@ CR: Service: Added an access statistic for StdOut
     2021-02-21 09:00:00 Statistic Requests 424, Inbound 0.73 MB, Outbound 0.17 MB, Execution 0.58 min, Errors 0
 CR: Service: Added Request Data Limit (for all HTTP methods)
     If the request overruns the data limit, the request is responded with
-    status 415 Payload Too Large. The limit is configurable in section
+    status 415 Content Too Large. The limit is configurable in section
     REQUEST, key DATA-LIMIT
 CR: Service: Added optional ACME challenge function
     e.g. for Cerbot and Let's Encrypt
