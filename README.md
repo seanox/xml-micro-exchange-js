@@ -74,10 +74,6 @@ __All meet without obligation.__
   rudimentary form. The storage(-key) with a length of 1 - 64 characters and
   the individual root element can be regarded as secret. In addition, HTTPS is
   supported but without client certificate authorization.
-- __ACME Challenge Support__  
-  Support of ACME HTTP-01 challenge for automated certificate management e.g.
-  with [Let's Encrypt](https://letsencrypt.org/) +
-  [Cerbot](https://certbot.eff.org/).
 - __Containerization__  
   XML-Micro-Exchange is also available as a container image on Docker Hub:
   https://hub.docker.com/r/seanox/xmex
