@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Seanox XMEX - XML-Micro-Exchange
-  version: 0.0.0
+  version: 1.6.0
   description: |
     XML-Micro-Exchange is a RESTful volatile NoSQL stateless micro datasource
     for the Internet. It is designed for easy communication and data exchange of
