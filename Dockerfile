@@ -24,7 +24,7 @@ ENV PATH="${PATH}:${ANT_HOME}/bin"
 
 FROM build-environment AS build
 
-ARG GIT_REPO_TAG=1.4.0
+ARG GIT_REPO_TAG=1.6.0
 ARG GIT_REPO_NAME=xml-micro-exchange-js
 ARG GIT_REPO_URL=https://github.com/seanox
 ARG WORKSPACE=/workspace

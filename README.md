@@ -105,13 +105,13 @@ specific language governing permissions and limitations under the License.
 
 
 # Downloads
-[Seanox XML-Micro-Exchange 1.4.1](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.1/seanox-xmex-1.4.1.zip)
+[Seanox XML-Micro-Exchange 1.6.0](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.6.0/seanox-xmex-1.6.0.zip)
 
 
 # Distributions for Microsoft Windows
 Complete package without Node.js to use as a Windows service.
 
-[Seanox XML-Micro-Exchange 1.4.1](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.4.1/seanox-xmex-1.4.1-win.zip)
+[Seanox XML-Micro-Exchange 1.6.0](https://github.com/seanox/xml-micro-exchange-js/releases/download/1.6.0/seanox-xmex-1.6.0-win.zip)
 
 
 # Docker Image
@@ -124,7 +124,7 @@ __[Terms of Service](https://xmex.seanox.com/terms.html) and__
 __[Privacy Policy](https://xmex.seanox.com/privacy.html).__
 
 __Web site and documentation__  
-[https://xmex.seanox.com/](https://xmex.seanox.com/)  
+[https://xmex.seanox.com/](https://xmex.seanox.com/)
 
 __Service Endpoint URL__  
 [https://xmex.seanox.com/xmex!](https://xmex.seanox.com/xmex!)   
@@ -132,15 +132,14 @@ __Service Endpoint URL__
 __Please do not get confused, the API is online.  
 Requests without storage identifier (see [manual](manual/README.md#manual))
 are responded with status 400.__  
-See also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange/master/openapi/service.yaml)
-or open [OpenAPI YAML in a GUI](https://editor.swagger.io/?url=https://raw.githubusercontent.com/seanox/xml-micro-exchange/master/openapi/service.yaml).
+See also [OpenAPI YAML](https://raw.githubusercontent.com/seanox/xml-micro-exchange-php/master/sources/openAPI.yaml)
+or open [OpenAPI YAML in a GUI](https://xmex.seanox.com/openAPI.html).
 
-It is a small server (1 Core, 1 GB, 10 GB SSD) in a big data center -- but
+It is a small server (1 vCore, 1 GB RAM, 10 GB SSD) in a big data center -- but
 apparently enough.  
 __Sponsors are always welcome.__  
-The project needs if possible more power.  
-It costs about 5 Euro per month for 65536 x 1024 kB with double CPU cores and
-double memory.
+It costs about 5 Euro per month for 1,000,000 storages x 64 kB with double CPU
+cores and double memory.
 
 __Example Multiplayer Snake (Online)__  
 https://xmex.seanox.com/snake.html
@@ -172,16 +171,19 @@ https://xmex.seanox.com/snake.html
 
 
 # Changes 
-## 1.4.1 20220717 
-BF: Statistic: Correction of the calculation of inbound / outbound  
-BF: Build: Optimization / correction of the release info process  
-CR: Build: Updated dependencies  
-CR: Build: Enhancement of Ant task clean for cleaning temporary test data  
-CR: Build: Renamed Ant libxml to install  
-CR: Build: Change from .credentials to environment variables  
-CR: Statistic: Changed execution time in seconds (was previously in minutes)  
-NT: Releases only as attachments on the GitHub release page  
-NT: Harmonization of version numbers for the different implementations  
+## 1.6.0 20241223  
+BF: Build: Optimization / correction  
+BF: Build: Update of dependencies  
+CR: Service: A missing certificate file only causes a warning  
+CR: Service: Optimization of the configuration via environment variables  
+CR: Service: Added HTTP method CONNECT (analog to the PHP version)  
+CR: Service: Review and optimization of OPTIONS  
+CR: Service: Review and optimization of TOUCH  
+CR: Service: JSON transformation uses the Accept header  
+CR: Service: Optimization of the xsltproc integration  
+CR: Storage: Review and optimization  
+CR: ACME: Omitted as integrated component  
+CR: Documentation: Update of OpenAPI  
 
 [Read more](https://raw.githubusercontent.com/seanox/xml-micro-exchange-js/master/CHANGES)
 
