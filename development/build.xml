@@ -95,7 +95,7 @@
         match="(?si)\b(version: )\d+(\.\d+)*" flags="g" byline="true"
         replace="\1${release.version}"/>
     <replaceregexp file="${workspace}/Dockerfile"
-        match="(?si)\b(ARG\s+GIT_REPO_TAG\s*=\s*)\d+(\.\d+)*" flags="g" byline="true"
+        match="(?si)\b(ARG\s+GIT_REPO_TAG\s*=\s*)\d+[\.\d+]*" flags="g" byline="true"
         replace="\1${release.version}"/>
   </target>
 
