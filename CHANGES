@@ -41,6 +41,7 @@ CR: Storage: Review and optimization
     beginning and not at the end.
 CR: ACME: Omitted as integrated component
     Because the challenge was not fully implemented, the ACME was removed.
+    Certbot and the DNS-01 Challenge are the better choice.
 CR: Documentation: Update of OpenAPI
 
 1.4.1 20220717
