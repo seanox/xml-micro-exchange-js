@@ -81,7 +81,7 @@ Default: `./content`
 List of standard files separated by spaces when requesting directories in the
 static content.
 
-Default: `index.html openAPI.html`
+Default: `index.html index.xhtml openAPI.html openAPI.xhtml`
 
 ### XMEX_CONTENT_REDIRECT
 Optional permanent redirection for static content requests.

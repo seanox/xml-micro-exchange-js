@@ -1,5 +1,7 @@
 1.6.1 2025xxxx
 BF: Build: Optimization / correction
+CR: Configuration: Updating the default value of XMEX_CONTENT_DEFAULT
+    - index.html index.xhtml openAPI.html openAPI.xhtml
 
 1.6.0 20241223
 BF: Build: Optimization / correction
