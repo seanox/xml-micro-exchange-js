@@ -1194,6 +1194,20 @@ paths:
         then tags  of the same name of these attributes are used, which contain
         the value of the attribute as content.
         
+        __With XPath, it should be noted that an XSLT stylesheet with embedded
+        XML data is used for the XSLT processor.__
+
+        ```        
+        <?xml version="1.0" encoding="UTF-8"?>
+        <?xml-stylesheet type="text/xml" href="#stylesheet"?>
+        <!DOCTYPE ANY [<!ATTLIST xsl:stylesheet id ID #REQUIRED>]>
+        <data>...</data>
+        <xsl:stylesheet id="stylesheet" version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        <xsl:template match="/">...</xsl:template>
+        </xsl:stylesheet>
+        ```
+        
         The processing is strict and does not accept unnecessary spaces.
 
         ## Request
